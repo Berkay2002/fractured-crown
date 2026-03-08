@@ -657,7 +657,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
 
           {/* Right column — scrollable content + sticky footer */}
           <div className="flex flex-col h-full overflow-hidden px-8">
-            <div className="flex-1 min-h-0 overflow-y-auto lobby-right-scroll pr-2" style={{ scrollbarGutter: 'stable' }}>
+            <div className="flex-1 min-h-0 overflow-y-auto pr-2" style={{ scrollbarGutter: 'stable' }}>
               <div className="flex flex-col gap-6">
                 {/* Player count + grid in a surface card */}
                 <div className="rounded-lg border border-primary/20 bg-card p-5">
