@@ -114,6 +114,17 @@ const Room = () => {
           if (me) setCurrentPlayerId(me.id);
         }
       }
+
+      const { data: chatData } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('room_id', roomData.id)
+        .eq('phase', 'lobby')
+        .order('created_at', { ascending: true });
+
+      if (chatData) {
+        setLobbyMessages(chatData as unknown as LobbyMessage[]);
+      }
     } catch {
       setFetchError(true);
     }
