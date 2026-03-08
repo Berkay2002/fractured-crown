@@ -215,11 +215,11 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               }`}
               title={isTaken ? `${sigil} — taken` : sigil}
             >
-              <div className="relative flex h-10 w-10 md:h-16 md:w-16 lg:h-14 lg:w-14 items-center justify-center overflow-hidden rounded-full">
+              <div className="relative flex h-10 w-10 md:h-14 md:w-14 items-center justify-center overflow-hidden rounded-full">
                 <img
                   src={sigilImageUrl(sigil)}
                   alt={sigil}
-                  className="h-10 w-10 md:h-16 md:w-16 lg:h-14 lg:w-14 rounded-full object-cover"
+                  className="h-10 w-10 md:h-14 md:w-14 rounded-full object-cover"
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 />
                 {isTaken && (
