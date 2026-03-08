@@ -35,6 +35,7 @@ interface RoomLobbyProps {
 const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyProps) => {
   const navigate = useNavigate();
   const [starting, setStarting] = useState(false);
+  const [selectedSigil, setSelectedSigil] = useState<string | null>(null);
   const [transferringTo, setTransferringTo] = useState<number | null>(null);
   const [confirmingTransfer, setConfirmingTransfer] = useState<number | null>(null);
   const isHost = currentPlayerId && room.host_player_id === currentPlayerId;
