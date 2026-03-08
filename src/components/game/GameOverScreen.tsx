@@ -91,10 +91,10 @@ const CHRONICLE_EVENT_TYPES = new Set([
 const eventIcon = (eventType: string) => {
   if (eventType.includes('vote')) return Vote;
   if (eventType.includes('policy') || eventType.includes('edict') || eventType.includes('chaos')) return ScrollIcon;
-  if (eventType.includes('execution')) return Skull;
+  if (eventType.includes('execution')) return Swords;
   if (eventType.includes('investigation') || eventType.includes('peek')) return Eye;
   if (eventType.includes('election')) return Zap;
-  if (eventType.includes('game_over')) return Shield;
+  if (eventType.includes('game_over')) return Crown;
   return ScrollIcon;
 };
 
