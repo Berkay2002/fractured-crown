@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Crown, Scroll, User, Shield, Skull, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EdictTracker from './EdictTracker';
@@ -10,6 +10,7 @@ import EventLogFeed from './EventLogFeed';
 import ChatPanel from './ChatPanel';
 import RoleReveal from './RoleReveal';
 import PhaseTransitionBanner from './PhaseTransitionBanner';
+import MobileActionBar from './MobileActionBar';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { GameRoomState } from '@/hooks/useGameRoom';
@@ -47,6 +48,7 @@ const GameBoard = ({
   const [showRoleReveal, setShowRoleReveal] = useState(true);
   const [nominatingLC, setNominatingLC] = useState(false);
   const [nominating, setNominating] = useState(false);
+  const [mobileVoting, setMobileVoting] = useState(false);
 
   const isHerald = gameState?.current_herald_id === currentPlayerId;
   const phase = gameState?.current_phase ?? 'election';
@@ -66,6 +68,22 @@ const GameBoard = ({
       sessionStorage.setItem(`role-seen-${gameState.room_id}`, '1');
     }
   };
+
+  const handleMobileVote = useCallback(async (choice: 'ja' | 'nein') => {
+    if (!gameState) return;
+    setMobileVoting(true);
+    const { data, error } = await supabase.functions.invoke('submit-vote', {
+      body: { room_id: gameState.room_id, vote: choice },
+    });
+    setMobileVoting(false);
+    if (error || data?.error) {
+      toast({ title: 'Vote failed', description: data?.error || error?.message, variant: 'destructive' });
+      return;
+    }
+    if (data?.herald_hand && isHerald) {
+      setHeraldHand(data.herald_hand);
+    }
+  }, [gameState?.room_id, isHerald, setHeraldHand]);
 
   if (!gameState) return null;
 
@@ -88,6 +106,10 @@ const GameBoard = ({
       (players.filter(pl => pl.is_alive).length <= 5 || p.id !== gameState.last_elected_herald_id)
     )
     .map(p => p.id);
+
+  const roundVotes = votes.filter(v => v.round_id === currentRound?.id);
+  const allVotesRevealed = roundVotes.length > 0 && roundVotes.every(v => v.revealed);
+  const hasVotedAlready = roundVotes.some(v => v.player_id === currentPlayerId);
 
   const handleNominate = async (nomineeId: number) => {
     setNominatingLC(false);
@@ -246,6 +268,24 @@ const GameBoard = ({
           />
         </div>
       </div>
+
+      {/* Mobile bottom action bar */}
+      <MobileActionBar
+        gameState={gameState}
+        currentPlayerId={currentPlayerId}
+        phase={phase}
+        hasVoted={hasVotedAlready}
+        allVotesRevealed={allVotesRevealed}
+        hasNominatedLC={!!gameState.current_lord_commander_id}
+        nominatingLC={nominatingLC}
+        onVote={handleMobileVote}
+        onStartNominate={() => setNominatingLC(true)}
+        voting={mobileVoting}
+        nominating={nominating}
+      />
+
+      {/* Bottom padding for mobile action bar */}
+      <div className="h-16 md:hidden" />
     </div>
   );
 };

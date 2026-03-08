@@ -23,7 +23,7 @@ const PlayerCouncil = ({
   currentPlayerId,
 }: PlayerCouncilProps) => {
   return (
-    <div className="flex flex-wrap justify-center gap-3">
+    <div className="flex flex-wrap justify-center gap-3 md:flex-wrap md:justify-center max-md:flex-nowrap max-md:overflow-x-auto max-md:justify-start max-md:scrollbar-hide max-md:pb-2">
       {players.map((player, idx) => {
         const isHerald = gameState?.current_herald_id === player.id;
         const isLC = gameState?.current_lord_commander_id === player.id;
@@ -45,17 +45,17 @@ const PlayerCouncil = ({
             transition={{ delay: idx * 0.05 }}
             disabled={!isSelectable && !onPlayerClick}
             onClick={() => onPlayerClick?.(player.id)}
-            className={`relative flex flex-col items-center gap-1.5 rounded-lg border p-3 transition-all ${
+            className={`relative flex flex-col items-center gap-1.5 rounded-lg border p-3 transition-all max-md:min-w-[90px] max-md:flex-shrink-0 ${
               !player.is_alive
                 ? 'border-accent/20 bg-card/40'
                 : isHerald
                 ? 'border-primary bg-primary/5 shadow-[0_0_12px_hsl(var(--primary)/0.2)] herald-glow'
                 : isLC
-                ? 'border-muted-foreground bg-muted/50'
+                ? 'border-accent/60 bg-accent/5 shadow-[0_0_12px_hsl(var(--accent)/0.2)] lc-glow'
                 : isSelectable
                 ? 'border-primary/50 bg-card cursor-pointer hover:border-primary hover:bg-primary/10'
                 : 'border-border bg-card'
-            } ${isMe && player.is_alive && !isHerald ? 'ring-2 ring-primary/40 shadow-[0_0_8px_hsl(var(--primary)/0.15)]' : isMe && player.is_alive && isHerald ? '' : ''}`}
+            } ${isMe && player.is_alive && !isHerald ? 'ring-2 ring-primary/40 shadow-[0_0_8px_hsl(var(--primary)/0.15)]' : ''}`}
           >
             {/* Online dot */}
             <div className="absolute right-1.5 top-1.5">
@@ -68,7 +68,7 @@ const PlayerCouncil = ({
 
             {/* Role badge */}
             {isHerald && <Crown className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 text-primary" />}
-            {isLC && <Sword className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 text-muted-foreground" />}
+            {isLC && <Sword className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 text-accent-foreground" />}
 
             {/* Avatar */}
             <div className={`relative flex h-11 w-11 items-center justify-center rounded-full border-2 ${
@@ -77,11 +77,11 @@ const PlayerCouncil = ({
                 : isHerald
                 ? 'border-primary bg-primary/10'
                 : isLC
-                ? 'border-muted-foreground bg-muted'
+                ? 'border-accent/50 bg-accent/10'
                 : 'border-border bg-muted'
             }`}>
               <span className={`font-display text-xs font-bold ${
-                !player.is_alive ? 'text-muted-foreground/40' : isHerald ? 'text-primary' : 'text-foreground'
+                !player.is_alive ? 'text-muted-foreground/40' : isHerald ? 'text-primary' : isLC ? 'text-accent-foreground' : 'text-foreground'
               }`}>{initials}</span>
               {!player.is_alive && (
                 <>
@@ -99,7 +99,7 @@ const PlayerCouncil = ({
               <span className="text-[10px] uppercase tracking-wider text-primary font-display">Herald</span>
             )}
             {isLC && (
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-display">Commander</span>
+              <span className="text-[10px] uppercase tracking-wider text-accent-foreground font-display">Commander</span>
             )}
           </motion.button>
         );
