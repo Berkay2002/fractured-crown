@@ -115,7 +115,16 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
   };
 
   return (
-    <div className="noise-overlay relative flex min-h-screen flex-col items-center bg-background px-4 py-8">
+    <div
+      className="noise-overlay relative flex min-h-screen flex-col items-center overflow-hidden bg-background px-4 py-8"
+      onMouseMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        updateCursor(
+          ((e.clientX - rect.left) / rect.width) * 100,
+          ((e.clientY - rect.top) / rect.height) * 100
+        );
+      }}
+    >
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
