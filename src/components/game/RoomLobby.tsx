@@ -128,7 +128,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
     >
       <p className="mb-2 text-sm text-muted-foreground">Room Code</p>
       <div className="flex items-center justify-center gap-3">
-        <span className="font-mono text-4xl lg:text-6xl tracking-[0.4em] text-primary">
+        <span className="font-mono text-4xl lg:text-5xl tracking-[0.4em] text-primary">
           {room.room_code}
         </span>
         <button
