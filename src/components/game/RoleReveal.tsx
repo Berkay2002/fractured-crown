@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Crown, Swords, Skull, Scroll } from 'lucide-react';
+import { Scroll } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Tables } from '@/integrations/supabase/types';
+import roleLoyalist from '@/assets/role-loyalist.png';
+import roleTraitor from '@/assets/role-traitor.png';
+import roleUsurper from '@/assets/role-usurper.png';
 
 type PlayerRole = Tables<'player_roles'>;
 type Player = Tables<'players'>;
