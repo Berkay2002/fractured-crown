@@ -2,8 +2,17 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+// When running inside a Discord Activity iframe, route Supabase calls
+// through the proxy path mapped in the Discord portal.
+const isDiscord =
+  window.location.search.includes('frame_id') ||
+  window.location.hostname.includes('discordsays.com');
+
+const SUPABASE_URL = isDiscord
+  ? `${window.location.origin}/supabase`
+  : import.meta.env.VITE_SUPABASE_URL;
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
