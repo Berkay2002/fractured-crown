@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import HowToPlayModal from './HowToPlayModal';
+import { SigilIcon, sigils } from './SigilIcons';
 
 interface Player {
   id: number;
@@ -13,6 +14,7 @@ interface Player {
   display_name: string;
   seat_order: number;
   joined_at: string;
+  sigil?: string;
 }
 
 interface Room {
@@ -38,6 +40,9 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
   const isHost = currentPlayerId && room.host_player_id === currentPlayerId;
   const canStart = isHost && players.length >= 5 && players.length <= 10;
   const showTransferUI = isHost && players.length > 1;
+
+  const myPlayer = players.find(p => p.id === currentPlayerId);
+  const mySigil = (myPlayer as any)?.sigil || 'crown';
 
   const copyCode = () => {
     navigator.clipboard.writeText(room.room_code);
@@ -73,6 +78,14 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
     } else {
       toast({ title: 'Crown Transferred', description: 'The host role has been passed on.' });
     }
+  };
+
+  const handleSelectSigil = async (sigil: string) => {
+    if (!currentPlayerId) return;
+    await supabase
+      .from('players')
+      .update({ sigil } as any)
+      .eq('id', currentPlayerId);
   };
 
   return (
@@ -123,6 +136,50 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
         <HowToPlayModal />
       </div>
 
+      {/* Sigil Picker — only for current player */}
+      {currentPlayerId && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mb-6 w-full max-w-lg"
+        >
+          <p className="mb-2 text-center font-display text-xs uppercase tracking-widest text-muted-foreground">
+            Choose Your Sigil
+          </p>
+          <div className="flex justify-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {sigils.map(sigil => {
+              const isSelected = mySigil === sigil;
+              return (
+                <button
+                  key={sigil}
+                  onClick={() => handleSelectSigil(sigil)}
+                  className={`flex flex-col items-center gap-1 rounded-lg border-2 p-2 transition-all flex-shrink-0 ${
+                    isSelected
+                      ? 'border-primary bg-primary/10 shadow-[0_0_10px_hsl(var(--primary)/0.3)]'
+                      : 'border-border bg-card hover:border-muted-foreground/40'
+                  }`}
+                  title={sigil}
+                >
+                  <div className="flex h-10 w-10 items-center justify-center">
+                    <SigilIcon
+                      sigil={sigil}
+                      size={28}
+                      className={isSelected ? 'text-primary' : 'text-muted-foreground'}
+                    />
+                  </div>
+                  <span className={`font-display text-[9px] uppercase tracking-wider ${
+                    isSelected ? 'text-primary' : 'text-muted-foreground/60'
+                  }`}>
+                    {sigil}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+
       {/* Player Count */}
       <div className="mb-6 flex items-center gap-2 text-muted-foreground">
         <Users className="h-5 w-5" />
@@ -145,6 +202,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           const isConfirming = confirmingTransfer === player.id;
           const isTransferring = transferringTo === player.id;
           const canTransferTo = showTransferUI && !isPlayerHost && !transferringTo;
+          const playerSigil = (player as any).sigil || 'crown';
           const initials = player.display_name
             .split(' ')
             .map(w => w[0])
@@ -200,9 +258,13 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
                 </span>
               </div>
 
-              <span className="mt-1 text-center font-body text-sm text-foreground truncate max-w-full">
-                {player.display_name}
-              </span>
+              {/* Name + sigil */}
+              <div className="mt-1 flex items-center gap-1">
+                <SigilIcon sigil={playerSigil} size={14} className="text-muted-foreground/60 flex-shrink-0" />
+                <span className="text-center font-body text-sm text-foreground truncate max-w-[80px]">
+                  {player.display_name}
+                </span>
+              </div>
 
               {/* Transfer crown button — host-only, hover-revealed */}
               {canTransferTo && !isConfirming && (

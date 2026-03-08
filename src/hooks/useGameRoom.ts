@@ -1,4 +1,4 @@
-// Phase 3: Game room state management with local hand state
+// Phase 3: Game room state management with local hand state + reactions
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
@@ -10,6 +10,11 @@ type PlayerRole = Tables<'player_roles'>;
 type Vote = Tables<'votes'>;
 type EventLog = Tables<'event_log'>;
 type ChatMessage = Tables<'chat_messages'>;
+
+export interface ActiveReaction {
+  reaction: string;
+  timestamp: number;
+}
 
 export interface GameRoomState {
   gameState: GameState | null;
@@ -27,6 +32,8 @@ export interface GameRoomState {
   setChancellorHand: (hand: string[] | null) => void;
   allRoles: PlayerRole[];
   disconnected: boolean;
+  activeReactions: Map<number, ActiveReaction>;
+  sendReaction: (reaction: string) => void;
 }
 
 export function useGameRoom(roomId: number | null, currentPlayerId: number | null): GameRoomState {
@@ -42,7 +49,9 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
   const [chancellorHand, setChancellorHand] = useState<string[] | null>(null);
   const [allRoles, setAllRoles] = useState<PlayerRole[]>([]);
   const [disconnected, setDisconnected] = useState(false);
+  const [activeReactions, setActiveReactions] = useState<Map<number, ActiveReaction>>(new Map());
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const lastReactionSentRef = useRef(0);
 
   const fetchGameState = useCallback(async () => {
     if (!roomId) return;
@@ -147,7 +156,7 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
     setLoading(false);
   }, [refreshAll, roomId]);
 
-  // Subscribe to realtime changes
+  // Subscribe to realtime changes + broadcast reactions
   useEffect(() => {
     if (!roomId) return;
 
@@ -162,6 +171,26 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
       .on('postgres_changes', { event: '*', schema: 'public', table: 'votes', filter: `room_id=eq.${roomId}` }, () => fetchVotes())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'event_log', filter: `room_id=eq.${roomId}` }, () => fetchEvents())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages', filter: `room_id=eq.${roomId}` }, () => fetchChat())
+      .on('broadcast', { event: 'reaction' }, (payload) => {
+        const { player_id, reaction } = payload.payload as { player_id: number; reaction: string };
+        const now = Date.now();
+        setActiveReactions(prev => {
+          const next = new Map(prev);
+          next.set(player_id, { reaction, timestamp: now });
+          return next;
+        });
+        // Auto-clear after 2.5s
+        setTimeout(() => {
+          setActiveReactions(prev => {
+            const next = new Map(prev);
+            const entry = next.get(player_id);
+            if (entry && entry.timestamp === now) {
+              next.delete(player_id);
+            }
+            return next;
+          });
+        }, 2500);
+      })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           setDisconnected(false);
@@ -217,9 +246,40 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
     });
   }, [roomId, currentPlayerId]);
 
+  const sendReaction = useCallback((reaction: string) => {
+    if (!currentPlayerId || !channelRef.current) return;
+    const now = Date.now();
+    // Throttle: 3 seconds between reactions
+    if (now - lastReactionSentRef.current < 3000) return;
+    lastReactionSentRef.current = now;
+
+    channelRef.current.send({
+      type: 'broadcast',
+      event: 'reaction',
+      payload: { player_id: currentPlayerId, reaction },
+    });
+
+    // Optimistic local display
+    setActiveReactions(prev => {
+      const next = new Map(prev);
+      next.set(currentPlayerId, { reaction, timestamp: now });
+      return next;
+    });
+    setTimeout(() => {
+      setActiveReactions(prev => {
+        const next = new Map(prev);
+        const entry = next.get(currentPlayerId);
+        if (entry && entry.timestamp === now) {
+          next.delete(currentPlayerId);
+        }
+        return next;
+      });
+    }, 2500);
+  }, [currentPlayerId]);
+
   return {
     gameState, currentRound, players, myRole, votes, events, chatMessages,
     loading, sendChat, heraldHand, setHeraldHand, chancellorHand, setChancellorHand,
-    allRoles, disconnected,
+    allRoles, disconnected, activeReactions, sendReaction,
   };
 }
