@@ -5,7 +5,7 @@ const INGAME_BG = 'https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/pu
 const LOYALIST_WIN_BG = 'https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/public/sigils/loyalist-victory-background.webp';
 const TRAITOR_WIN_BG = 'https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/public/sigils/traitor-victory-background.webp';
 
-const MOBILE_PARAMS = '?width=828&quality=75';
+const MOBILE_PARAMS = '?width=1200&height=675&resize=cover&quality=75';
 
 const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
 
@@ -17,7 +17,6 @@ export const bgStyle = (url: string): React.CSSProperties => ({
   backgroundSize: 'cover',
   backgroundPosition: 'center center',
   backgroundRepeat: 'no-repeat',
-  backgroundAttachment: isMobile() ? 'scroll' : 'fixed',
 });
 
 export const BACKGROUNDS = {

@@ -125,7 +125,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.2 }}
-      className="rounded-lg border border-border bg-card p-6 text-center"
+      className="rounded-lg border border-[#c9a84c]/20 bg-card p-6 text-center"
     >
       <p className="mb-2 text-sm text-muted-foreground">Room Code</p>
       <div className="flex items-center justify-center gap-3">
@@ -433,7 +433,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       }}
     >
       {/* Background overlay */}
-      <div className="absolute inset-0 bg-[hsl(24_22%_6%/0.6)] pointer-events-none z-0" />
+      <div className="absolute inset-0 bg-[hsl(24_22%_6%/0.75)] pointer-events-none z-0" />
       {/* ── Mobile + Tablet layout (below lg) ── */}
       <div className="relative z-10 flex flex-col items-center px-4 py-8 md:max-w-2xl md:mx-auto lg:hidden">
         {/* Header */}
@@ -453,7 +453,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
         {royalDecrees}
 
         {/* Player count + grid in surface card on md */}
-        <div className="mb-6 w-full max-w-lg md:max-w-none md:rounded-lg md:border md:border-border md:bg-card md:p-6">
+        <div className="mb-6 w-full max-w-lg md:max-w-none md:rounded-lg md:border md:border-[#c9a84c]/20 md:bg-card md:p-6">
           <div className="mb-4 flex items-center justify-center gap-2 text-muted-foreground md:justify-start">
             <Users className="h-5 w-5" />
             <span className="font-body text-lg">
@@ -500,7 +500,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           {/* Right column — gathering chamber */}
           <div className="flex flex-col gap-6 overflow-y-auto px-8">
             {/* Player count + grid in a surface card */}
-            <div className="rounded-lg border border-border bg-card p-5">
+            <div className="rounded-lg border border-[#c9a84c]/20 bg-card p-5">
               <div className="mb-4 flex items-center gap-2 text-muted-foreground">
                 <Users className="h-5 w-5" />
                 <span className="font-body text-lg">
