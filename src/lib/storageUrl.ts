@@ -11,13 +11,13 @@ const isDiscordActivity =
  */
 export const storageUrl = (path: string): string => {
   if (isDiscordActivity) {
-    return `/.proxy/supabase${path}`;
+    return `/.proxy/storage${path}`;
   }
-  return `${SUPABASE_HOST}${path}`;
+  return `${SUPABASE_HOST}/storage${path}`;
 };
 
 /**
  * Shorthand for sigil storage assets.
  */
 export const sigilUrl = (filename: string): string =>
-  storageUrl(`/storage/v1/object/public/sigils/${filename}`);
+  storageUrl(`/v1/object/public/sigils/${filename}`);
