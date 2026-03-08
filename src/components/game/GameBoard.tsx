@@ -231,6 +231,18 @@ const GameBoard = ({
             </div>
           )}
 
+          {!isHerald && !gameState.current_lord_commander_id && (
+            <div className="flex flex-col items-center gap-2 py-2 text-center">
+              <Crown className="h-6 w-6 text-primary/60 animate-pulse" />
+              <p className="font-display text-xs uppercase tracking-widest text-muted-foreground">
+                Awaiting the Herald's nomination...
+              </p>
+              <p className="font-body text-xs italic text-muted-foreground/60">
+                {players.find(p => p.id === gameState.current_herald_id)?.display_name ?? 'The Herald'} is choosing a Lord Commander
+              </p>
+            </div>
+          )}
+
           {gameState.current_lord_commander_id && (
             <VotingPanel
               players={players}
