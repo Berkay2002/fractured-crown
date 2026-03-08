@@ -103,6 +103,15 @@ Deno.serve(async (req) => {
     // Assign next seat_order (placeholder; reshuffled randomly on game start)
     const nextSeatOrder = room.player_count
 
+    // Pick an available sigil (unique_sigil_per_room constraint)
+    const ALL_SIGILS = ['crown', 'sword', 'shield', 'wolf', 'raven', 'rose', 'flame', 'anchor']
+    const { data: existingPlayers } = await supabase
+      .from('players')
+      .select('sigil')
+      .eq('room_id', room.id)
+    const takenSigils = new Set((existingPlayers || []).map(p => p.sigil))
+    const availableSigil = ALL_SIGILS.find(s => !takenSigils.has(s)) || 'crown'
+
     // Insert player
     const { data: player, error: playerError } = await supabase
       .from('players')
@@ -111,6 +120,7 @@ Deno.serve(async (req) => {
         user_id: userId,
         display_name: trimmedName,
         seat_order: nextSeatOrder,
+        sigil: availableSigil,
       })
       .select('id')
       .single()
