@@ -326,6 +326,7 @@ const GameBoard = ({
 
       {/* Bottom padding for mobile action bar */}
       <div className="h-16 md:hidden" />
+      </div>
     </div>
   );
 };
