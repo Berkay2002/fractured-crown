@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import HowToPlayModal from './HowToPlayModal';
 import { SigilIcon, sigils } from './SigilIcons';
+import SigilAvatar, { sigilImageUrl } from './SigilAvatar';
 
 interface Player {
   id: number;
