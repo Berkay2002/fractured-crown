@@ -75,7 +75,7 @@ const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
       <span className="font-display text-[9px] md:text-[10px] lg:text-xs uppercase tracking-widest text-muted-foreground">
         {label}
       </span>
-      <div className="flex gap-1.5">
+      <div className="flex gap-1 md:gap-1.5">
         {Array.from({ length: total }).map((_, i) => {
           const filled = i < count;
           const slotIndex = i + 1;
