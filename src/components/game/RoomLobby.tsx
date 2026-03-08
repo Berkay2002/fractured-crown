@@ -659,25 +659,29 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           {/* Gold divider */}
           <div className="h-full self-stretch" style={{ background: 'linear-gradient(to bottom, transparent, rgba(201,168,76,0.2) 20%, rgba(201,168,76,0.2) 80%, transparent)' }} />
 
-          {/* Right column — independently scrollable */}
-          <div className="flex flex-col gap-6 h-full overflow-y-auto px-8 pr-2">
-            {/* Player count + grid in a surface card */}
-            <div className="rounded-lg border border-primary/20 bg-card p-5">
-              <div className="mb-4 flex items-center gap-2 text-muted-foreground">
-                <Users className="h-5 w-5" />
-                <span className="font-body text-lg">
-                  {players.length} / 10 players
-                </span>
+          {/* Right column — scrollable content + sticky footer */}
+          <div className="flex flex-col h-full overflow-hidden px-8">
+            <div className="flex-1 min-h-0 overflow-y-auto lobby-right-scroll pr-2" style={{ scrollbarGutter: 'stable' }}>
+              <div className="flex flex-col gap-6">
+                {/* Player count + grid in a surface card */}
+                <div className="rounded-lg border border-primary/20 bg-card p-5">
+                  <div className="mb-4 flex items-center gap-2 text-muted-foreground">
+                    <Users className="h-5 w-5" />
+                    <span className="font-body text-lg">
+                      {players.length} / 10 players
+                    </span>
+                  </div>
+                  {waitingMessage && <div className="mb-4">{waitingMessage}</div>}
+                  {playerGrid}
+                </div>
+
+                {sigilPicker && <div className="w-full">{sigilPicker}</div>}
+                {readyButton}
               </div>
-              {waitingMessage && <div className="mb-4">{waitingMessage}</div>}
-              {playerGrid}
             </div>
 
-            {sigilPicker && <div className="w-full">{sigilPicker}</div>}
-            {readyButton}
-
-            {/* Action button */}
-            <div className="mt-auto flex flex-col items-center w-full pb-4">
+            {/* Sticky footer — always visible */}
+            <div className="flex-shrink-0 pt-4 pb-2 flex flex-col items-center w-full">
               {actionButtons}
             </div>
           </div>
