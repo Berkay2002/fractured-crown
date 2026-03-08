@@ -141,7 +141,7 @@ const Index = () => {
 
           {/* Title */}
           <h1
-            className="animate-fadeInUp font-display font-bold text-primary text-center text-6xl md:text-8xl tracking-[0.15em]"
+            className="animate-fadeInUp font-display font-bold text-primary text-center text-4xl sm:text-6xl md:text-8xl tracking-[0.15em]"
             style={{
               animationDelay: '150ms',
               textShadow: '0 0 40px rgba(201,168,76,0.4), 0 0 80px rgba(201,168,76,0.15)',
