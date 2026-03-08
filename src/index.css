@@ -169,3 +169,25 @@
     animation: none;
   }
 }
+
+/* Card flip animation */
+.card-flip {
+  perspective: 800px;
+  transform-style: preserve-3d;
+}
+
+/* Herald glow pulse */
+@keyframes herald-glow {
+  0%, 100% { box-shadow: 0 0 8px hsl(var(--primary) / 0.2); }
+  50% { box-shadow: 0 0 20px hsl(var(--primary) / 0.4); }
+}
+
+.herald-glow {
+  animation: herald-glow 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .herald-glow {
+    animation: none;
+  }
+}
