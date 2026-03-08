@@ -160,7 +160,7 @@ export default function RoyalDecrees({ roomId, settings, isHost }: RoyalDecreesP
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
-        className="mb-6 flex w-full max-w-lg flex-col items-center gap-2"
+        className="mb-6 flex w-full max-w-lg md:max-w-none flex-col items-center gap-2"
       >
         <p className="font-display text-xs uppercase tracking-widest text-muted-foreground">
           Royal Decrees
@@ -186,7 +186,7 @@ export default function RoyalDecrees({ roomId, settings, isHost }: RoyalDecreesP
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.25, duration: 0.4 }}
-      className="mb-6 w-full max-w-lg"
+      className="mb-6 w-full max-w-lg md:max-w-none"
     >
       {/* Header */}
       <div className="mb-3 flex items-center justify-center gap-2">
