@@ -135,7 +135,7 @@ const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
               className={`${baseClasses} ${colorClasses}`}
             >
               {filled && (
-                <div className={`h-4 w-4 rounded-full ${
+                <div className={`h-2.5 w-2.5 md:h-3 md:w-3 lg:h-4 lg:w-4 rounded-full ${
                   type === 'loyalist' ? 'bg-primary edict-fill-loyalist' : type === 'shadow' ? 'bg-accent edict-fill-shadow' : 'bg-muted-foreground'
                 }`} />
               )}

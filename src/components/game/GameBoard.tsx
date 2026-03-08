@@ -295,11 +295,54 @@ const GameBoard = ({
         {headerBar}
 
         {/* ═══════════════════════════════════════════════ */}
-        {/* MOBILE / TABLET LAYOUT (< lg) — unchanged     */}
+        {/* MOBILE LAYOUT (< md)                           */}
         {/* ═══════════════════════════════════════════════ */}
-        <div className="flex flex-1 flex-col gap-6 p-4 lg:hidden">
-          <div className="flex flex-1 flex-col gap-6">
-            <div className="flex flex-wrap gap-6">
+        <div className="flex flex-1 flex-col min-h-0 overflow-y-auto pb-20 md:hidden">
+          {/* Trackers row — compact horizontal */}
+          <div className="flex flex-row gap-4 px-3 py-2 flex-shrink-0">
+            <EdictTracker type="loyalist" count={gameState.loyalist_edicts_passed} />
+            <EdictTracker type="shadow" count={gameState.shadow_edicts_passed} playerCount={players.length} />
+            <EdictTracker type="election" count={gameState.election_tracker} />
+          </div>
+
+          {/* Council */}
+          <div className="px-3 py-2 flex-shrink-0">
+            <h2 className="mb-2 font-display text-[9px] uppercase tracking-widest text-muted-foreground">
+              The Council
+            </h2>
+            <PlayerCouncil
+              players={players}
+              gameState={gameState}
+              onlinePlayers={onlinePlayers}
+              currentPlayerId={currentPlayerId}
+              selectablePlayerIds={!isSpectator && nominatingLC ? selectablePlayers : undefined}
+              onPlayerClick={!isSpectator && nominatingLC ? handleNominate : undefined}
+              activeReactions={activeReactions}
+              onSendReaction={isSpectator ? undefined : sendReaction}
+            />
+          </div>
+
+          {/* Action panel — election nominate hidden on mobile, VotingPanel + overlays still render */}
+          {actionPanel && <div className="px-3 py-2 flex-shrink-0">{actionPanel}</div>}
+
+          {/* Chronicle — capped height */}
+          <div className="px-3 py-2 flex-shrink-0">
+            <EventLogFeed events={events} />
+          </div>
+
+          {/* Chat — capped height */}
+          <div className="px-3 py-2 flex-shrink-0">
+            <ChatPanel messages={chatMessages} players={players} sendChat={sendChat} />
+          </div>
+        </div>
+
+        {/* ═══════════════════════════════════════════════ */}
+        {/* TABLET LAYOUT (md to lg)                       */}
+        {/* ═══════════════════════════════════════════════ */}
+        <div className="hidden md:flex lg:hidden flex-1 flex-col min-h-0 overflow-hidden">
+          {/* Top zone — trackers, council, action */}
+          <div className="flex-shrink-0 space-y-3 p-4">
+            <div className="flex flex-row gap-4">
               <EdictTracker type="loyalist" count={gameState.loyalist_edicts_passed} />
               <EdictTracker type="shadow" count={gameState.shadow_edicts_passed} playerCount={players.length} />
               <EdictTracker type="election" count={gameState.election_tracker} />
@@ -321,12 +364,21 @@ const GameBoard = ({
               />
             </div>
 
-            {actionPanel && <div className="mt-2">{actionPanel}</div>}
+            {actionPanel && (
+              <div className="w-full max-w-sm mx-auto">
+                {actionPanel}
+              </div>
+            )}
           </div>
 
-          <div className="flex w-full flex-col gap-4">
-            <EventLogFeed events={events} />
-            <ChatPanel messages={chatMessages} players={players} sendChat={sendChat} />
+          {/* Bottom zone — Chronicle + Chat side by side */}
+          <div className="flex-1 flex flex-row min-h-0 border-t border-primary/15">
+            <div className="flex-[55] min-h-0 flex flex-col overflow-hidden">
+              <EventLogFeed events={events} />
+            </div>
+            <div className="flex-[45] min-h-0 flex flex-col overflow-hidden border-l border-primary/15">
+              <ChatPanel messages={chatMessages} players={players} sendChat={sendChat} />
+            </div>
           </div>
         </div>
 
