@@ -349,7 +349,7 @@ const useSteps = (): TutorialStep[] => {
               </p>
             </div>
             <div className="flex flex-col items-center gap-2 rounded-lg border border-accent/20 bg-accent/5 p-3 sm:p-4">
-              <img src={roleUsurperImg} alt="Execute" className="h-10 w-10 object-contain" />
+              <img src={powerExecution} alt="Execute" className="h-10 w-10 object-contain" />
               <span className="font-display text-[10px] uppercase tracking-widest text-accent-foreground">Execute</span>
               <p className="text-center font-body text-[11px] text-muted-foreground leading-snug">
                 Eliminate a player permanently. Execute the Usurper = instant Loyalist win.
