@@ -298,10 +298,12 @@ const GameBoard = ({
         {/* MOBILE LAYOUT (< md)                           */}
         {/* ═══════════════════════════════════════════════ */}
         <div className="flex flex-1 flex-col min-h-0 overflow-y-auto pb-20 md:hidden">
-          {/* Trackers row — compact horizontal */}
-          <div className="flex flex-row gap-4 px-3 py-2 flex-shrink-0">
-            <EdictTracker type="loyalist" count={gameState.loyalist_edicts_passed} />
-            <EdictTracker type="shadow" count={gameState.shadow_edicts_passed} playerCount={players.length} />
+          {/* Trackers — two rows on mobile: edicts on top, election below */}
+          <div className="flex flex-col gap-2 px-3 py-2 flex-shrink-0">
+            <div className="flex flex-row gap-4">
+              <EdictTracker type="loyalist" count={gameState.loyalist_edicts_passed} />
+              <EdictTracker type="shadow" count={gameState.shadow_edicts_passed} playerCount={players.length} />
+            </div>
             <EdictTracker type="election" count={gameState.election_tracker} />
           </div>
 
