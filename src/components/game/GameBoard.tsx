@@ -15,6 +15,7 @@ import HowToPlayModal from './HowToPlayModal';
 import GameBoardSkeleton from './GameBoardSkeleton';
 import ConnectionBanner from './ConnectionBanner';
 import { useSoundContext } from '@/contexts/SoundContext';
+import { useDiscordContext } from '@/contexts/DiscordContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { GameRoomState } from '@/hooks/useGameRoom';
