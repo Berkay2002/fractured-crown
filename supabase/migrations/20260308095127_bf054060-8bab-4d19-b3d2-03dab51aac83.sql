@@ -1,0 +1,1 @@
+UPDATE rooms SET status = 'lobby' WHERE id = 3;
