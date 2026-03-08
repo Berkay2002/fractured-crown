@@ -291,7 +291,7 @@ Deno.serve(async (req) => {
           await supabase.from('event_log').insert({
             room_id,
             event_type: 'chaos_policy',
-            description: `Election tracker reached 3! A ${chaosCard.card_type} edict was enacted by chaos.`,
+            description: `The council has failed to agree three times! A ${chaosCard.card_type === 'loyalist' ? 'Loyalist' : 'Shadow'} edict has been enacted by the will of chaos.`,
             round_id: currentRound.id,
           })
 
