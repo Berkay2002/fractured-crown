@@ -155,8 +155,8 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       key={`ghost-${idx}`}
       className="flex flex-col items-center justify-center w-full aspect-square rounded-lg border border-dashed border-primary/20 bg-card/40 opacity-40"
     >
-      <div className="w-10 h-10 rounded-full border border-dashed border-primary/30" />
-      <span className="text-[10px] text-muted-foreground mt-1">Empty</span>
+      <div className="w-1/3 aspect-square rounded-full border border-dashed border-primary/30" />
+      <span className="text-[10px] text-muted-foreground mt-2">Empty</span>
     </div>
   );
 
@@ -355,7 +355,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
   ) : null;
 
   const playerGrid = (
-    <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3">
+    <div className="grid w-full grid-cols-3 gap-2">
       {players.map((player, idx) => {
         const isPlayerHost = room.host_player_id === player.id;
         const isOnline = onlinePlayers.has(player.id);
@@ -373,7 +373,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 * idx }}
-            className={`group relative flex min-w-0 flex-col items-center justify-center gap-2 rounded-lg border bg-card px-3 py-3 lg:px-4 lg:py-4 lg:w-36 lg:min-h-[10rem] ${
+            className={`group relative flex min-w-0 w-full aspect-square flex-col items-center justify-center gap-1 rounded-lg border bg-card p-2 ${
               playerIsReady && !playerIsSpectator
                 ? 'border-primary/50 shadow-[0_0_8px_hsl(var(--primary)/0.2)]'
                 : 'border-border'
