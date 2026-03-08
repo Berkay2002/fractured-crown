@@ -206,7 +206,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               key={sigil}
               onClick={() => handleSelectSigil(sigil)}
               disabled={isTaken}
-              className={`relative flex flex-col items-center gap-1 rounded-lg border-2 p-2 md:p-1.5 md:aspect-square md:w-full transition-all flex-shrink-0 ${
+              className={`relative flex flex-col items-center justify-center gap-1 rounded-lg border-2 p-2 md:p-1.5 md:aspect-square md:w-full transition-all flex-shrink-0 ${
                 isSelected
                   ? 'border-primary bg-primary/10 shadow-[0_0_10px_hsl(var(--primary)/0.3)]'
                   : isTaken
@@ -215,11 +215,11 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               }`}
               title={isTaken ? `${sigil} — taken` : sigil}
             >
-              <div className="relative flex h-10 w-10 md:h-16 md:w-16 lg:h-14 lg:w-14 items-center justify-center overflow-hidden rounded-full">
+              <div className="relative flex h-10 w-10 md:h-14 md:w-14 items-center justify-center overflow-hidden rounded-full">
                 <img
                   src={sigilImageUrl(sigil)}
                   alt={sigil}
-                  className="h-10 w-10 md:h-16 md:w-16 lg:h-14 lg:w-14 rounded-full object-cover"
+                  className="h-10 w-10 md:h-14 md:w-14 rounded-full object-cover"
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 />
                 {isTaken && (
@@ -257,7 +257,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 * idx }}
-            className="group relative flex min-w-0 flex-col items-center gap-1 rounded-lg border border-border bg-card px-3 pb-3 pt-2 lg:w-36 lg:min-h-[10rem]"
+            className="group relative flex min-w-0 flex-col items-center justify-center gap-2 rounded-lg border border-border bg-card px-3 py-3 lg:px-4 lg:py-4 lg:w-36 lg:min-h-[10rem]"
           >
             <div className="absolute right-1.5 top-1.5">
               {isOnline ? (
@@ -288,14 +288,14 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               </AnimatePresence>
             </div>
 
-            <div className={`flex h-12 w-12 items-center justify-center rounded-full border-2 overflow-hidden ${
+            <div className={`flex h-12 w-12 lg:h-20 lg:w-20 items-center justify-center rounded-full border-2 overflow-hidden ${
               isPlayerHost ? 'border-primary bg-primary/10' : 'border-border bg-muted'
             }`}>
-              <SigilAvatar sigil={playerSigil} displayName={player.display_name} size="h-12 w-12" />
+              <SigilAvatar sigil={playerSigil} displayName={player.display_name} size="h-12 w-12 lg:h-20 lg:w-20" />
             </div>
 
-            <div className="mt-1 flex items-center gap-1">
-              <span className="text-center font-body text-sm text-foreground truncate max-w-[80px]">
+            <div className="flex items-center gap-1">
+              <span className="text-center font-body text-sm lg:text-base text-foreground truncate max-w-[80px] lg:max-w-[100px]">
                 {player.display_name}
               </span>
             </div>
