@@ -88,7 +88,7 @@ const GameBoard = ({
     }
   }, [gameState?.room_id, isHerald, setHeraldHand]);
 
-  if (!gameState) return null;
+  if (!gameState || loading) return <GameBoardSkeleton />;
 
   // Role reveal overlay
   if (showRoleReveal && myRole) {
