@@ -1,6 +1,6 @@
 # Fractured Crown — Product Requirements Document
 
-> A web-based social deduction game for 5–10 players, based on Secret Hitler, reskinned as a fantasy kingdom betrayal game.
+> A web-based social deduction game for 5–10 players, based on Secret Hitler, reskinned as a dark medieval fantasy kingdom betrayal game. Also runs as a Discord Activity.
 
 ---
 
@@ -12,25 +12,29 @@ Each round, players elect a **Herald** (President) and a **Lord Commander** (Cha
 
 The game is played entirely in the browser with no download required. Players join a shared game room via a 6-character room code. One player acts as host and starts the game once all players have joined. There are no bots or AI opponents — this is a game designed for real friends playing together in real time, with all state synchronized live via Supabase Realtime.
 
+Fractured Crown also runs as a **Discord Activity** (embedded app) within Discord voice channels, using the Discord Embedded App SDK.
+
 ---
 
 ## 2. Tech Stack
 
-Fractured Crown is built on Lovable's native stack. All of the following should be used as-is with no custom backend server.
-
-- **Frontend:** React with Tailwind CSS, bundled via Vite
+- **Frontend:** React 18 + TypeScript (strict mode), Tailwind CSS, bundled via Vite
+- **UI Components:** shadcn/ui (Radix primitives + CVA variants)
+- **Animation:** Framer Motion
 - **Database:** Supabase (PostgreSQL) — all game state persisted in relational tables
-- **Authentication:** Supabase Auth — anonymous/guest sign-in so players can join without creating an account; optionally email/password for persistent profiles
-- **Real-time:** Supabase Realtime — all clients subscribe to live changes on game state tables (inserts, updates, deletes stream instantly to all connected players); no raw WebSockets, no polling
-- **Server-side logic:** Supabase Edge Functions (Deno/TypeScript) — used for sensitive game logic that must not run on the client, including: role assignment and shuffling, policy deck management, win condition evaluation, and presidential power resolution
-- **Row Level Security (RLS):** Enabled on all Supabase tables — players may only read their own secret role; game state visible to all players in the same room; no player can write directly to authoritative game state (all mutations go through Edge Functions)
-- **Hosting:** Lovable's built-in deployment
+- **Authentication:** Supabase Anonymous Auth — players join without creating an account; every visitor gets an anonymous session via `supabase.auth.signInAnonymously()`
+- **Real-time:** Supabase Realtime (Postgres Changes + Broadcast + Presence) — single channel per game room; 2-second polling fallback for resilience
+- **Server-side logic:** Supabase Edge Functions (Deno/TypeScript) — all sensitive game logic runs server-side
+- **Row Level Security (RLS):** Enabled on all tables; all SELECT policies are PERMISSIVE (required for Realtime delivery)
+- **Asset storage:** Supabase Storage (sigil images in `sigils` bucket)
+- **Discord Integration:** `@discord/embedded-app-sdk` for Activity embedding, Rich Presence, and proxy routing
+- **Hosting:** Lovable's built-in deployment; published at `fractured-crown.lovable.app`
 
 ---
 
 ## 3. Data Model
 
-All tables use `bigint generated always as identity` primary keys (SQL-standard, sequential, optimal for a single Postgres instance — no UUID fragmentation). Room codes are a separate human-readable column. All timestamps use `timestamptz`. RLS is enabled and forced on every table. All RLS policies wrap `auth.uid()` in a `SELECT` subquery (`(select auth.uid())`) to prevent per-row function evaluation — a 5–10x performance improvement on frequently queried tables. All foreign key columns have explicit indexes.
+All tables use `bigint generated always as identity` primary keys. All timestamps use `timestamptz`. RLS is enabled on every table. All foreign key columns have explicit indexes. All tables use `REPLICA IDENTITY FULL` (required for Realtime).
 
 ---
 
@@ -52,362 +56,189 @@ create type win_condition   as enum ('loyalists_edicts', 'usurper_executed', 'tr
 ### `rooms`
 One row per game session.
 
-```sql
-create table rooms (
-  id             bigint generated always as identity primary key,
-  room_code      text not null unique,           -- 6-char human-readable join code
-  host_player_id bigint,                         -- FK set after first player inserts
-  status         room_status not null default 'lobby',
-  player_count   int not null default 0,
-  created_at     timestamptz not null default now()
-);
-
-alter table rooms enable row level security;
-alter table rooms force row level security;
-
-create policy rooms_read on rooms for select to authenticated
-  using (true);
-
-create policy rooms_host_update on rooms for update to authenticated
-  using (
-    (select auth.uid()) = (
-      select user_id from players where id = host_player_id
-    )
-  );
-
-create index rooms_room_code_idx      on rooms (room_code);
-create index rooms_host_player_id_idx on rooms (host_player_id);
-```
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `bigint` (identity PK) | |
+| `room_code` | `text unique` | 6-char uppercase join code |
+| `host_player_id` | `bigint` FK → players | Set after first player inserts |
+| `status` | `room_status` | Default `'lobby'` |
+| `player_count` | `int` | Default `0` |
+| `settings` | `jsonb` | Room settings (turn timer, spectators enabled, etc.) |
+| `created_at` | `timestamptz` | |
 
 ---
 
 ### `players`
 One row per player per room.
 
-```sql
-create table players (
-  id           bigint generated always as identity primary key,
-  room_id      bigint not null references rooms(id) on delete cascade,
-  user_id      uuid not null references auth.users(id) on delete cascade,
-  display_name text not null,
-  seat_order   int not null,              -- Clockwise position (0-indexed), assigned at game start
-  is_alive     boolean not null default true,
-  joined_at    timestamptz not null default now(),
-  unique (room_id, user_id),
-  unique (room_id, seat_order)
-);
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `bigint` (identity PK) | |
+| `room_id` | `bigint` FK → rooms | |
+| `user_id` | `uuid` | From `auth.users(id)` |
+| `display_name` | `text` | Editable in lobby |
+| `seat_order` | `int` | Clockwise position (0-indexed) |
+| `sigil` | `text` | Chosen avatar icon (crown, sword, shield, wolf, raven, rose, flame, anchor, dragon, skull) |
+| `is_alive` | `boolean` | Default `true` |
+| `is_ready` | `boolean` | Lobby ready-up status |
+| `is_spectator` | `boolean` | Spectator mode |
+| `joined_at` | `timestamptz` | |
 
-alter table players enable row level security;
-alter table players force row level security;
-
-create policy players_read on players for select to authenticated
-  using (
-    room_id in (
-      select room_id from players where user_id = (select auth.uid())
-    )
-  );
-
-create policy players_insert on players for insert to authenticated
-  with check (user_id = (select auth.uid()));
-
-create index players_room_id_idx  on players (room_id);
-create index players_user_id_idx  on players (user_id);
--- Partial index for fast alive-player lookups during turn order checks
-create index players_alive_idx    on players (room_id) where is_alive = true;
-```
+Unique constraints: `(room_id, user_id)`, `(room_id, seat_order)`.
 
 ---
 
 ### `player_roles`
-Secret role assignment — most RLS-sensitive table. Never readable by other players.
+Secret role assignment — most RLS-sensitive table. Each player can only read their own role (until `game_phase = 'game_over'`, when all roles become visible).
 
-```sql
-create table player_roles (
-  id        bigint generated always as identity primary key,
-  player_id bigint not null references players(id) on delete cascade,
-  room_id   bigint not null references rooms(id) on delete cascade,
-  role      player_role not null,
-  -- In 5-6p, usurper knows their traitor ally. In 7-10p, usurper is blind.
-  -- This is encoded in revealed_allies: jsonb array of player_ids the role holder is shown.
-  revealed_allies jsonb not null default '[]',
-  unique (player_id, room_id)
-);
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `bigint` (identity PK) | |
+| `player_id` | `bigint` FK → players | |
+| `room_id` | `bigint` FK → rooms | |
+| `role` | `player_role` | `loyalist`, `traitor`, or `usurper` |
+| `revealed_allies` | `jsonb` | Array of player IDs this role holder can see |
 
-alter table player_roles enable row level security;
-alter table player_roles force row level security;
-
--- Players may ONLY ever read their own role
-create policy player_roles_own_only on player_roles for select to authenticated
-  using (
-    player_id in (
-      select id from players where user_id = (select auth.uid())
-    )
-  );
--- All inserts/updates via Edge Functions (service role) only — no client write policy
-
-create index player_roles_player_id_idx on player_roles (player_id);
-create index player_roles_room_id_idx   on player_roles (room_id);
-```
+Not published via Realtime. No client-facing write policy.
 
 ---
 
 ### `game_state`
 One row per room — the single source of truth all clients subscribe to via Realtime.
 
-```sql
-create table game_state (
-  id                              bigint generated always as identity primary key,
-  room_id                         bigint not null unique references rooms(id) on delete cascade,
-  current_phase                   game_phase not null default 'election',
-  current_herald_id               bigint references players(id),
-  current_lord_commander_id       bigint references players(id),    -- Null until nominated
-  last_elected_herald_id          bigint references players(id),    -- Term limit: ineligible as chancellor
-  last_elected_lord_commander_id  bigint references players(id),    -- Term limit: ineligible as chancellor
-  election_tracker                int not null default 0,           -- Resets on success or chaos (max 3)
-  shadow_edicts_passed            int not null default 0,           -- 0–6
-  loyalist_edicts_passed          int not null default 0,           -- 0–5
-  veto_unlocked                   boolean not null default false,
-  active_power                    executive_power,                  -- Null until power triggered
-  winner                          win_condition,                    -- Null until game ends
-  updated_at                      timestamptz not null default now()
-);
-
-alter table game_state enable row level security;
-alter table game_state force row level security;
-
-create policy game_state_read on game_state for select to authenticated
-  using (
-    room_id in (
-      select room_id from players where user_id = (select auth.uid())
-    )
-  );
--- All writes via Edge Functions only
-
-create index game_state_room_id_idx               on game_state (room_id);
-create index game_state_current_herald_id_idx     on game_state (current_herald_id);
-create index game_state_current_lord_cmd_id_idx   on game_state (current_lord_commander_id);
-```
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `bigint` (identity PK) | |
+| `room_id` | `bigint` unique FK → rooms | |
+| `current_phase` | `game_phase` | Default `'election'` |
+| `current_herald_id` | `bigint` FK → players | |
+| `current_lord_commander_id` | `bigint` FK → players | Null until nominated |
+| `last_elected_herald_id` | `bigint` FK → players | Term limit tracking |
+| `last_elected_lord_commander_id` | `bigint` FK → players | Term limit tracking |
+| `election_tracker` | `int` | 0–3, resets on success or chaos |
+| `shadow_edicts_passed` | `int` | 0–6 |
+| `loyalist_edicts_passed` | `int` | 0–5 |
+| `veto_unlocked` | `boolean` | Unlocked after 5 Shadow Edicts |
+| `active_power` | `executive_power` | Null until power triggered |
+| `special_election_herald_pointer` | `int` | Tracks return position after special election |
+| `winner` | `win_condition` | Null until game ends |
+| `updated_at` | `timestamptz` | |
 
 ---
 
 ### `rounds`
 One row per round — tracks full election + legislative session lifecycle.
 
-```sql
-create table rounds (
-  id                bigint generated always as identity primary key,
-  room_id           bigint not null references rooms(id) on delete cascade,
-  round_number      int not null,
-  herald_id         bigint not null references players(id),
-  lord_commander_id bigint references players(id),          -- Null until nominated
-  herald_hand       jsonb,  -- 3-card private hand; only exposed to herald via Edge Function
-  chancellor_hand   jsonb,  -- 2-card hand passed to lord commander
-  enacted_policy    policy_type,
-  power_triggered   executive_power,
-  veto_requested    boolean not null default false,
-  veto_approved     boolean,                                -- Null until herald responds
-  chaos_policy      boolean not null default false,         -- True if auto-enacted via tracker
-  created_at        timestamptz not null default now(),
-  unique (room_id, round_number)
-);
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `bigint` (identity PK) | |
+| `room_id` | `bigint` FK → rooms | |
+| `round_number` | `int` | |
+| `herald_id` | `bigint` FK → players | |
+| `lord_commander_id` | `bigint` FK → players | Null until nominated |
+| `herald_hand` | `jsonb` | 3-card private hand (server-only) |
+| `chancellor_hand` | `jsonb` | 2-card hand (server-only) |
+| `enacted_policy` | `policy_type` | |
+| `power_triggered` | `executive_power` | |
+| `veto_requested` | `boolean` | Default `false` |
+| `veto_approved` | `boolean` | Null until Herald responds |
+| `chaos_policy` | `boolean` | Default `false` |
+| `created_at` | `timestamptz` | |
 
-alter table rounds enable row level security;
-alter table rounds force row level security;
-
-create policy rounds_read on rounds for select to authenticated
-  using (
-    room_id in (
-      select room_id from players where user_id = (select auth.uid())
-    )
-  );
-
-create index rounds_room_id_idx           on rounds (room_id);
-create index rounds_herald_id_idx         on rounds (herald_id);
-create index rounds_lord_commander_id_idx on rounds (lord_commander_id);
-```
+Unique: `(room_id, round_number)`.
 
 ---
 
 ### `policy_deck`
-Ordered draw and discard piles. Clients never read this — managed entirely by Edge Functions.
+Ordered draw and discard piles. **No client SELECT policy** — managed entirely by Edge Functions via service role.
 
-```sql
-create table policy_deck (
-  id        bigint generated always as identity primary key,
-  room_id   bigint not null references rooms(id) on delete cascade,
-  pile      pile_type not null,
-  card_type policy_type not null,
-  position  int not null,     -- 0 = top of draw pile; ordering within discard is arbitrary
-  unique (room_id, pile, position)
-);
-
-alter table policy_deck enable row level security;
-alter table policy_deck force row level security;
--- No read policy for authenticated role — service role only
-
-create index policy_deck_room_id_idx      on policy_deck (room_id);
-create index policy_deck_room_pile_idx    on policy_deck (room_id, pile);
-```
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `bigint` (identity PK) | |
+| `room_id` | `bigint` FK → rooms | |
+| `pile` | `pile_type` | `'draw'` or `'discard'` |
+| `card_type` | `policy_type` | `'loyalist'` or `'shadow'` |
+| `position` | `int` | 0 = top of draw pile |
 
 ---
 
 ### `votes`
 One row per player per round. Hidden until all votes are cast, then flipped simultaneously.
 
-```sql
-create table votes (
-  id         bigint generated always as identity primary key,
-  round_id   bigint not null references rounds(id) on delete cascade,
-  room_id    bigint not null references rooms(id) on delete cascade,
-  player_id  bigint not null references players(id) on delete cascade,
-  vote       vote_choice not null,
-  revealed   boolean not null default false,
-  created_at timestamptz not null default now(),
-  unique (round_id, player_id)
-);
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `bigint` (identity PK) | |
+| `round_id` | `bigint` FK → rounds | |
+| `room_id` | `bigint` FK → rooms | |
+| `player_id` | `bigint` FK → players | |
+| `vote` | `vote_choice` | `'ja'` or `'nein'` |
+| `revealed` | `boolean` | Default `false` |
+| `created_at` | `timestamptz` | |
 
-alter table votes enable row level security;
-alter table votes force row level security;
-
--- Players see votes only after reveal
-create policy votes_read_revealed on votes for select to authenticated
-  using (
-    revealed = true
-    and room_id in (
-      select room_id from players where user_id = (select auth.uid())
-    )
-  );
-
-create policy votes_insert_own on votes for insert to authenticated
-  with check (
-    player_id in (
-      select id from players where user_id = (select auth.uid())
-    )
-  );
-
-create index votes_round_id_idx   on votes (round_id);
-create index votes_room_id_idx    on votes (room_id);
-create index votes_player_id_idx  on votes (player_id);
--- Partial index: fast check for "has everyone voted yet?"
-create index votes_unrevealed_idx on votes (round_id) where revealed = false;
-```
+Unique: `(round_id, player_id)`. RLS: players see votes only after `revealed = true`.
 
 ---
 
 ### `presidential_actions`
 Log of executive powers. Investigate results are private to the acting Herald.
 
-```sql
-create table presidential_actions (
-  id               bigint generated always as identity primary key,
-  room_id          bigint not null references rooms(id) on delete cascade,
-  round_id         bigint not null references rounds(id) on delete cascade,
-  acting_player_id bigint not null references players(id),
-  action_type      executive_power not null,
-  target_player_id bigint references players(id),   -- Null for policy_peek
-  result           jsonb,                            -- { "role": "traitor" } for investigate; null otherwise
-  created_at       timestamptz not null default now()
-);
-
-alter table presidential_actions enable row level security;
-alter table presidential_actions force row level security;
-
--- Only the acting Herald can read their own results
-create policy presidential_actions_own on presidential_actions for select to authenticated
-  using (
-    acting_player_id in (
-      select id from players where user_id = (select auth.uid())
-    )
-  );
-
-create index presidential_actions_room_id_idx          on presidential_actions (room_id);
-create index presidential_actions_round_id_idx         on presidential_actions (round_id);
-create index presidential_actions_acting_player_id_idx on presidential_actions (acting_player_id);
-create index presidential_actions_target_player_id_idx on presidential_actions (target_player_id);
-```
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `bigint` (identity PK) | |
+| `room_id` | `bigint` FK → rooms | |
+| `round_id` | `bigint` FK → rounds | |
+| `acting_player_id` | `bigint` FK → players | |
+| `action_type` | `executive_power` | |
+| `target_player_id` | `bigint` FK → players | Null for policy_peek |
+| `result` | `jsonb` | e.g. `{ "role": "traitor" }` for investigate |
+| `created_at` | `timestamptz` | |
 
 ---
 
 ### `event_log`
-Public append-only game history. All clients subscribe to this for the activity feed.
+Public append-only game history. All clients subscribe for the activity feed.
 
-```sql
-create table event_log (
-  id          bigint generated always as identity primary key,
-  room_id     bigint not null references rooms(id) on delete cascade,
-  round_id    bigint references rounds(id),
-  event_type  text not null,    -- e.g. 'edict_passed', 'player_executed', 'election_failed'
-  description text not null,    -- Human-readable UI string
-  metadata    jsonb,            -- Structured data for UI rendering (e.g. which power, which edict)
-  created_at  timestamptz not null default now()
-);
-
-alter table event_log enable row level security;
-alter table event_log force row level security;
-
-create policy event_log_read on event_log for select to authenticated
-  using (
-    room_id in (
-      select room_id from players where user_id = (select auth.uid())
-    )
-  );
-
-create index event_log_room_id_idx            on event_log (room_id);
--- Composite index for paginated feed queries (ORDER BY created_at DESC)
-create index event_log_room_created_at_idx    on event_log (room_id, created_at desc);
-```
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `bigint` (identity PK) | |
+| `room_id` | `bigint` FK → rooms | |
+| `round_id` | `bigint` FK → rounds | Optional |
+| `event_type` | `text` | e.g. `'edict_passed'`, `'player_executed'` |
+| `description` | `text` | Human-readable UI string |
+| `metadata` | `jsonb` | Structured data for UI rendering |
+| `created_at` | `timestamptz` | |
 
 ---
 
 ### `chat_messages`
-In-game discussion chat scoped per room.
+In-game and lobby discussion chat scoped per room.
 
-```sql
-create table chat_messages (
-  id         bigint generated always as identity primary key,
-  room_id    bigint not null references rooms(id) on delete cascade,
-  player_id  bigint not null references players(id) on delete cascade,
-  content    text not null check (char_length(content) <= 500),
-  created_at timestamptz not null default now()
-);
-
-alter table chat_messages enable row level security;
-alter table chat_messages force row level security;
-
-create policy chat_read on chat_messages for select to authenticated
-  using (
-    room_id in (
-      select room_id from players where user_id = (select auth.uid())
-    )
-  );
-
-create policy chat_insert_own on chat_messages for insert to authenticated
-  with check (
-    player_id in (
-      select id from players where user_id = (select auth.uid())
-    )
-  );
-
-create index chat_messages_room_id_idx         on chat_messages (room_id);
-create index chat_messages_room_created_at_idx on chat_messages (room_id, created_at desc);
-```
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `bigint` (identity PK) | |
+| `room_id` | `bigint` FK → rooms | |
+| `player_id` | `bigint` FK → players | |
+| `content` | `text` | Max 500 chars |
+| `phase` | `text` | `'lobby'` or `'game'` — separates lobby chat from in-game chat |
+| `created_at` | `timestamptz` | |
 
 ---
 
-### Supabase Realtime
+### Supabase Realtime Publication
 
-Enable realtime on tables clients need to react to:
+The `supabase_realtime` publication includes: `rooms`, `players`, `game_state`, `rounds`, `votes`, `event_log`, `chat_messages`.
 
-```sql
-alter publication supabase_realtime add table game_state;
-alter publication supabase_realtime add table rounds;
-alter publication supabase_realtime add table players;
-alter publication supabase_realtime add table votes;
-alter publication supabase_realtime add table event_log;
-alter publication supabase_realtime add table chat_messages;
-```
+**Never included:** `policy_deck` (secret deck data) and `player_roles` (secret role data).
 
-`policy_deck`, `player_roles`, and `presidential_actions` are intentionally excluded — they contain secret or server-only data managed exclusively by Edge Functions.
+---
+
+### Helper Functions
+
+| Function | Purpose |
+|---|---|
+| `is_player_in_room(_room_id, _user_id)` | RLS helper — checks membership |
+| `get_user_room_ids(_user_id)` | Returns room IDs for a user |
+| `cleanup_stale_rooms()` | Periodic cleanup of abandoned rooms |
 
 ---
 
@@ -415,7 +246,7 @@ alter publication supabase_realtime add table chat_messages;
 
 ### 4.1 Roles & Teams
 
-Every player is secretly assigned one of three roles at game start. Role assignment is performed exclusively by an Edge Function and written to `player_roles` — clients never receive any other player's role.
+Every player is secretly assigned one of three roles at game start. Role assignment is performed exclusively by an Edge Function and written to `player_roles`.
 
 | Role | Fantasy Name | Team | Count by Player Count |
 |---|---|---|---|
@@ -425,33 +256,31 @@ Every player is secretly assigned one of three roles at game start. Role assignm
 
 **Knowledge rules at game start:**
 - In 5–6 player games: The Usurper knows who their Traitor ally is. The Traitor knows who the Usurper is.
-- In 7–10 player games: Traitors know who each other are and who the Usurper is. The Usurper does NOT know who the Traitors are — they only know they are the Usurper.
+- In 7–10 player games: Traitors know each other and who the Usurper is. The Usurper does NOT know who the Traitors are.
 
-This asymmetry is encoded in the `revealed_allies` jsonb field on `player_roles`. The Edge Function populates each player's `revealed_allies` with the player IDs they are allowed to know about.
+This asymmetry is encoded in the `revealed_allies` jsonb field on `player_roles`.
 
 ---
 
 ### 4.2 Win Conditions
 
 **Loyalists win if:**
-- 5 Loyalist Edicts are enacted, OR
-- The Usurper is executed via the Execution presidential power
+- 5 Loyalist Edicts are enacted (`loyalists_edicts`), OR
+- The Usurper is executed via Royal Execution (`usurper_executed`)
 
 **Traitors win if:**
-- 6 Shadow Edicts are enacted, OR
-- The Usurper is elected as Lord Commander at any point after 3 or more Shadow Edicts have been passed
-
-Win conditions are evaluated by Edge Function after every edict enactment, every execution, and every successful government election.
+- 6 Shadow Edicts are enacted (`traitors_edicts`), OR
+- The Usurper is elected as Lord Commander after 3+ Shadow Edicts have been passed (`usurper_crowned`)
 
 ---
 
 ### 4.3 The Policy Deck
 
-The deck is initialized by Edge Function at game start:
+Initialised by Edge Function `start-game`:
 - **11 Shadow Edict cards** + **6 Loyalist Edict cards** = 17 cards total, shuffled randomly
 - Stored in `policy_deck` with `pile = 'draw'` and sequential `position` values
 
-**Reshuffle rule:** If fewer than 3 cards remain in the draw pile at the end of any legislative session, the discard pile is combined with the remaining draw cards, reshuffled, and becomes the new draw pile. Unused cards are never revealed during reshuffle.
+**Reshuffle rule:** If fewer than 3 cards remain in the draw pile, the discard pile is combined with remaining draw cards, reshuffled, and becomes the new draw pile.
 
 ---
 
@@ -461,40 +290,30 @@ Each round proceeds through three phases in order:
 
 #### Phase 1 — Election
 
-1. **Herald rotation:** The Herald (President) role passes clockwise to the next living player each round. Seat order is fixed at game start via `seat_order` on `players`.
-2. **Nomination:** The current Herald nominates any eligible living player as Lord Commander (Chancellor). Eligibility rules:
-   - In games with 6+ living players: neither the last elected Herald nor the last elected Lord Commander may be nominated.
-   - In games with 5 or fewer living players: only the last elected Lord Commander is ineligible; the last Herald may be nominated.
-   - Term limits are tracked via `last_elected_herald_id` and `last_elected_lord_commander_id` on `game_state`.
-3. **Usurper check:** If 3 or more Shadow Edicts have been passed and the nominated Lord Commander is the Usurper, the client prompts the Usurper to either confirm or deny. If the Usurper confirms (or is revealed), Traitors win immediately.
-4. **Voting:** All living players simultaneously cast a vote (`ja` or `nein`). Votes are written to the `votes` table with `revealed = false`. Once all living players have voted, the Edge Function flips all `revealed` flags to `true` simultaneously — votes are never visible one by one.
-5. **Election result:**
-   - **Majority ja (>50%):** Government is elected. Proceed to Legislative Session. Reset election tracker.
-   - **Tie or majority nein:** Election fails. Herald placard moves clockwise. Election tracker advances by 1.
-6. **Chaos policy:** If the election tracker reaches 3 consecutive failed elections, the top card of the draw pile is revealed and enacted automatically. Any presidential power it would trigger is ignored. Election tracker resets. All term limits are cleared.
+1. **Herald rotation:** The Herald role passes clockwise to the next living player each round.
+2. **Nomination:** The current Herald nominates an eligible living player as Lord Commander via Edge Function `nominate-chancellor`.
+3. **Voting:** All living players vote simultaneously (`ja`/`nein`). Votes written with `revealed = false`. Edge Function `submit-vote` handles individual votes and triggers resolution when all votes are in.
+4. **Election result:**
+   - **Majority ja (>50%):** Government elected. Proceed to Legislative. Reset election tracker.
+   - **Tie or majority nein:** Election fails. Herald advances clockwise. Election tracker +1.
+5. **Chaos policy:** If election tracker reaches 3, the top card is auto-enacted. Powers are ignored. Term limits cleared.
 
 #### Phase 2 — Legislative Session
 
-This phase is private between the Herald and Lord Commander. All card data is managed exclusively by Edge Functions — no card information is written to tables in a form readable by other clients.
+Private between Herald and Lord Commander. All card data managed exclusively by Edge Functions.
 
-1. **Herald draws 3 cards:** Edge Function reads the top 3 cards from `policy_deck`, writes them to `rounds.herald_hand` (jsonb, readable only via server-side logic), and removes them from the draw pile.
-2. **Herald discards 1:** The Herald sees their 3 cards in the UI and selects 1 to discard. The discard is sent to the Edge Function, which appends it to the discard pile.
-3. **Lord Commander receives 2 cards:** Edge Function writes the remaining 2 cards to `rounds.chancellor_hand`. The Lord Commander sees them in UI and selects 1 to enact.
-4. **Edict enacted:** The enacted card type is written to `rounds.enacted_policy` and the corresponding tracker on `game_state` is incremented (`shadow_edicts_passed` or `loyalist_edicts_passed`).
-5. **Veto (if unlocked):** After 5 Shadow Edicts have been passed, `game_state.veto_unlocked = true`. In this case, before the Lord Commander enacts a policy, they may request a veto by setting `rounds.veto_requested = true`. The Herald then accepts or rejects:
-   - If accepted: both cards are discarded, election tracker advances by 1, round ends with no edict enacted.
-   - If rejected: Lord Commander must enact one of the two cards as normal.
-6. **Communication rule:** Players may say anything during the legislative session, but they may also lie freely. There is no game-enforced truth requirement.
+1. **Herald draws 3 cards:** Edge Function `fetch-hand` delivers 3 cards in response body (stored in local React state `heraldHand`, never in Realtime-published columns).
+2. **Herald discards 1:** Edge Function `herald-discard` processes the discard and delivers 2 remaining cards to Lord Commander (stored in local React state `chancellorHand`).
+3. **Lord Commander enacts 1:** Edge Function `enact-policy` increments the edict counter and checks win conditions / power triggers.
+4. **Veto (if unlocked):** After 5 Shadow Edicts, Lord Commander may request veto via `request-veto`. Herald responds via `respond-veto`.
 
 #### Phase 3 — Executive Action
 
-If the enacted edict is a Shadow Edict and the current `shadow_edicts_passed` count triggers a presidential power (see power table in 4.5), the Herald must use that power before the next round begins. The active power is stored in `game_state.active_power` until resolved by Edge Function.
+If a Shadow Edict triggers a presidential power, `game_state.active_power` is set. The Herald resolves it via Edge Function `resolve-power`.
 
 ---
 
 ### 4.5 Presidential Powers by Player Count
-
-Powers are triggered by Shadow Edict count thresholds, which vary by player count. The board layout differs per game size:
 
 | Shadow Edicts Enacted | 5–6 Players | 7–8 Players | 9–10 Players |
 |---|---|---|---|
@@ -505,175 +324,61 @@ Powers are triggered by Shadow Edict count thresholds, which vary by player coun
 | 5 | Royal Execution | Royal Execution | Royal Execution |
 | 6 | Royal Execution | — | — |
 
-**Power descriptions (fantasy reskin):**
-
-- **Raven's Eye (Policy Peek):** The Herald secretly views the top 3 cards of the draw pile and returns them in the same order. The Herald may tell others what they saw, but may also lie. Result is written privately via Edge Function.
-- **Investigate Loyalty** (fantasy name: **Read the Brand**): The Herald selects any living player who has not previously been investigated. The Edge Function reads that player's `player_roles.role` and returns only the team affiliation (`loyalist` or `traitor/usurper` → both shown as "Shadow Court"). The result is stored in `presidential_actions.result` readable only by the acting Herald. The Herald may share or lie about the result.
-- **Call Conclave (Special Election):** The Herald selects any living player to become the next Herald. After that special Herald's turn ends, the rotation returns to its normal clockwise order from the original position.
-- **Royal Execution:** The Herald selects any living player to execute. That player's `is_alive` is set to `false`. They are removed from voting, nominations, and turn rotation. If the executed player is the Usurper, Loyalists win immediately. If not, their role is NOT revealed to other players.
+**Power descriptions:**
+- **Raven's Eye (Policy Peek):** Herald secretly views top 3 cards of draw pile.
+- **Investigate Loyalty (Read the Brand):** Herald selects a player; result shows "Loyal" or "Shadow Court". Stored privately in `presidential_actions.result`.
+- **Call Conclave (Special Election):** Herald selects any living player as next Herald. `special_election_herald_pointer` tracks the return position for normal rotation.
+- **Royal Execution:** Herald selects a living player to execute. If the Usurper, Loyalists win immediately.
 
 ---
 
-### 4.6 Edge Function Responsibilities
+### 4.6 Edge Function Catalogue
 
-The following game logic must never execute on the client:
-
-| Action | Why Server-Only |
-|---|---|
-| Role assignment & shuffle | Prevents clients from intercepting role data |
-| Policy deck draw & discard | Prevents players from knowing upcoming cards |
-| Revealing investigation result | Result only delivered to acting Herald |
-| Flipping `votes.revealed` | Simultaneous reveal must be atomic |
-| Win condition evaluation | Prevents race conditions or client-side spoofing |
-| Veto resolution | Must atomically discard both cards and advance tracker |
-| Chaos policy enactment | Must ignore power triggers correctly |
-| Reshuffle on deck exhaustion | Must be invisible to all players |
+| Function | Triggered By | Responsibility |
+|---|---|---|
+| `create-room` | Player clicks "Create Game" | Generate room code, insert room + host player |
+| `join-room` | Player enters room code | Validate room, insert player, handle idempotent rejoin |
+| `start-game` | Host clicks "Begin the Council" | Assign roles, shuffle deck, set seat order, create game_state, transition to election |
+| `nominate-chancellor` | Herald selects a nominee | Set `current_lord_commander_id`, transition to voting |
+| `submit-vote` | Player casts vote | Write vote; when all voted, flip `revealed`, evaluate result, transition phase |
+| `vote-status` | Client polling | Check current vote tally without revealing individual votes |
+| `fetch-hand` | Herald enters legislative phase | Draw 3 cards from deck, return in response body |
+| `herald-discard` | Herald discards a card | Remove card, deliver 2 remaining to Lord Commander in response body |
+| `enact-policy` | Lord Commander selects a card | Increment edict counter, check reshuffle, evaluate win + power |
+| `request-veto` | Lord Commander requests veto | Set `rounds.veto_requested = true` |
+| `respond-veto` | Herald accepts/rejects veto | Discard both + advance tracker, or proceed to enactment |
+| `resolve-power` | Herald submits power action | Execute power logic, clear `active_power`, advance round |
+| `reset-room` | Host clicks "Play Again" | Clear game data, reset room to lobby state |
 
 ---
 
 ## 5. Game State Machine
 
-The game progresses through a strict sequence of phases stored in `game_state.current_phase`. All phase transitions are triggered exclusively by Edge Functions — the client only reads state and renders UI accordingly. No client action directly mutates the phase.
-
----
-
-### 5.1 Phase Overview
+All phase transitions are triggered exclusively by Edge Functions.
 
 ```
 LOBBY
   │
-  └─► ELECTION (nomination)
+  └─► ELECTION (nomination → voting)
         │
         ├─► [vote fails] ──► election_tracker + 1
         │       │
         │       └─► [tracker = 3] ──► CHAOS ──► EDICT_CHECK ──► back to ELECTION
         │
-        └─► [vote passes] ──► LEGISLATIVE_HERALD
+        └─► [vote passes] ──► LEGISLATIVE (Herald → Lord Commander)
                 │
-                └─► LEGISLATIVE_COMMANDER
-                      │
-                      ├─► [veto requested + approved] ──► election_tracker + 1 ──► back to ELECTION
-                      │
-                      └─► [edict enacted] ──► EDICT_CHECK
-                                │
-                                ├─► [win condition met] ──► GAME_OVER
-                                │
-                                ├─► [power triggered] ──► EXECUTIVE_ACTION
-                                │         │
-                                │         └─► [power resolved] ──► EDICT_CHECK (re-evaluate)
-                                │
-                                └─► [no power / power resolved] ──► back to ELECTION
+                ├─► [veto requested + approved] ──► election_tracker + 1 ──► back to ELECTION
+                │
+                └─► [edict enacted] ──► EDICT_CHECK
+                          │
+                          ├─► [win condition met] ──► GAME_OVER
+                          │
+                          ├─► [power triggered] ──► EXECUTIVE_ACTION
+                          │         │
+                          │         └─► [power resolved] ──► back to ELECTION
+                          │
+                          └─► [no power] ──► back to ELECTION
 ```
-
----
-
-### 5.2 State Definitions
-
-#### `lobby`
-- **Entry:** Room created by host
-- **Active:** Players join via room code; host sees a "Start Game" button
-- **Exit trigger:** Host clicks Start Game with 5–10 players present
-- **Edge Function:** `start-game` — assigns roles, shuffles deck, sets `seat_order`, creates `game_state` row, transitions to `election`
-
----
-
-#### `election`
-- **Entry:** New round begins; Herald placard moves clockwise to next living player
-- **Active:**
-  - Current Herald nominates a Lord Commander from eligible players
-  - All living players vote simultaneously
-  - Votes written to `votes` with `revealed = false`
-- **Exit triggers:**
-  - All living players have submitted a vote → Edge Function `resolve-vote` evaluates result
-    - **Majority ja** → transition to `legislative`; reset election tracker; update term limits
-    - **Tie or majority nein** → increment `election_tracker`; keep phase as `election`; advance Herald clockwise
-    - **election_tracker reaches 3** → enact chaos policy; reset tracker; clear term limits; stay in `election` with new Herald
-- **Edge Function:** `submit-vote`, `resolve-vote`
-
----
-
-#### `legislative`
-- **Sub-phase A — Herald's turn (`legislative_herald`):**
-  - Entry: `resolve-vote` deals 3 cards to Herald via `rounds.herald_hand`
-  - Active: Herald sees 3 cards privately in UI; selects 1 to discard
-  - Exit trigger: Herald submits discard → Edge Function `herald-discard`
-  - Edge Function: `herald-discard` — removes card from hand, appends to discard pile, delivers 2 remaining cards to Lord Commander via `rounds.chancellor_hand`
-
-- **Sub-phase B — Lord Commander's turn (`legislative_commander`):**
-  - Entry: `herald-discard` completes
-  - Active: Lord Commander sees 2 cards privately in UI
-    - If `veto_unlocked = true`: Lord Commander may request veto (`rounds.veto_requested = true`)
-      - Herald must respond: accept or reject
-      - **Accept:** both cards discarded, `election_tracker + 1`, round ends, back to `election`
-      - **Reject:** Lord Commander must enact one card normally
-    - Lord Commander selects 1 card to enact
-  - Exit trigger: Lord Commander submits enactment → Edge Function `enact-policy`
-  - Edge Function: `enact-policy` — increments edict counter, writes `rounds.enacted_policy`, appends other card to discard, checks reshuffle, evaluates win + power
-
----
-
-#### `executive_action`
-- **Entry:** `enact-policy` detects a power should trigger; sets `game_state.active_power`
-- **Active:** Herald performs the required power action in UI (one of four below)
-- **Exit trigger:** Herald submits power resolution → Edge Function `resolve-power`
-- **Power-specific flows:**
-
-  | Power | Herald Action | Edge Function Behaviour |
-  |---|---|---|
-  | `policy_peek` | Herald views top 3 cards (UI only, never stored publicly) | Reads deck, delivers result privately; no game state change |
-  | `investigate_loyalty` | Herald selects a target player | Reads target's role, writes team affiliation to `presidential_actions.result`; marks player as investigated |
-  | `special_election` | Herald selects any living player as next Herald | Sets `game_state.current_herald_id` to chosen player; after their round, rotation reverts to original clockwise order |
-  | `execution` | Herald selects a living player to execute | Sets `players.is_alive = false`; checks if target is Usurper → if yes, Loyalists win; if no, role stays hidden |
-
-- **Edge Function:** `resolve-power` — resolves action, clears `game_state.active_power`, transitions to `election` (or `game_over` if execution killed the Usurper)
-
----
-
-#### `game_over`
-- **Entry:** Any win condition is met (evaluated by Edge Functions after every edict enactment, execution, or successful election)
-- **Active:** All roles are revealed to all players; win/loss screen shown; event log summarises the game
-- **Win condition triggers:**
-
-  | Trigger | Winner | `win_condition` value |
-  |---|---|---|
-  | 5 Loyalist Edicts enacted | Loyalists | `loyalists_edicts` |
-  | Usurper executed | Loyalists | `usurper_executed` |
-  | 6 Shadow Edicts enacted | Traitors | `traitors_edicts` |
-  | Usurper elected as Lord Commander after 3+ Shadow Edicts | Traitors | `usurper_crowned` |
-
-- **Edge Function:** Any function that changes edict counts or executes a player must call `check-win-condition` as its final step before responding
-
----
-
-### 5.3 Edge Function Catalogue
-
-| Function | Triggered By | Responsibility |
-|---|---|---|
-| `start-game` | Host clicks Start | Assign roles, shuffle deck, set seat order, create game_state |
-| `submit-vote` | Player submits vote | Write vote to `votes`; check if all players have voted |
-| `resolve-vote` | All votes in | Flip `revealed`, evaluate result, transition phase or advance tracker |
-| `herald-discard` | Herald submits discard | Remove card from hand, pass 2 to Lord Commander |
-| `enact-policy` | Lord Commander submits enactment | Increment edict counter, check reshuffle, trigger power or end round |
-| `request-veto` | Lord Commander requests veto | Set `rounds.veto_requested = true` |
-| `respond-veto` | Herald accepts or rejects veto | Discard both + advance tracker, or proceed to enactment |
-| `resolve-power` | Herald submits power action | Execute power-specific logic, clear `active_power`, advance round |
-| `check-win-condition` | Called internally by other functions | Evaluate all four win conditions; set `game_state.winner` if met |
-
----
-
-### 5.4 Client Rendering Rules
-
-The React client subscribes to `game_state`, `rounds`, `votes`, `players`, `event_log`, and `chat_messages` via Supabase Realtime. On any change, it re-renders based on the following rules:
-
-| `current_phase` | What the UI shows |
-|---|---|
-| `lobby` | Waiting room: player list, room code, Start button (host only) |
-| `election` | Nomination UI (Herald only) + vote buttons (all players) + vote status indicators |
-| `legislative` | Card selection UI (Herald or Lord Commander only, based on sub-phase); waiting screen for others |
-| `executive_action` | Power UI for Herald only; all others see "The Herald is deliberating..." |
-| `game_over` | Role reveal screen, winner announcement, full event log |
-
-Players who are not the active actor during `legislative` or `executive_action` phases see a read-only waiting screen with the event log and chat visible. Executed (dead) players can observe but cannot vote, chat, or take actions.
 
 ---
 
@@ -681,159 +386,135 @@ Players who are not the active actor during `legislative` or `executive_action` 
 
 ### 6.1 Aesthetic Direction
 
-Fractured Crown should feel like a **dark medieval war room** — candlelit, conspiratorial, tense. The aesthetic is **gothic refinement**: rich deep colors, aged textures, heraldic iconography, and deliberate typography. It should feel nothing like a generic web app. Every screen should evoke the feeling of gathering around a candlelit table in a stone castle.
+**Dark medieval war room** — gothic, candlelit, conspiratorial. Not cartoonish fantasy — restrained and ominous.
 
-**Tone:** Dark luxury. Think illuminated manuscripts, wax seals, iron crowns, and shadow. Not cartoonish fantasy — restrained and ominous.
+**Color palette (HSL tokens in `index.css`):**
 
-**Color palette:**
-- Background: deep near-black parchment `#0f0d0b`
-- Surface: dark warm brown `#1c1612`
-- Accent gold: `#c9a84c` — used for Loyalist edicts, active states, and heraldic details
-- Accent crimson: `#8b1a1a` — used for Shadow edicts, traitor reveals, executions
-- Text primary: warm off-white `#e8dcc8`
-- Text muted: `#7a6a55`
-- Borders/dividers: `#2e2318`
+| Token | CSS Variable | Hex | Usage |
+|---|---|---|---|
+| Background | `--background` | `#0f0d0b` | Page background |
+| Surface/Card | `--card` | `#1c1612` | Cards, panels |
+| Gold | `--primary` | `#c9a84c` | Loyalist edicts, active states, heraldic details |
+| Crimson | `--accent` | `#8b1a1a` | Shadow edicts, traitor reveals, executions |
+| Body text | `--foreground` | `#e8dcc8` | Primary text |
+| Muted text | `--muted-foreground` | `#7a6a55` | Secondary text |
 
 **Typography:**
-- Display / headings: a serif with medieval character — `Cinzel` (Google Fonts) for titles, room codes, role names, and win screens
-- Body / UI text: `Crimson Text` (Google Fonts) — elegant, readable, period-appropriate
-- Monospace (for codes, vote counts): `Courier Prime`
-- Never use Inter, Roboto, or system fonts
+- Display / headings: `Cinzel` (`.font-display`)
+- Body / UI text: `Crimson Text` (`.font-body`)
+- Monospace: `Courier Prime` (`.font-mono`)
 
-**Texture and atmosphere:**
-- Subtle noise/grain overlay on all backgrounds (CSS `filter` or SVG noise texture)
-- Parchment-like card surfaces with slightly irregular borders
-- Gold foil shimmer effect on Loyalist edict cards (CSS gradient animation)
-- Deep red glow effect on Shadow edict cards
-- Candlelight flicker effect on the main game board background (subtle CSS animation)
-
-**Motion:**
-- Vote reveal: cards flip face-up simultaneously with a CSS 3D card-flip animation
-- Edict enactment: card slides into the tracker with a stamping animation
-- Execution: player portrait fades to grayscale with a slow dissolve + ash particle effect
-- Role reveal at game end: cards flip one by one with staggered delays
-- Phase transitions: crossfade with a brief dark flash
+**Atmospheric effects:**
+- Noise/grain overlay on backgrounds
+- Gold foil shimmer on Loyalist edict cards (CSS gradient animation)
+- Deep red glow on Shadow edict cards
+- Candlelight flicker ambient overlay (radial gradient)
+- Vignette edge darkening
+- Ember particle animations on landing page
 
 ---
 
 ### 6.2 Screen Inventory
 
-#### Screen 1 — Landing / Home
-- Full-bleed dark background with the Fractured Crown logo centered
+#### Screen 1 — Landing / Home (`/`)
+- Full-bleed dark background with the Fractured Crown logo
 - Tagline: *"In the kingdom of lies, loyalty is the rarest currency."*
-- Two CTAs: **"Create Game"** and **"Join Game"**
-- Animated background: slowly drifting smoke or fog layers (CSS keyframes)
-- No navigation, no clutter — pure atmosphere
+- Three modes: Landing → Create Game / Join Game
+- Player enters display name before creating or joining
+- Ember particle animations for atmosphere
+- Footer links to Privacy Policy and Terms of Service
 
-#### Screen 2 — Create Room
-- Player enters their display name
-- Room code is generated and displayed prominently in `Cinzel` font with a copy button
-- Shareable link auto-generated
-- "Waiting for players..." state shows as players join (live via Supabase Realtime on `players` table)
-- Player list shows avatar initials in circular medallion style with seat position
-- Host sees a **"Begin the Council"** button, enabled only when 5–10 players present
+#### Screen 2 — Join Room (`/join/:roomCode`)
+- Direct-link join flow for shared URLs
+- Player enters display name and joins automatically
+- Redirects to room on success
 
-#### Screen 3 — Join Room
-- Single input for 6-character room code + display name entry
-- Validates room exists and is in `lobby` status before allowing join
-- On join, transitions to the waiting room view (same as Screen 2 minus host controls)
+#### Screen 3 — Room Lobby (`/room/:roomCode`)
+- Live player list with sigil avatars and online/offline indicators (via Presence)
+- **Sigil selection:** Players choose from 10 heraldic sigils (crown, sword, shield, wolf, raven, rose, flame, anchor, dragon, skull) stored in Supabase Storage
+- **Ready-up system:** Players toggle ready status
+- **Spectator mode:** Players can join as spectators
+- **Room code** displayed prominently with copy button
+- **QR code** generation for easy mobile joining (via `qrcode.react`)
+- **Shareable link** with copy button
+- **Host controls:**
+  - "Begin the Council" button (enabled when ≥5 non-spectator players)
+  - Kick players
+  - Transfer host
+  - **Royal Decrees** (game settings panel)
+- **Lobby chat** with optimistic message sending
+- **Lobby presence cursors** (real-time cursor positions via Broadcast)
+- **How to Play** modal
+- **Display name editing** in lobby
+- Player count indicator (e.g. "6 / 10 players")
 
-#### Screen 4 — Role Reveal (game start)
-- Full-screen dramatic reveal: envelope/scroll animation unfurls to show the player's role card
-- Role card design:
-  - **Loyalist:** gold border, crest of a sword and crown, warm parchment background
-  - **Traitor:** crimson border, shadow court sigil, dark background
-  - **Usurper:** deep crimson + black, iron crown motif, most dramatic treatment
-- For Traitors (and Usurper in 5–6p): after role reveal, a secondary screen shows ally identities with portrait medallions
-- "I understand my role" confirmation button before proceeding to game
+#### Screen 4 — Role Reveal (in-game overlay)
+- Each player sees their secret role with dramatic animation
+- Traitors/Usurper see their `revealed_allies` information
+- Cinzel typography with faction-coloured styling
 
-#### Screen 5 — Main Game Board
-The primary game screen. All players see this throughout the game. Layout:
+#### Screen 5 — Game Board (in-game, `/room/:roomCode` when `status = 'in_progress'`)
+- **Edict Tracker:** Visual board showing Loyalist (0–5) and Shadow (0–6) edict progress
+- **Player Council:** Circular/ring layout showing all players with:
+  - Sigil avatars
+  - Herald/Lord Commander indicators
+  - Alive/dead status
+  - Online/offline indicators
+  - Active reactions (emoji bubbles via Broadcast)
+- **Phase-specific panels:**
+  - Election: Nomination UI (Herald only) + vote buttons + vote status
+  - Legislative: Card selection overlays (Herald or Lord Commander)
+  - Executive Action: Power-specific overlays
+- **Event Log Feed:** Scrollable chronological game history
+- **Chat Panel:** In-game chat with optimistic sends
+- **Connection Banner:** Shows when Realtime connection drops
+- **Phase Transition Banner:** Animated banner on phase changes
+- **Turn Timer:** Optional countdown timer (configurable in room settings)
+- **Mobile Action Bar:** Bottom action bar for mobile layout
 
-```
-┌─────────────────────────────────────────────────────┐
-│  EDICT TRACKERS          Round N   Election Tracker  │
-│  [■■■□□] Loyalist        [HERALD NAME]   [●●○]       │
-│  [■■■■□□] Shadow                                     │
-├──────────────────────────┬──────────────────────────┤
-│                          │                          │
-│   PLAYER COUNCIL         │   ACTIVE PHASE PANEL     │
-│   (seat ring layout)     │   (context-sensitive)    │
-│   Avatar medallions      │                          │
-│   Alive/dead state       │                          │
-│   Current Herald crown   │                          │
-│   Vote indicators        │                          │
-│                          │                          │
-├──────────────────────────┴──────────────────────────┤
-│  EVENT LOG (scrollable)  │  CHAT                    │
-└─────────────────────────────────────────────────────┘
-```
-
-**Player council (left panel):** Players arranged in a circular/oval layout representing the council table. Each player has:
-- A circular avatar medallion showing their initial or chosen icon
-- Name label beneath
-- Crown icon if current Herald; scroll icon if current Lord Commander nominee
-- Vote result badge (ja/nein) shown after reveal, hidden before
-- Greyed-out + skull icon if executed
-- Subtle glow if currently the active actor (herald or lord commander)
-
-**Active phase panel (right panel):** Changes based on `current_phase`:
-- `election`: Nomination dropdown (Herald only) + "Call to Vote" button; OR voting buttons (all players) with live "X of Y voted" counter
-- `legislative_herald`: Card selection UI (Herald only) — 3 cards face-up, pick 1 to discard
-- `legislative_commander`: Card selection UI (Lord Commander only) — 2 cards, pick 1 to enact; veto button if unlocked
-- `executive_action`: Power-specific UI (Herald only)
-- All others: atmospheric waiting message + animated crest
-
-**Edict trackers (top):** Two horizontal progress tracks styled as stone tablets with carved slots. Loyalist slots filled with gold seal icons; Shadow slots filled with dark crimson sigils.
-
-**Event log (bottom left):** Scrollable feed of game events in italic serif text, styled like a scribe's record. Each entry timestamped by round number.
-
-**Chat (bottom right):** Simple message input and scrollable history. Player names in their team color (revealed only at game end — during the game, all names appear in neutral off-white).
-
-#### Screen 6 — Card Selection (legislative phase)
-Shown as an overlay/modal on the main board for the active player:
-- Cards rendered as large parchment playing cards with face-up edict type
-- Loyalist card: gold border, "Royal Edict" text, crown motif
-- Shadow card: crimson border, "Shadow Decree" text, eye-in-dark motif
-- Hover state: card lifts with shadow
-- Selection: card glows and scales up slightly; "Confirm" button activates
-- Other players see: "The Herald/Lord Commander is deliberating..." with animated quill
+#### Screen 6 — Legislative Overlays
+- **Herald view:** 3 face-down cards animate flipping; Herald selects 1 to discard
+- **Lord Commander view:** 2 cards; selects 1 to enact; veto option if unlocked
+- **Other players:** "The Herald/Lord Commander is deliberating..." with animated quill
 
 #### Screen 7 — Executive Power Overlays
-Each power gets its own dramatic overlay:
-
-- **Raven's Eye:** Three face-down cards animate flipping toward the Herald only; other players see a raven silhouette animation
-- **Investigate Loyalty:** Herald selects a player; result appears as a wax-sealed scroll that tears open to reveal "Loyal" or "Shadow Court"
-- **Call Conclave:** Herald selects next Herald from a list; transition animation of the crown passing
-- **Royal Execution:** Herald selects a target; confirmation modal with ominous language ("Do you sentence [name] to death?"); executed player's medallion shatters and fades to ash
+- **Raven's Eye (Policy Peek):** Cards flip for Herald only
+- **Investigate Loyalty:** Target selection → wax seal reveal
+- **Call Conclave:** Target selection → crown passing animation
+- **Royal Execution:** Target selection → confirmation modal → execution animation
 
 #### Screen 8 — Game Over
 - Full-screen dramatic reveal
-- Win/loss announcement in large `Cinzel` text with appropriate color (gold for Loyalist win, crimson for Traitor win)
-- All player role cards flip face-up one by one with staggered animation
-- The Usurper's card flips last, with the most dramatic animation
-- Full event log summary below
-- "Play Again" button (returns to lobby with same players) and "Leave" button
+- Win/loss announcement with faction-coloured Cinzel text
+- All player role cards flip face-up with staggered animation
+- Full event log summary
+- **Game Replay** viewer
+- "Play Again" button (host only, calls `reset-room`) and "Leave" button
+
+#### Other Pages
+- **Privacy Policy** (`/privacy`)
+- **Terms of Service** (`/terms`)
+- **404 Not Found** (catch-all)
 
 ---
 
 ### 6.3 Responsive Design
 
-The game is primarily designed for **desktop/tablet** play (players are sitting together or on a video call). Mobile is supported as a secondary experience with the following adaptations:
-- Council ring collapses to a horizontal scrollable player strip
-- Active phase panel takes full screen width
-- Event log and chat become tab-switched panels at the bottom
-- Card selection becomes a full-screen swipe-to-choose interaction
+Primary target: **desktop/tablet**. Mobile supported with:
+- Council ring collapses to horizontal scrollable player strip
+- Active phase panel takes full width
+- Event log and chat as tab-switched panels
+- Mobile action bar at bottom
 
 ---
 
 ### 6.4 Accessibility
 
-- All interactive elements have sufficient contrast ratios (WCAG AA minimum)
-- Vote buttons labeled with both icon and text
-- Role cards include text labels, not just iconography
-- Animations respect `prefers-reduced-motion` — all CSS animations wrapped in `@media (prefers-reduced-motion: no-preference)`
-- Focus states visible on all interactive elements
+- WCAG AA minimum contrast
+- Vote buttons labelled with icon + text
+- Role cards include text labels
+- Animations respect `prefers-reduced-motion`
+- Focus states on all interactive elements
 
 ---
 
@@ -841,258 +522,184 @@ The game is primarily designed for **desktop/tablet** play (players are sitting 
 
 ### 7.1 Approach
 
-Fractured Crown uses **Supabase Realtime** exclusively for live state synchronization — no raw WebSockets, no polling, no custom pub/sub. Every client subscribes to database table changes. When an Edge Function mutates a row, Supabase streams the change to all subscribed clients instantly. The React client re-renders based on the new state.
-
-This means the database is the single source of truth. The client is purely a renderer — it never holds authoritative game state locally.
+Fractured Crown uses **Supabase Realtime** for live state synchronisation with a **2-second polling fallback** for resilience. The database is the single source of truth. The client is purely a renderer.
 
 ---
 
-### 7.2 Subscriptions Per Client
+### 7.2 Channel Architecture
 
-Each client establishes the following Supabase Realtime subscriptions on join, filtered to their `room_id`:
+**Single Realtime channel per game room** in `useGameRoom.ts` — subscribes to Postgres Changes on all game tables + Broadcast for reactions. A separate Presence channel tracks online status.
 
-| Table | Event | What triggers it | Client reaction |
-|---|---|---|---|
-| `game_state` | `UPDATE` | Any phase transition or edict count change | Re-render entire game board; switch active phase panel |
-| `rounds` | `INSERT` / `UPDATE` | New round created; herald/commander hands dealt; edict enacted; veto state changed | Update round context; show card selection UI to active player |
-| `players` | `INSERT` / `UPDATE` | Player joins lobby; player executed (`is_alive` flips) | Update player list / council ring; animate execution |
-| `votes` | `INSERT` / `UPDATE` | Player submits vote (INSERT); all votes revealed (UPDATE `revealed = true`) | Show "X of Y voted" counter; animate simultaneous vote flip on reveal |
-| `event_log` | `INSERT` | Any game event appended | Append new entry to scrollable event feed |
-| `chat_messages` | `INSERT` | Player sends message | Append message to chat panel |
+**Lobby** uses a separate channel in `Room.tsx` for player/room changes and lobby chat, plus a Presence channel for online indicators and cursor positions (via `useLobbyPresence`).
 
 ---
 
-### 7.3 Subscription Setup (React)
+### 7.3 Subscriptions (Game Room)
 
-All subscriptions should be initialised in a single `useGameRoom` custom hook, established once on mount and torn down on unmount. Example structure for Lovable to follow:
-
-```typescript
-// Single channel per room — more efficient than one channel per table
-const channel = supabase
-  .channel(`room:${roomId}`)
-  .on('postgres_changes', {
-    event: '*',
-    schema: 'public',
-    table: 'game_state',
-    filter: `room_id=eq.${roomId}`
-  }, (payload) => handleGameStateChange(payload))
-  .on('postgres_changes', {
-    event: '*',
-    schema: 'public',
-    table: 'rounds',
-    filter: `room_id=eq.${roomId}`
-  }, (payload) => handleRoundChange(payload))
-  .on('postgres_changes', {
-    event: '*',
-    schema: 'public',
-    table: 'players',
-    filter: `room_id=eq.${roomId}`
-  }, (payload) => handlePlayersChange(payload))
-  .on('postgres_changes', {
-    event: '*',
-    schema: 'public',
-    table: 'votes',
-    filter: `room_id=eq.${roomId}`
-  }, (payload) => handleVotesChange(payload))
-  .on('postgres_changes', {
-    event: 'INSERT',
-    schema: 'public',
-    table: 'event_log',
-    filter: `room_id=eq.${roomId}`
-  }, (payload) => handleEventLogInsert(payload))
-  .on('postgres_changes', {
-    event: 'INSERT',
-    schema: 'public',
-    table: 'chat_messages',
-    filter: `room_id=eq.${roomId}`
-  }, (payload) => handleChatInsert(payload))
-  .subscribe()
-
-// Cleanup on unmount
-return () => supabase.removeChannel(channel)
-```
-
-All six subscriptions share a single channel (`room:${roomId}`) — this is more efficient than creating one channel per table.
+| Table | Event | Client reaction |
+|---|---|---|
+| `game_state` | `*` | Re-render game board; switch phase panel |
+| `rounds` | `*` | Update round context |
+| `players` | `*` | Update player list / council ring |
+| `player_roles` | `*` | Re-fetch own role (RLS limits to own row) |
+| `votes` | `*` | Update vote status / animate reveal |
+| `event_log` | `*` | Append to event feed |
+| `chat_messages` | `*` | Append to chat panel |
+| Broadcast `reaction` | — | Show emoji reaction bubble on player avatar |
 
 ---
 
-### 7.4 Initial State Load
+### 7.4 Polling Fallback
 
-Realtime only delivers changes — it does not backfill history. On mount, the client must fetch current state before activating subscriptions:
-
-```typescript
-// Fetch all current state in parallel on room join
-const [gameState, rounds, players, votes, eventLog, chatMessages] =
-  await Promise.all([
-    supabase.from('game_state').select('*').eq('room_id', roomId).single(),
-    supabase.from('rounds').select('*').eq('room_id', roomId).order('round_number'),
-    supabase.from('players').select('*').eq('room_id', roomId),
-    supabase.from('votes').select('*').eq('room_id', roomId).eq('revealed', true),
-    supabase.from('event_log').select('*').eq('room_id', roomId).order('created_at'),
-    supabase.from('chat_messages').select('*').eq('room_id', roomId).order('created_at')
-  ])
-
-// Then activate Realtime subscriptions
-```
-
-This ensures a player who joins mid-game or refreshes their browser gets a complete and correct game state immediately.
+`useGameRoom` runs a 2-second `setInterval` calling `refreshAll()` to guard against dropped Realtime messages. This ensures eventual consistency even if the WebSocket connection is unstable.
 
 ---
 
 ### 7.5 Private Data Delivery
 
-Some game data is private to a single player (card hands, investigation results). These are never delivered via Realtime — they are delivered directly by Edge Function response to the requesting client only:
+Private data is delivered exclusively in Edge Function response bodies and stored in local React state:
 
-| Private data | How delivered |
-|---|---|
-| Herald's 3-card hand | Edge Function `resolve-vote` returns hand directly in response body to Herald's client |
-| Lord Commander's 2-card hand | Edge Function `herald-discard` returns hand directly in response body to Lord Commander's client |
-| Policy peek result | Edge Function `resolve-power` returns top 3 cards directly in response body to Herald only |
-| Investigation result | Edge Function `resolve-power` returns team affiliation directly in response body to Herald only |
+| Private data | Hook state | Source Edge Function |
+|---|---|---|
+| Herald's 3-card hand | `heraldHand` | `fetch-hand` |
+| Lord Commander's 2-card hand | `chancellorHand` | `herald-discard` |
+| Policy peek result | Response body | `resolve-power` |
+| Investigation result | Response body | `resolve-power` |
 
-These values are stored in `rounds.herald_hand`, `rounds.chancellor_hand`, and `presidential_actions.result` for server-side record-keeping, but RLS ensures no other client can read them via a direct Supabase query.
-
----
-
-### 7.6 Handling Concurrent Actions
-
-Since all authoritative writes go through Edge Functions (not direct client inserts), race conditions are minimised. Edge Functions run atomically per invocation. Key concurrency notes:
-
-- **Vote submission:** Multiple players submit votes concurrently — this is safe because each player writes to their own `votes` row (unique constraint on `round_id, player_id`). The `resolve-vote` function is triggered only after confirming all living players have voted.
-- **Phase transitions:** Only Edge Functions write to `game_state.current_phase`. Clients have no write policy on this column — they cannot trigger a phase change directly.
-- **Deck exhaustion:** The reshuffle check in `enact-policy` runs within the same Edge Function invocation as the enactment, preventing any window where the deck could be read as empty by another operation.
+These values are **never** written to Realtime-published columns.
 
 ---
 
-### 7.7 Connection Loss & Reconnection
+### 7.6 Connection Loss
 
-Supabase Realtime handles reconnection automatically. On reconnect, the client should re-fetch current state (same parallel fetch as 7.4) before re-subscribing to avoid acting on a stale local state. Implement this in the `useGameRoom` hook by listening to the channel's `CLOSED` → `SUBSCRIBED` transition:
+The channel monitors `CHANNEL_ERROR`, `TIMED_OUT`, and `CLOSED` statuses. On any of these, `disconnected` state is set to `true` (rendering `ConnectionBanner`) and a full state refresh is triggered. Supabase handles automatic reconnection.
 
-```typescript
-channel.on('system', { event: 'reconnect' }, async () => {
-  await refetchAllState()
-})
-```
+---
+
+### 7.7 Broadcast: Reactions
+
+Players can send emoji reactions (throttled to one per 3 seconds). Reactions are broadcast to all room members via the game room channel and displayed as floating bubbles above player avatars for 2.5 seconds.
 
 ---
 
 ## 8. Auth & Lobby System
 
-### 8.1 Authentication Approach
+### 8.1 Authentication
 
-Fractured Crown uses **Supabase Anonymous Auth**. Players do not need to create an account or provide an email to play. On first visit, the client calls `supabase.auth.signInAnonymously()` — Supabase creates a real authenticated session with a `user_id` (UUID) that persists in `localStorage` for the browser session. This `user_id` is used as the identity anchor for all RLS policies.
-
-This means:
-- Every player has a valid `auth.uid()` the moment they land on the site
-- RLS policies work identically for anonymous and registered users
-- Players who refresh mid-game are automatically re-authenticated and rejoin their session
-- No login screen, no email verification, no friction before playing
-
-**Optional upgrade path:** If a player wants a persistent identity across sessions (e.g. to track game history), they can optionally link their anonymous session to an email/password account via `supabase.auth.updateUser()`. This is a non-blocking future feature and should not be built in the initial version.
+**Anonymous Auth only.** No emails, passwords, or PII. `supabase.auth.signInAnonymously()` on page load via `AuthContext`. All RLS policies scoped to `authenticated` intentionally include anonymous sessions.
 
 ---
 
 ### 8.2 Room Creation Flow
 
-1. Player lands on home screen → anonymous auth session established silently on page load
-2. Player enters display name and clicks **"Create Game"**
-3. Client calls Edge Function `create-room`:
-   - Generates a unique 6-character alphanumeric room code (e.g. `KNGHTX`)
-   - Inserts a row into `rooms` with `status = 'lobby'`
-   - Inserts the creator as the first row in `players` with `seat_order = 0`
-   - Sets `rooms.host_player_id` to the creator's player ID
-   - Returns `room_id` and `room_code` to the client
-4. Client navigates to `/room/[room_code]` — the waiting lobby screen
-5. A shareable URL and the room code are displayed prominently for the host to share
-
-**Room code generation rules:**
-- 6 characters, uppercase letters only (no digits to avoid 0/O confusion)
-- Exclude visually ambiguous characters: `O`, `I`, `L`
-- Regenerate on collision (rare but handled)
+1. Player lands on home → anonymous auth established
+2. Player enters display name, clicks "Create Game"
+3. Client invokes Edge Function `create-room` with `{ display_name }`
+4. Edge Function generates room code, inserts room + player, returns `room_code`
+5. Client navigates to `/room/:roomCode`
 
 ---
 
 ### 8.3 Room Join Flow
 
-1. Player visits home screen or follows a shared link (`/join/[room_code]`)
-2. Anonymous auth session established silently
-3. Player enters display name (pre-filled if returning player)
-4. Client calls Edge Function `join-room` with `room_code` and `display_name`:
-   - Validates room exists and `status = 'lobby'`
-   - Validates player count is below 10
-   - Validates player is not already in the room (idempotent rejoin)
-   - Assigns next available `seat_order`
-   - Inserts player row into `players`
-   - Increments `rooms.player_count`
-   - Returns `room_id` and player's `player_id`
-5. Client navigates to `/room/[room_code]` — the same waiting lobby screen as the host
-
-**Rejoin handling:** If a player with the same `user_id` attempts to join a room they're already in (e.g. after a refresh), `join-room` detects the existing row and returns their existing `player_id` without inserting a duplicate. The client resumes from current game state.
+1. Player visits home or follows shared link (`/join/:roomCode`)
+2. Anonymous auth established
+3. Player enters display name
+4. Client invokes `join-room` with `{ room_code, display_name }`
+5. Idempotent rejoin: existing players are returned without duplicate insertion
+6. Client navigates to `/room/:roomCode`
 
 ---
 
-### 8.4 Lobby Waiting Room
+### 8.4 Lobby Features
 
-While `rooms.status = 'lobby'`, all players see the waiting room:
-
-- Live list of joined players (via Realtime subscription on `players` table)
-- Room code displayed in large `Cinzel` font with a one-click copy button
-- Shareable link with copy button
-- Player count indicator: e.g. "6 / 10 players"
-- Minimum player indicator: "Waiting for at least 5 players to begin"
-- **Host only:** "Begin the Council" button — enabled when `player_count >= 5`
-- **Non-host:** "Waiting for host to begin..." message
-
-Players can see each other joining in real time. No player can start the game except the host.
-
----
-
-### 8.5 Game Start Flow
-
-1. Host clicks "Begin the Council"
-2. Client calls Edge Function `start-game` with `room_id`:
-   - Validates caller is the host (`rooms.host_player_id`)
-   - Validates `player_count` is between 5 and 10
-   - Validates `rooms.status = 'lobby'`
-   - Randomly assigns `seat_order` to all players (shuffles existing assignments)
-   - Assigns roles according to player count distribution (Section 4.1)
-   - Populates `player_roles` for all players including `revealed_allies`
-   - Initialises `policy_deck` with 11 shadow + 6 loyalist cards, shuffled
-   - Creates `game_state` row with `current_phase = 'election'`, first Herald chosen randomly
-   - Sets `rooms.status = 'in_progress'`
-   - Appends a `game_started` event to `event_log`
-3. All clients receive the `game_state` INSERT via Realtime and transition to the main game board
-4. Each client individually fetches their own role from `player_roles` (RLS ensures they only get their own row)
-5. Role reveal screen is shown to each player (Section 6.2, Screen 4)
+- Live player list with Presence-based online indicators
+- Sigil avatar selection (10 options, stored in Supabase Storage)
+- Ready-up toggle
+- Spectator mode toggle
+- Display name editing
+- Host transfer
+- Player kick (host only)
+- Room settings ("Royal Decrees")
+- QR code for easy sharing
+- Lobby chat (with `phase = 'lobby'`)
+- Lobby cursor presence tracking
+- How to Play modal
 
 ---
 
-### 8.6 Player Disconnect & Timeout
+### 8.5 Game Start
 
-- If a player closes their tab, their Supabase Realtime connection drops but their `players` row remains. They can rejoin by revisiting the URL.
-- There is no automatic timeout or kick for disconnected players in the initial version — the game simply waits for them to act when it's their turn.
-- A disconnected player indicator (greyed avatar with a disconnected icon) should be shown in the council ring using Supabase Realtime **Presence**:
-
-```typescript
-// Track online presence per room
-const channel = supabase.channel(`room:${roomId}`)
-channel.track({ player_id: currentPlayerId, online_at: new Date().toISOString() })
-
-channel.on('presence', { event: 'sync' }, () => {
-  const state = channel.presenceState()
-  // state contains all currently online players — use to show connected/disconnected indicators
-})
-```
+Host clicks "Begin the Council" → Edge Function `start-game`:
+- Validates host, player count (5–10), and lobby status
+- Assigns roles per player count distribution
+- Shuffles deck (11 shadow + 6 loyalist)
+- Sets `rooms.status = 'in_progress'`
+- Creates `game_state` with first Herald
 
 ---
 
-### 8.7 Post-Game
+### 8.6 Post-Game
 
-After `game_state.winner` is set:
-- All players see the game over screen (Section 6.2, Screen 8)
-- Host sees a **"Play Again"** button which calls Edge Function `reset-room`:
-  - Clears `rounds`, `votes`, `player_roles`, `policy_deck`, `presidential_actions`, `event_log`, `chat_messages` for the room
-  - Resets `game_state` to initial values
-  - Resets `rooms.status` to `'lobby'`
-  - Keeps all existing `players` rows intact so the same group can play again immediately
-- Any player can click **"Leave"** which deletes their `players` row and redirects to home
+Host can click "Play Again" → Edge Function `reset-room`:
+- Clears rounds, votes, player_roles, policy_deck, presidential_actions, event_log, chat_messages
+- Resets game_state and rooms.status to `'lobby'`
+- Keeps existing player rows for immediate replay
+
+---
+
+## 9. Discord Activity Integration
+
+### 9.1 Overview
+
+Fractured Crown runs as a **Discord Embedded App** inside voice channels using `@discord/embedded-app-sdk` (Client ID: `1480188235148693635`).
+
+### 9.2 Detection & Proxy
+
+When running inside Discord's iframe (detected via `frame_id` query param or `discordsays.com` hostname):
+- Supabase API requests route through `/.proxy/supabase/`
+- Storage asset URLs route through `/.proxy/storage/`
+- Raw DOM asset URLs (`src`, CSS backgrounds) must use `storageUrl()` / `sigilUrl()` from `src/lib/storageUrl.ts`
+
+### 9.3 Rich Presence
+
+`DiscordContext` provides `setActivity()` which updates Discord Rich Presence dynamically:
+- **Lobby:** Shows room code and player count
+- **In-game:** Shows current round and phase
+
+### 9.4 Sound
+
+`SoundContext` provides ambient sound management for the game experience.
+
+---
+
+## 10. File Organisation
+
+| Path | Purpose |
+|---|---|
+| `src/components/game/` | All in-game UI components |
+| `src/components/lobby/` | Lobby-specific components (presence cursors) |
+| `src/components/ui/` | shadcn/ui primitives |
+| `src/contexts/` | React contexts (Auth, Sound, Discord) |
+| `src/hooks/` | Custom hooks (useGameRoom, useSound, useLobbyPresence, usePageTitle, useDiscord) |
+| `src/lib/` | Utilities (storageUrl, backgroundImage, discordActivity, utils) |
+| `src/pages/` | Route-level page components (Index, Room, JoinRoom, PrivacyPolicy, TermsOfService, NotFound) |
+| `supabase/functions/` | Edge Functions (all game logic) |
+| `supabase/migrations/` | Database migrations |
+
+---
+
+## 11. Terminology Mapping
+
+Never use Secret Hitler terms in code, UI, or comments.
+
+| Game concept | In-app name | Code identifier |
+|---|---|---|
+| President | Herald | `herald` |
+| Chancellor | Lord Commander | `lord_commander` |
+| Liberal | Loyalist | `loyalist` |
+| Fascist | Traitor | `traitor` |
+| Hitler | The Usurper | `usurper` |
+| Policy tile | Royal Edict | `policy` / `edict` |
+| Liberal policy | Loyalist Edict | `loyalist` |
+| Fascist policy | Shadow Edict | `shadow` |
