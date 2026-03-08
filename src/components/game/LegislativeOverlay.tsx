@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Scroll, Shield, Skull } from 'lucide-react';
+import { Scroll } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { useSoundContext } from '@/contexts/SoundContext';
+import PolicyCardUI from './PolicyCardUI';
+import type { PolicyCard } from './PolicyCardUI';
 import type { Tables } from '@/integrations/supabase/types';
 
 type GameState = Tables<'game_state'>;
