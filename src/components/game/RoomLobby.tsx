@@ -118,6 +118,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
     <div
       className="noise-overlay relative flex min-h-screen flex-col items-center overflow-hidden bg-background px-4 py-8"
       onMouseMove={(e) => {
+        if (window.matchMedia('(hover: none)').matches) return;
         const rect = e.currentTarget.getBoundingClientRect();
         updateCursor(
           ((e.clientX - rect.left) / rect.width) * 100,
