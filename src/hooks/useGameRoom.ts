@@ -1,4 +1,4 @@
-// Phase 3: Game room state management with local hand state + reactions
+// Phase 3: Game room state management with local hand state + reactions + settings
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
