@@ -1,96 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Courier+Prime:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Fractured Crown: Dark Medieval Theme */
+    --background: 20 18% 4%;        /* #0f0d0b */
+    --foreground: 36 38% 85%;       /* #e8dcc8 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 18 22% 9%;              /* #1c1612 */
+    --card-foreground: 36 38% 85%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 18 22% 9%;
+    --popover-foreground: 36 38% 85%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 43 50% 54%;          /* #c9a84c gold */
+    --primary-foreground: 20 18% 4%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 18 22% 9%;
+    --secondary-foreground: 36 38% 85%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 25 18% 14%;
+    --muted-foreground: 30 20% 40%; /* #7a6a55 */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 0 68% 32%;            /* #8b1a1a crimson */
+    --accent-foreground: 36 38% 85%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 68% 32%;
+    --destructive-foreground: 36 38% 85%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 24 22% 14%;           /* #2e2318 */
+    --input: 24 22% 14%;
+    --ring: 43 50% 54%;
 
-    --radius: 0.5rem;
+    --radius: 0.375rem;
 
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 18 22% 9%;
+    --sidebar-foreground: 36 38% 85%;
+    --sidebar-primary: 43 50% 54%;
+    --sidebar-primary-foreground: 20 18% 4%;
+    --sidebar-accent: 25 18% 14%;
+    --sidebar-accent-foreground: 36 38% 85%;
+    --sidebar-border: 24 22% 14%;
+    --sidebar-ring: 43 50% 54%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Custom tokens */
+    --gold: 43 50% 54%;
+    --gold-glow: 43 60% 65%;
+    --crimson: 0 68% 32%;
+    --crimson-glow: 0 60% 45%;
+    --parchment: 36 38% 85%;
+    --smoke: 20 10% 20%;
   }
 
+  /* No separate dark mode — the game IS dark */
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --background: 20 18% 4%;
+    --foreground: 36 38% 85%;
+    --card: 18 22% 9%;
+    --card-foreground: 36 38% 85%;
+    --popover: 18 22% 9%;
+    --popover-foreground: 36 38% 85%;
+    --primary: 43 50% 54%;
+    --primary-foreground: 20 18% 4%;
+    --secondary: 18 22% 9%;
+    --secondary-foreground: 36 38% 85%;
+    --muted: 25 18% 14%;
+    --muted-foreground: 30 20% 40%;
+    --accent: 0 68% 32%;
+    --accent-foreground: 36 38% 85%;
+    --destructive: 0 68% 32%;
+    --destructive-foreground: 36 38% 85%;
+    --border: 24 22% 14%;
+    --input: 24 22% 14%;
+    --ring: 43 50% 54%;
   }
 }
 
@@ -101,5 +86,86 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Crimson Text', Georgia, serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cinzel', serif;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'Courier Prime', monospace;
+  }
+}
+
+/* Noise/grain overlay */
+.noise-overlay::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+}
+
+/* Smoke/fog animation for landing page */
+@keyframes smoke-drift {
+  0% { transform: translateX(-10%) translateY(5%); opacity: 0.15; }
+  25% { transform: translateX(5%) translateY(-3%); opacity: 0.08; }
+  50% { transform: translateX(10%) translateY(2%); opacity: 0.12; }
+  75% { transform: translateX(-5%) translateY(-5%); opacity: 0.06; }
+  100% { transform: translateX(-10%) translateY(5%); opacity: 0.15; }
+}
+
+@keyframes smoke-drift-alt {
+  0% { transform: translateX(10%) translateY(-5%) scale(1.1); opacity: 0.1; }
+  33% { transform: translateX(-8%) translateY(3%) scale(1.2); opacity: 0.06; }
+  66% { transform: translateX(5%) translateY(5%) scale(1.05); opacity: 0.12; }
+  100% { transform: translateX(10%) translateY(-5%) scale(1.1); opacity: 0.1; }
+}
+
+.smoke-layer-1 {
+  animation: smoke-drift 20s ease-in-out infinite;
+}
+
+.smoke-layer-2 {
+  animation: smoke-drift-alt 25s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smoke-layer-1, .smoke-layer-2 {
+    animation: none;
+  }
+}
+
+/* Gold shimmer for buttons */
+@keyframes gold-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.gold-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--primary)) 0%,
+    hsl(var(--gold-glow)) 25%,
+    hsl(var(--primary)) 50%,
+    hsl(var(--gold-glow)) 75%,
+    hsl(var(--primary)) 100%
+  );
+  background-size: 200% auto;
+}
+
+.gold-shimmer:hover {
+  animation: gold-shimmer 3s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gold-shimmer:hover {
+    animation: none;
   }
 }
