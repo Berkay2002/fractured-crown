@@ -1,18 +1,18 @@
-const LOBBY_BG = 'https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/public/sigils/lobby-background.webp';
-const INGAME_BG = 'https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/public/sigils/in-game-background.webp';
-const LOYALIST_WIN_BG = 'https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/public/sigils/loyalist-victory-background.webp';
-const TRAITOR_WIN_BG = 'https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/public/sigils/traitor-victory-background.webp';
-
-const MOBILE_PARAMS = '?width=1200&height=675&resize=cover&quality=75';
+const SUPABASE_RENDER = 'https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/render/image/public/sigils';
 
 const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
+const isTablet = () => typeof window !== 'undefined' && window.innerWidth >= 768 && window.innerWidth < 1024;
 
-export const bgUrl = (base: string): string =>
-  isMobile() ? `${base}${MOBILE_PARAMS}` : base;
+export const bgUrl = (filename: string): string => {
+  const base = `${SUPABASE_RENDER}/${filename}`;
+  if (isMobile()) return `${base}?format=webp&quality=80&width=828`;
+  if (isTablet()) return `${base}?format=webp&quality=82&width=1200`;
+  return `${base}?format=webp&quality=85&width=1920`;
+};
 
 export const BACKGROUNDS = {
-  lobby: LOBBY_BG,
-  inGame: INGAME_BG,
-  loyalistWin: LOYALIST_WIN_BG,
-  traitorWin: TRAITOR_WIN_BG,
+  lobby: 'lobby-background.png',
+  inGame: 'in-game-background.png',
+  loyalistWin: 'loyalist-victory-background.png',
+  traitorWin: 'traitor-victory-background.png',
 } as const;
