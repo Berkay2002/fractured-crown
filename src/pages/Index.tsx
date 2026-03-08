@@ -8,12 +8,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Crown, Users } from 'lucide-react';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const HCAPTCHA_SITE_KEY = 'b2ea555e-c512-4ce2-9710-5b5abb96da08';
 
 type Mode = 'landing' | 'create' | 'join';
 
 const Index = () => {
+  usePageTitle('Fractured Crown');
   const { user, loading, signInAnonymous } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>('landing');
@@ -83,12 +85,10 @@ const Index = () => {
     );
   }
 
-  // Show captcha gate if user is not yet authenticated
   const needsCaptcha = !user;
 
   return (
     <div className="noise-overlay relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background">
-      {/* Smoke layers */}
       <div className="smoke-layer-1 pointer-events-none absolute inset-0 bg-gradient-radial from-smoke/30 via-transparent to-transparent" />
       <div className="smoke-layer-2 pointer-events-none absolute inset-0 bg-gradient-radial from-crimson/10 via-transparent to-transparent" />
 
@@ -98,7 +98,6 @@ const Index = () => {
         transition={{ duration: 0.8, ease: 'easeOut' }}
         className="relative z-10 flex flex-col items-center gap-8 px-4"
       >
-        {/* Title */}
         <div className="text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -120,7 +119,6 @@ const Index = () => {
           </motion.p>
         </div>
 
-        {/* Action area */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
