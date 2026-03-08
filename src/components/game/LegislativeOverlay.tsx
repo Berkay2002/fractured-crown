@@ -115,7 +115,8 @@ const LegislativeOverlay = ({
   }, [gameState.room_id, isHerald, isLC, setHeraldHand, setChancellorHand]);
 
   useEffect(() => {
-    const needsHeraldHand = isHerald && !heraldHand && !(currentRound?.herald_hand);
+    const heraldAlreadyPassed = isHerald && !!currentRound?.chancellor_hand;
+    const needsHeraldHand = isHerald && !heraldHand && !(currentRound?.herald_hand) && !heraldAlreadyPassed;
     const needsLCHand = isLC && !chancellorHand && !(currentRound?.chancellor_hand);
     if (!needsHeraldHand && !needsLCHand) return;
 
@@ -131,6 +132,8 @@ const LegislativeOverlay = ({
   const resolvedHeraldHand = (heraldHand ?? (currentRound?.herald_hand as string[] | null)) as PolicyCard[] | null;
   const resolvedChancellorHand = (chancellorHand ?? (currentRound?.chancellor_hand as string[] | null)) as PolicyCard[] | null;
 
+  const heraldAlreadyPassed = isHerald && !resolvedHeraldHand && !!resolvedChancellorHand;
+
   // Determine which cards to show
   const cards: PolicyCard[] = isHerald
     ? resolvedHeraldHand || []
@@ -138,10 +141,14 @@ const LegislativeOverlay = ({
     ? resolvedChancellorHand || []
     : [];
 
-  const waitingForCards = (isHerald && !resolvedHeraldHand) || (isLC && !resolvedChancellorHand);
+  const waitingForCards = ((isHerald && !resolvedHeraldHand && !heraldAlreadyPassed) || (isLC && !resolvedChancellorHand));
 
   const instruction = isHerald
-    ? resolvedHeraldHand ? 'Choose one edict to discard' : 'Waiting for cards...'
+    ? heraldAlreadyPassed
+      ? 'You have passed your edicts. Waiting for the Lord Commander...'
+      : resolvedHeraldHand
+      ? 'Choose one edict to discard'
+      : 'Waiting for cards...'
     : isLC
     ? resolvedChancellorHand ? 'Choose one edict to enact' : 'Waiting for the Herald...'
     : 'The legislative session is in progress...';
