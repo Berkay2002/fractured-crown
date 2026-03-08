@@ -125,7 +125,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.2 }}
-      className="rounded-lg border border-border bg-card p-6 text-center"
+      className="rounded-lg border border-[#c9a84c]/20 bg-card p-6 text-center"
     >
       <p className="mb-2 text-sm text-muted-foreground">Room Code</p>
       <div className="flex items-center justify-center gap-3">
