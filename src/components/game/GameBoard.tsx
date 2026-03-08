@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Crown, Scroll, User } from 'lucide-react';
+import { Crown, Scroll, User, Shield, Skull, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EdictTracker from './EdictTracker';
 import PlayerCouncil from './PlayerCouncil';
