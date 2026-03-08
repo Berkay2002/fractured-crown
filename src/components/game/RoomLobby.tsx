@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
-import { Crown, Copy, Link, Users, Wifi, WifiOff } from 'lucide-react';
+import { Crown, Copy, Link as LinkIcon, Users, Wifi, WifiOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import HowToPlayModal from './HowToPlayModal';
@@ -126,7 +126,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           onClick={copyLink}
           className="mt-3 flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary mx-auto"
         >
-          <Link className="h-4 w-4" />
+          <LinkIcon className="h-4 w-4" />
           Copy invite link
         </button>
       </motion.div>
@@ -375,6 +375,11 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           </Button>
         </div>
       )}
+      <footer className="mt-8 flex gap-3 font-body text-xs text-muted-foreground">
+        <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+        <span>·</span>
+        <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+      </footer>
     </div>
   );
 };
