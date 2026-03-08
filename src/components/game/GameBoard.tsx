@@ -9,6 +9,7 @@ import ExecutivePowerOverlay from './ExecutivePowerOverlay';
 import EventLogFeed from './EventLogFeed';
 import ChatPanel from './ChatPanel';
 import RoleReveal from './RoleReveal';
+import PhaseTransitionBanner from './PhaseTransitionBanner';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { GameRoomState } from '@/hooks/useGameRoom';
