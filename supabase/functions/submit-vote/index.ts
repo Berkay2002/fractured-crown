@@ -149,6 +149,9 @@ Deno.serve(async (req) => {
       await supabase.from('votes').update({ revealed: true }).eq('id', v.id)
     }
 
+    // Pause so clients can display the vote results before transitioning
+    await new Promise(resolve => setTimeout(resolve, 7000))
+
     const { data: allPlayers } = await supabase.from('players').select('*').eq('room_id', room_id)
     if (!allPlayers) throw new Error('Failed to fetch players')
 
