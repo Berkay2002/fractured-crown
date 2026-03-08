@@ -142,7 +142,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mb-6 w-full max-w-lg"
+          className="mb-6 w-full max-w-2xl"
         >
           <p className="mb-2 text-center font-display text-xs uppercase tracking-widest text-muted-foreground">
             Choose Your Sigil
