@@ -304,8 +304,24 @@ const GameBoard = ({
               <EdictTracker type="loyalist" count={gameState.loyalist_edicts_passed} />
               <EdictTracker type="shadow" count={gameState.shadow_edicts_passed} playerCount={players.length} />
             </div>
-            <EdictTracker type="election" count={gameState.election_tracker} />
-          </div>
+            <div className="flex items-center gap-3">
+              <EdictTracker type="election" count={gameState.election_tracker} />
+              {/* Mobile emoji reactions */}
+              {!isSpectator && sendReaction && (
+                <div className="flex gap-0.5 ml-auto">
+                  {['👑', '🗡️', '🔥', '🤫', '😅', '🎭'].map(r => (
+                    <button
+                      key={r}
+                      onClick={() => sendReaction(r)}
+                      className="flex h-6 w-6 items-center justify-center rounded-full text-sm active:scale-125 active:bg-muted/60"
+                      title={r}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
           {/* Council */}
           <div className="px-3 py-2 flex-shrink-0">

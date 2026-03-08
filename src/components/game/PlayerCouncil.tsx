@@ -122,9 +122,9 @@ const PlayerCouncil = ({
               )}
             </motion.button>
 
-            {/* Reaction bar — only for current player */}
+            {/* Reaction bar — only for current player, hidden on mobile */}
             {isMe && onSendReaction && (
-              <div className="mt-1 flex gap-0.5">
+              <div className="mt-1 hidden md:flex gap-0.5">
                 {REACTIONS.map(r => (
                   <button
                     key={r}
