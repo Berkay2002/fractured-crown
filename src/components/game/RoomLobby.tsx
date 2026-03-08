@@ -117,264 +117,252 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
     }
   };
 
-  return (
-    <div
-      className="noise-overlay relative flex min-h-screen flex-col items-center overflow-hidden bg-background px-4 py-8"
-      onMouseMove={(e) => {
-        if (window.matchMedia('(hover: none)').matches) return;
-        const rect = e.currentTarget.getBoundingClientRect();
-        updateCursor(
-          ((e.clientX - rect.left) / rect.width) * 100,
-          ((e.clientY - rect.top) / rect.height) * 100
-        );
-      }}
+  // ── Shared sub-components rendered in both layouts ──
+
+  const roomCodeCard = (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: 0.2 }}
+      className="rounded-lg border border-border bg-card p-6 text-center"
     >
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8 text-center"
-      >
-        <Crown className="mx-auto mb-2 h-8 w-8 text-primary" />
-        <h1 className="font-display text-2xl font-bold tracking-wider text-primary">
-          The Council Gathers
-        </h1>
-      </motion.div>
-
-      {/* Room Code */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
-        className="mb-8 rounded-lg border border-border bg-card p-6 text-center"
-      >
-        <p className="mb-2 text-sm text-muted-foreground">Room Code</p>
-        <div className="flex items-center justify-center gap-3">
-          <span className="font-mono text-4xl tracking-[0.4em] text-primary">
-            {room.room_code}
-          </span>
-          <button
-            onClick={copyCode}
-            className="rounded p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            title="Copy code"
-          >
-            <Copy className="h-5 w-5" />
-          </button>
-        </div>
-        <button
-          onClick={copyLink}
-          className="mt-3 flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary mx-auto"
-        >
-          <LinkIcon className="h-4 w-4" />
-          Copy invite link
-        </button>
-      </motion.div>
-
-      {/* How to Play */}
-      <div className="mb-6">
-        <HowToPlayModal />
-      </div>
-
-      {/* Royal Decrees — Game Settings */}
-      <RoyalDecrees
-        roomId={room.id}
-        settings={gameSettings}
-        isHost={!!isHost}
-      />
-
-      {/* Sigil Picker — only for current player */}
-      {currentPlayerId && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="mb-6 flex w-full max-w-2xl flex-col items-center"
-        >
-          <p className="mb-2 text-center font-display text-xs uppercase tracking-widest text-muted-foreground">
-            Choose Your Sigil
-          </p>
-          <div className="inline-grid grid-cols-5 gap-1.5">
-            {SIGILS.map(sigil => {
-              const isSelected = mySigil === sigil;
-              const isTaken = takenSigils.has(sigil);
-              return (
-                <button
-                  key={sigil}
-                  onClick={() => handleSelectSigil(sigil)}
-                  disabled={isTaken}
-                  className={`relative flex flex-col items-center gap-1 rounded-lg border-2 p-2 transition-all flex-shrink-0 ${
-                    isSelected
-                      ? 'border-primary bg-primary/10 shadow-[0_0_10px_hsl(var(--primary)/0.3)]'
-                      : isTaken
-                      ? 'border-border bg-card opacity-30 cursor-not-allowed'
-                      : 'border-border bg-card hover:border-muted-foreground/40'
-                  }`}
-                  title={isTaken ? `${sigil} — taken` : sigil}
-                >
-                  <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full">
-                    <img
-                      src={sigilImageUrl(sigil)}
-                      alt={sigil}
-                      className="h-10 w-10 rounded-full object-cover"
-                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                    />
-                    {isTaken && (
-                      <div className="absolute inset-0 flex items-center justify-center rounded-full bg-background/60">
-                        <Lock className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-                  <span className={`font-display text-[9px] uppercase tracking-wider ${
-                    isSelected ? 'text-primary' : 'text-muted-foreground/60'
-                  }`}>
-                    {sigil}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </motion.div>
-      )}
-
-      {/* Player Count */}
-      <div className="mb-6 flex items-center gap-2 text-muted-foreground">
-        <Users className="h-5 w-5" />
-        <span className="font-body text-lg">
-          {players.length} / 10 players
+      <p className="mb-2 text-sm text-muted-foreground">Room Code</p>
+      <div className="flex items-center justify-center gap-3">
+        <span className="font-mono text-4xl lg:text-6xl tracking-[0.4em] text-primary">
+          {room.room_code}
         </span>
+        <button
+          onClick={copyCode}
+          className="rounded p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          title="Copy code"
+        >
+          <Copy className="h-5 w-5" />
+        </button>
       </div>
+      <button
+        onClick={copyLink}
+        className="mt-3 flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary mx-auto"
+      >
+        <LinkIcon className="h-4 w-4" />
+        Copy invite link
+      </button>
+    </motion.div>
+  );
 
-      {players.length < 5 && (
-        <p className="mb-6 text-sm italic text-muted-foreground">
-          Waiting for at least {5 - players.length} more player{5 - players.length !== 1 ? 's' : ''} to begin...
-        </p>
-      )}
+  const howToPlay = (
+    <div>
+      <HowToPlayModal />
+    </div>
+  );
 
-      {/* Player List */}
-      <div className="mb-8 grid w-full max-w-lg grid-cols-2 gap-3 sm:grid-cols-3">
-        {players.map((player, idx) => {
-          const isPlayerHost = room.host_player_id === player.id;
-          const isOnline = onlinePlayers.has(player.id);
-          const isConfirming = confirmingTransfer === player.id;
-          const isTransferring = transferringTo === player.id;
-          const canTransferTo = showTransferUI && !isPlayerHost && !transferringTo;
-          const isMe = player.id === currentPlayerId;
-          const playerSigil = isMe && selectedSigil ? selectedSigil : (player.sigil || 'crown');
+  const royalDecrees = (
+    <RoyalDecrees
+      roomId={room.id}
+      settings={gameSettings}
+      isHost={!!isHost}
+    />
+  );
 
+  const footerLinks = (
+    <footer className="flex gap-3 font-body text-xs text-muted-foreground">
+      <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+      <span>·</span>
+      <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+    </footer>
+  );
+
+  const playerCount = (
+    <div className="flex items-center gap-2 text-muted-foreground">
+      <Users className="h-5 w-5" />
+      <span className="font-body text-lg">
+        {players.length} / 10 players
+      </span>
+    </div>
+  );
+
+  const waitingMessage = players.length < 5 ? (
+    <p className="text-sm italic text-muted-foreground">
+      Waiting for at least {5 - players.length} more player{5 - players.length !== 1 ? 's' : ''} to begin...
+    </p>
+  ) : null;
+
+  const sigilPicker = currentPlayerId ? (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.3 }}
+      className="flex w-full flex-col items-center"
+    >
+      <p className="mb-2 text-center font-display text-xs uppercase tracking-widest text-muted-foreground">
+        Choose Your Sigil
+      </p>
+      <div className="inline-grid grid-cols-5 gap-1.5">
+        {SIGILS.map(sigil => {
+          const isSelected = mySigil === sigil;
+          const isTaken = takenSigils.has(sigil);
           return (
-            <motion.div
-              key={player.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * idx }}
-              className="group relative flex min-w-0 flex-col items-center gap-1 rounded-lg border border-border bg-card px-3 pb-3 pt-2"
+            <button
+              key={sigil}
+              onClick={() => handleSelectSigil(sigil)}
+              disabled={isTaken}
+              className={`relative flex flex-col items-center gap-1 rounded-lg border-2 p-2 transition-all flex-shrink-0 ${
+                isSelected
+                  ? 'border-primary bg-primary/10 shadow-[0_0_10px_hsl(var(--primary)/0.3)]'
+                  : isTaken
+                  ? 'border-border bg-card opacity-30 cursor-not-allowed'
+                  : 'border-border bg-card hover:border-muted-foreground/40'
+              }`}
+              title={isTaken ? `${sigil} — taken` : sigil}
             >
-              <div className="absolute right-1.5 top-1.5">
-                {isOnline ? (
-                  <Wifi className="h-3 w-3 text-primary" />
-                ) : (
-                  <WifiOff className="h-3 w-3 text-muted-foreground/50" />
+              <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full">
+                <img
+                  src={sigilImageUrl(sigil)}
+                  alt={sigil}
+                  className="h-10 w-10 rounded-full object-cover"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+                {isTaken && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-background/60">
+                    <Lock className="h-4 w-4 text-muted-foreground" />
+                  </div>
                 )}
               </div>
-
-              {/* Crown in normal flow, centered above avatar */}
-              <div className="flex h-5 items-center justify-center">
-                <AnimatePresence mode="wait">
-                  {isPlayerHost && (
-                    <motion.div
-                      key={`crown-${player.id}`}
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.5 }}
-                      transition={{ duration: 0.4 }}
-                    >
-                      <motion.div
-                        animate={{ filter: ['drop-shadow(0 0 3px hsl(var(--primary) / 0.4))', 'drop-shadow(0 0 8px hsl(var(--primary) / 0.7))', 'drop-shadow(0 0 3px hsl(var(--primary) / 0.4))'] }}
-                        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                      >
-                        <Crown className="h-4 w-4 text-primary" />
-                      </motion.div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              <div className={`flex h-12 w-12 items-center justify-center rounded-full border-2 overflow-hidden ${
-                isPlayerHost ? 'border-primary bg-primary/10' : 'border-border bg-muted'
+              <span className={`font-display text-[9px] uppercase tracking-wider ${
+                isSelected ? 'text-primary' : 'text-muted-foreground/60'
               }`}>
-                <SigilAvatar sigil={playerSigil} displayName={player.display_name} size="h-12 w-12" />
-              </div>
-
-              {/* Name */}
-              <div className="mt-1 flex items-center gap-1">
-                <span className="text-center font-body text-sm text-foreground truncate max-w-[80px]">
-                  {player.display_name}
-                </span>
-              </div>
-
-              {/* Transfer crown button — host-only, hover-revealed */}
-              {canTransferTo && !isConfirming && (
-                <button
-                  onClick={() => setConfirmingTransfer(player.id)}
-                  className="absolute left-1.5 top-1.5 rounded p-1 text-primary/0 transition-all duration-200 hover:bg-primary/10 group-hover:text-primary/70 hover:!text-primary"
-                  title={`Transfer host to ${player.display_name}`}
-                >
-                  <Crown className="h-3.5 w-3.5" />
-                </button>
-              )}
-
-              {/* Inline transfer confirmation */}
-              <AnimatePresence>
-                {isConfirming && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="mt-2 w-full"
-                  >
-                    <div className="rounded-md border border-primary/30 bg-muted/80 px-2 py-2.5 text-center">
-                      <p className="mb-2 font-display text-[10px] leading-tight uppercase tracking-widest text-primary">
-                        Transfer Crown?
-                      </p>
-                      <div className="flex justify-center gap-1.5">
-                        <Button
-                          size="sm"
-                          disabled={isTransferring}
-                          onClick={() => handleTransferHost(player.id)}
-                          className="h-6 px-2 font-display text-[10px] tracking-wider text-primary-foreground"
-                        >
-                          {isTransferring ? '...' : 'Confirm'}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={isTransferring}
-                          onClick={() => setConfirmingTransfer(null)}
-                          className="h-6 px-2 font-display text-[10px] tracking-wider border-border text-muted-foreground"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
+                {sigil}
+              </span>
+            </button>
           );
         })}
       </div>
+    </motion.div>
+  ) : null;
 
-      {/* Host controls */}
+  const playerGrid = (
+    <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3">
+      {players.map((player, idx) => {
+        const isPlayerHost = room.host_player_id === player.id;
+        const isOnline = onlinePlayers.has(player.id);
+        const isConfirming = confirmingTransfer === player.id;
+        const isTransferring = transferringTo === player.id;
+        const canTransferTo = showTransferUI && !isPlayerHost && !transferringTo;
+        const isMe = player.id === currentPlayerId;
+        const playerSigil = isMe && selectedSigil ? selectedSigil : (player.sigil || 'crown');
+
+        return (
+          <motion.div
+            key={player.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 * idx }}
+            className="group relative flex min-w-0 flex-col items-center gap-1 rounded-lg border border-border bg-card px-3 pb-3 pt-2 lg:w-36 lg:min-h-[10rem]"
+          >
+            <div className="absolute right-1.5 top-1.5">
+              {isOnline ? (
+                <Wifi className="h-3 w-3 text-primary" />
+              ) : (
+                <WifiOff className="h-3 w-3 text-muted-foreground/50" />
+              )}
+            </div>
+
+            <div className="flex h-5 items-center justify-center">
+              <AnimatePresence mode="wait">
+                {isPlayerHost && (
+                  <motion.div
+                    key={`crown-${player.id}`}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    <motion.div
+                      animate={{ filter: ['drop-shadow(0 0 3px hsl(var(--primary) / 0.4))', 'drop-shadow(0 0 8px hsl(var(--primary) / 0.7))', 'drop-shadow(0 0 3px hsl(var(--primary) / 0.4))'] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                      <Crown className="h-4 w-4 text-primary" />
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className={`flex h-12 w-12 items-center justify-center rounded-full border-2 overflow-hidden ${
+              isPlayerHost ? 'border-primary bg-primary/10' : 'border-border bg-muted'
+            }`}>
+              <SigilAvatar sigil={playerSigil} displayName={player.display_name} size="h-12 w-12" />
+            </div>
+
+            <div className="mt-1 flex items-center gap-1">
+              <span className="text-center font-body text-sm text-foreground truncate max-w-[80px]">
+                {player.display_name}
+              </span>
+            </div>
+
+            {canTransferTo && !isConfirming && (
+              <button
+                onClick={() => setConfirmingTransfer(player.id)}
+                className="absolute left-1.5 top-1.5 rounded p-1 text-primary/0 transition-all duration-200 hover:bg-primary/10 group-hover:text-primary/70 hover:!text-primary"
+                title={`Transfer host to ${player.display_name}`}
+              >
+                <Crown className="h-3.5 w-3.5" />
+              </button>
+            )}
+
+            <AnimatePresence>
+              {isConfirming && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="mt-2 w-full"
+                >
+                  <div className="rounded-md border border-primary/30 bg-muted/80 px-2 py-2.5 text-center">
+                    <p className="mb-2 font-display text-[10px] leading-tight uppercase tracking-widest text-primary">
+                      Transfer Crown?
+                    </p>
+                    <div className="flex justify-center gap-1.5">
+                      <Button
+                        size="sm"
+                        disabled={isTransferring}
+                        onClick={() => handleTransferHost(player.id)}
+                        className="h-6 px-2 font-display text-[10px] tracking-wider text-primary-foreground"
+                      >
+                        {isTransferring ? '...' : 'Confirm'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={isTransferring}
+                        onClick={() => setConfirmingTransfer(null)}
+                        className="h-6 px-2 font-display text-[10px] tracking-wider border-border text-muted-foreground"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+
+  const actionButtons = (
+    <>
       {isHost && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
+          className="w-full"
         >
           <Button
             disabled={!canStart || starting}
-            className="gold-shimmer h-14 px-8 font-display text-lg tracking-wider text-primary-foreground disabled:opacity-40"
+            className="gold-shimmer h-14 w-full lg:w-full px-8 font-display text-lg tracking-wider text-primary-foreground disabled:opacity-40"
             size="lg"
             onClick={handleStartGame}
           >
@@ -421,18 +409,100 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           </Button>
         </div>
       )}
-      <footer className="mt-8 flex gap-3 font-body text-xs text-muted-foreground">
-        <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-        <span>·</span>
-        <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
-      </footer>
+    </>
+  );
 
-      {/* Live cursor presence overlays */}
-      {!window.matchMedia('(hover: none)').matches &&
-        Object.values(cursors).map((cursor) => (
-          <LobbyPresenceCursor key={cursor.playerId} cursor={cursor} />
-        ))
-      }
+  const cursorOverlays = !window.matchMedia('(hover: none)').matches
+    ? Object.values(cursors).map((cursor) => (
+        <LobbyPresenceCursor key={cursor.playerId} cursor={cursor} />
+      ))
+    : null;
+
+  return (
+    <div
+      className="noise-overlay relative min-h-screen overflow-hidden bg-background"
+      onMouseMove={(e) => {
+        if (window.matchMedia('(hover: none)').matches) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        updateCursor(
+          ((e.clientX - rect.left) / rect.width) * 100,
+          ((e.clientY - rect.top) / rect.height) * 100
+        );
+      }}
+    >
+      {/* ── Mobile layout (below lg) ── */}
+      <div className="flex flex-col items-center px-4 py-8 lg:hidden">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 text-center"
+        >
+          <Crown className="mx-auto mb-2 h-8 w-8 text-primary" />
+          <h1 className="font-display text-2xl font-bold tracking-wider text-primary">
+            The Council Gathers
+          </h1>
+        </motion.div>
+
+        <div className="mb-8 w-full max-w-md">{roomCodeCard}</div>
+        <div className="mb-6">{howToPlay}</div>
+        {royalDecrees}
+        {sigilPicker && <div className="mb-6 w-full max-w-2xl">{sigilPicker}</div>}
+        <div className="mb-6">{playerCount}</div>
+        {waitingMessage && <div className="mb-6">{waitingMessage}</div>}
+        <div className="mb-8 w-full max-w-lg">{playerGrid}</div>
+        <div className="flex flex-col items-center">{actionButtons}</div>
+        <div className="mt-8">{footerLinks}</div>
+      </div>
+
+      {/* ── Desktop layout (lg+) ── */}
+      <div className="hidden lg:grid lg:grid-cols-[2fr_3fr] lg:gap-0 mx-auto max-w-5xl min-h-screen">
+        {/* Left column — administrative side */}
+        <div className="relative flex flex-col h-screen overflow-y-auto px-8 py-10 pr-10">
+          <div className="sticky top-0 flex flex-col gap-6">
+            {/* Header */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <Crown className="mb-2 h-8 w-8 text-primary" />
+              <h1 className="font-display text-2xl font-bold tracking-wider text-primary">
+                The Council Gathers
+              </h1>
+            </motion.div>
+
+            {roomCodeCard}
+            {howToPlay}
+            {royalDecrees}
+          </div>
+
+          {/* Footer pinned to bottom */}
+          <div className="mt-auto pt-8">
+            {footerLinks}
+          </div>
+        </div>
+
+        {/* Gold divider */}
+        <div className="absolute left-[40%] top-0 bottom-0 w-px bg-primary/20 hidden lg:block" />
+
+        {/* Right column — gathering chamber */}
+        <div className="relative flex flex-col h-screen overflow-y-auto px-8 py-10 pl-10">
+          <div className="flex flex-col items-center gap-6 flex-1">
+            {playerCount}
+            {waitingMessage}
+            <div className="w-full">{playerGrid}</div>
+            {sigilPicker && <div className="w-full">{sigilPicker}</div>}
+          </div>
+
+          {/* Action button pinned to bottom */}
+          <div className="mt-auto pt-6 flex flex-col items-center">
+            {actionButtons}
+          </div>
+        </div>
+      </div>
+
+      {/* Cursor overlays */}
+      {cursorOverlays}
     </div>
   );
 };
