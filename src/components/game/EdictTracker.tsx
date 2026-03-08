@@ -72,17 +72,17 @@ const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
 
   return (
     <div className={`flex flex-col gap-2 ${shaking ? 'chaos-shake' : ''}`}>
-      <span className="font-display text-xs uppercase tracking-widest text-muted-foreground">
+      <span className="font-display text-[9px] md:text-[10px] lg:text-xs uppercase tracking-widest text-muted-foreground">
         {label}
       </span>
-      <div className="flex gap-1.5">
+      <div className="flex gap-1 md:gap-1.5">
         {Array.from({ length: total }).map((_, i) => {
           const filled = i < count;
           const slotIndex = i + 1;
           const power = powers[slotIndex];
           const isNew = newlyFilled.has(i);
 
-          const baseClasses = `relative flex h-10 w-10 items-center justify-center rounded border-2 transition-all`;
+          const baseClasses = `relative flex h-7 w-7 md:h-8 md:w-8 lg:h-10 lg:w-10 items-center justify-center rounded border-2 transition-all`;
           const colorClasses = type === 'loyalist'
             ? filled
               ? 'border-primary bg-primary/20 shadow-[0_0_8px_hsl(var(--primary)/0.4)]'
@@ -135,7 +135,7 @@ const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
               className={`${baseClasses} ${colorClasses}`}
             >
               {filled && (
-                <div className={`h-4 w-4 rounded-full ${
+                <div className={`h-2.5 w-2.5 md:h-3 md:w-3 lg:h-4 lg:w-4 rounded-full ${
                   type === 'loyalist' ? 'bg-primary edict-fill-loyalist' : type === 'shadow' ? 'bg-accent edict-fill-shadow' : 'bg-muted-foreground'
                 }`} />
               )}

@@ -32,7 +32,7 @@ const PlayerCouncil = ({
   onSendReaction,
 }: PlayerCouncilProps) => {
   return (
-    <div className="flex flex-wrap justify-center gap-3 md:flex-wrap md:justify-center max-md:flex-nowrap max-md:overflow-x-auto max-md:justify-start max-md:scrollbar-hide max-md:pb-2">
+    <div className="grid grid-cols-5 gap-1.5 md:gap-2 lg:flex lg:flex-wrap lg:justify-center lg:gap-3">
       {players.map((player, idx) => {
         const isHerald = gameState?.current_herald_id === player.id;
         const isLC = gameState?.current_lord_commander_id === player.id;
@@ -49,7 +49,7 @@ const PlayerCouncil = ({
           .slice(0, 2);
 
         return (
-          <div key={player.id} className="relative flex flex-col items-center max-md:min-w-[90px] max-md:flex-shrink-0">
+          <div key={player.id} className="relative flex flex-col items-center">
             {/* Floating reaction */}
             {reaction && (
               <div
@@ -65,7 +65,7 @@ const PlayerCouncil = ({
               transition={{ delay: idx * 0.05 }}
               disabled={!isSelectable && !onPlayerClick}
               onClick={() => onPlayerClick?.(player.id)}
-              className={`relative flex w-full flex-col items-center gap-1.5 rounded-lg border p-3 transition-all ${
+              className={`relative flex w-full flex-col items-center gap-1 lg:gap-1.5 rounded-lg border p-1.5 md:p-2 lg:p-3 transition-all ${
                 !player.is_alive
                   ? 'border-accent/20 bg-card/40'
                   : isHerald
@@ -91,7 +91,7 @@ const PlayerCouncil = ({
               {isLC && <Sword className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 text-accent-foreground" />}
 
               {/* Avatar */}
-              <div className={`relative flex h-11 w-11 items-center justify-center rounded-full border-2 overflow-hidden ${
+              <div className={`relative flex h-10 w-10 md:h-12 md:w-12 lg:h-11 lg:w-11 items-center justify-center rounded-full border-2 overflow-hidden ${
                 !player.is_alive
                   ? 'border-accent/40 bg-muted'
                   : isHerald
@@ -100,7 +100,7 @@ const PlayerCouncil = ({
                   ? 'border-accent/50 bg-accent/10'
                   : 'border-border bg-muted'
               }`}>
-                <SigilAvatar sigil={playerSigil} displayName={player.display_name} size="h-11 w-11" />
+                <SigilAvatar sigil={playerSigil} displayName={player.display_name} size="h-10 w-10 md:h-12 md:w-12 lg:h-11 lg:w-11" />
                 {!player.is_alive && (
                   <>
                     <div className="execution-overlay absolute inset-0 rounded-full bg-accent/20" />
@@ -112,7 +112,7 @@ const PlayerCouncil = ({
               {/* Name + sigil */}
               <div className="flex items-center gap-1">
                 <SigilIcon sigil={playerSigil} size={14} className="text-muted-foreground/60 flex-shrink-0" />
-                <span className="max-w-[60px] truncate text-center font-body text-xs text-foreground">
+                <span className="max-w-[50px] md:max-w-[60px] truncate text-center font-body text-[9px] md:text-[10px] lg:text-xs text-foreground">
                   {player.display_name}
                 </span>
               </div>

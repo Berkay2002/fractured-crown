@@ -33,7 +33,7 @@ const EventLogFeed = ({ events }: EventLogFeedProps) => {
       <h3 className="flex-shrink-0 border-b border-primary/15 px-3 py-2 font-display text-xs uppercase tracking-widest text-muted-foreground">
         Chronicle
       </h3>
-      <ScrollArea className="h-48 lg:flex-1 lg:h-auto">
+      <ScrollArea className="h-32 md:h-auto md:flex-1 lg:flex-1 lg:h-auto">
         <div className="flex flex-col gap-1 p-2">
           {events.length === 0 && (
             <p className="px-2 py-4 text-center text-xs italic text-muted-foreground">
