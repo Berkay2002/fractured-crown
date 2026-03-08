@@ -50,14 +50,46 @@ const ExecutivePowerOverlay = ({
   const targetName = players.find(p => p.id === selectedTarget)?.display_name ?? '';
 
   if (!isHerald) {
+    const powerDescriptions: Record<string, { icon: React.ReactNode; title: string; desc: string }> = {
+      policy_peek: {
+        icon: <Eye className="mx-auto mb-3 h-8 w-8 text-primary" />,
+        title: "Raven's Eye",
+        desc: 'The Herald is secretly viewing the top 3 edicts from the decree pile. This gives them insider knowledge of upcoming policies.',
+      },
+      investigate_loyalty: {
+        icon: <Search className="mx-auto mb-3 h-8 w-8 text-primary" />,
+        title: 'Loyalty Investigation',
+        desc: 'The Herald is investigating a player\'s party allegiance. They will learn whether the target is Loyalist or Shadow Court.',
+      },
+      special_election: {
+        icon: <Vote className="mx-auto mb-3 h-8 w-8 text-primary" />,
+        title: 'Call Conclave',
+        desc: 'The Herald is choosing the next Herald for a special election session.',
+      },
+      execution: {
+        icon: <Skull className="mx-auto mb-3 h-8 w-8 text-accent-foreground" />,
+        title: 'Royal Execution',
+        desc: 'The Herald is choosing a player to execute. This cannot be undone.',
+      },
+    };
+
+    const info = power ? powerDescriptions[power] : null;
+
     return (
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="rounded-lg border border-border bg-card p-6 text-center"
+        className="rounded-xl border-2 border-border bg-card p-6 text-center"
       >
-        <p className="font-body text-sm italic text-muted-foreground">
-          The Herald is exercising executive power...
+        {info?.icon ?? <Eye className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />}
+        <h3 className="mb-2 font-display text-sm uppercase tracking-widest text-primary">
+          {info?.title ?? 'Executive Power'}
+        </h3>
+        <p className="font-body text-sm text-muted-foreground">
+          {info?.desc ?? 'The Herald is exercising executive power...'}
+        </p>
+        <p className="mt-4 animate-pulse text-xs italic text-muted-foreground/60">
+          Awaiting the Herald's decision...
         </p>
       </motion.div>
     );
