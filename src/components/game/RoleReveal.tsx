@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Crown, Swords, Skull, Scroll } from 'lucide-react';
+import { Scroll } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Tables } from '@/integrations/supabase/types';
+import roleLoyalist from '@/assets/role-loyalist.png';
+import roleTraitor from '@/assets/role-traitor.png';
+import roleUsurper from '@/assets/role-usurper.png';
 
 type PlayerRole = Tables<'player_roles'>;
 type Player = Tables<'players'>;
@@ -17,7 +20,7 @@ const roleConfig = {
   loyalist: {
     title: 'Loyalist',
     tagline: 'Serve the Crown',
-    icon: Crown,
+    image: roleLoyalist,
     borderColor: 'border-primary',
     bgColor: 'bg-primary/10',
     textColor: 'text-primary',
@@ -26,7 +29,7 @@ const roleConfig = {
   traitor: {
     title: 'Traitor',
     tagline: 'Serve the Shadow',
-    icon: Swords,
+    image: roleTraitor,
     borderColor: 'border-accent',
     bgColor: 'bg-accent/10',
     textColor: 'text-accent-foreground',
@@ -35,7 +38,7 @@ const roleConfig = {
   usurper: {
     title: 'Usurper',
     tagline: 'Seize the Throne',
-    icon: Skull,
+    image: roleUsurper,
     borderColor: 'border-purple-600',
     bgColor: 'bg-purple-900/20',
     textColor: 'text-purple-400',
@@ -46,7 +49,6 @@ const roleConfig = {
 const RoleReveal = ({ myRole, players, onDismiss }: RoleRevealProps) => {
   const [revealed, setRevealed] = useState(false);
   const config = roleConfig[myRole.role];
-  const Icon = config.icon;
 
   const allies = (myRole.revealed_allies as number[]) || [];
   const allyNames = allies
@@ -90,7 +92,7 @@ const RoleReveal = ({ myRole, players, onDismiss }: RoleRevealProps) => {
             transition={{ duration: 0.7, ease: 'easeOut' }}
             className={`flex max-w-sm flex-col items-center gap-6 rounded-xl border-2 ${config.borderColor} ${config.bgColor} ${config.glowColor} p-8`}
           >
-            <Icon className={`h-16 w-16 ${config.textColor}`} />
+            <img src={config.image} alt={config.title} className="h-32 w-32 object-contain drop-shadow-[0_0_20px_hsl(var(--primary)/0.4)]" />
 
             <div className="text-center">
               <h2 className={`font-display text-3xl font-bold tracking-wider ${config.textColor}`}>
