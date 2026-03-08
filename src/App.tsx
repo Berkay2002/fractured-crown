@@ -9,6 +9,7 @@ import { DiscordProvider } from "@/contexts/DiscordContext";
 import Index from "./pages/Index";
 import Room from "./pages/Room";
 import JoinRoom from "./pages/JoinRoom";
+import Install from "./pages/Install";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
