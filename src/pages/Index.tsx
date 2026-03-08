@@ -84,8 +84,8 @@ const Index = () => {
   const needsAuth = !user;
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background">
-      <div className="fixed inset-0 w-screen h-screen overflow-hidden -z-10 pointer-events-none">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
+      <div className="fixed inset-0 w-screen h-screen overflow-hidden z-0 pointer-events-none">
         <video
           autoPlay
           muted
