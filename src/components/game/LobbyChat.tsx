@@ -26,9 +26,10 @@ interface LobbyChatProps {
   roomId: number;
   currentPlayerId: number | null;
   players: Player[];
+  className?: string;
 }
 
-const LobbyChat = ({ roomId, currentPlayerId, players }: LobbyChatProps) => {
+const LobbyChat = ({ roomId, currentPlayerId, players, className }: LobbyChatProps) => {
   const [messages, setMessages] = useState<LobbyMessage[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
