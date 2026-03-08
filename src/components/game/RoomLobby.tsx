@@ -375,6 +375,11 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           </Button>
         </div>
       )}
+      <footer className="mt-8 flex gap-3 font-body text-xs text-muted-foreground">
+        <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+        <span>·</span>
+        <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+      </footer>
     </div>
   );
 };

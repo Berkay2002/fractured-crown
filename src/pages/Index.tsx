@@ -226,6 +226,12 @@ const Index = () => {
           )}
         </motion.div>
       </motion.div>
+
+      <footer className="absolute bottom-4 z-10 flex gap-3 font-body text-xs text-muted-foreground">
+        <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+        <span>·</span>
+        <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+      </footer>
     </div>
   );
 };
