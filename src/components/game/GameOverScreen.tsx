@@ -152,7 +152,7 @@ const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreen
       style={bgStyle(endBgUrl)}
     >
       <div className={`absolute inset-0 pointer-events-none z-0 ${
-        isLoyalistWin ? 'bg-[hsl(24_22%_6%/0.5)]' : 'bg-[hsl(24_22%_6%/0.7)]'
+        isLoyalistWin ? 'bg-[hsl(24_22%_6%/0.6)]' : 'bg-[hsl(24_22%_6%/0.8)]'
       }`} />
       <div className="relative z-10 flex w-full max-w-2xl flex-col items-center gap-8 py-8">
         {/* Winner Announcement */}
