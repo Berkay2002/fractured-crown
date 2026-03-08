@@ -92,7 +92,7 @@ const RoleReveal = ({ myRole, players, onDismiss }: RoleRevealProps) => {
             transition={{ duration: 0.7, ease: 'easeOut' }}
             className={`flex max-w-sm flex-col items-center gap-6 rounded-xl border-2 ${config.borderColor} ${config.bgColor} ${config.glowColor} p-8`}
           >
-            <Icon className={`h-16 w-16 ${config.textColor}`} />
+            <img src={config.image} alt={config.title} className="h-32 w-32 object-contain drop-shadow-[0_0_20px_hsl(var(--primary)/0.4)]" />
 
             <div className="text-center">
               <h2 className={`font-display text-3xl font-bold tracking-wider ${config.textColor}`}>
