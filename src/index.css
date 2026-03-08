@@ -314,21 +314,3 @@
   0%, 100% { transform: scale(1); opacity: 0.4; }
   50% { transform: scale(1.6); opacity: 0; }
 }
-
-/* Themed scrollbar for lobby right column */
-.lobby-right-scroll {
-  scrollbar-gutter: stable;
-}
-.lobby-right-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-.lobby-right-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-.lobby-right-scroll::-webkit-scrollbar-thumb {
-  background: rgba(201, 168, 76, 0.25);
-  border-radius: 3px;
-}
-.lobby-right-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(201, 168, 76, 0.45);
-}
