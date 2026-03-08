@@ -123,15 +123,15 @@ const LobbyChat = ({ roomId, currentPlayerId, players, className }: LobbyChatPro
 
   return (
     <div className={`w-full rounded-lg border border-primary/20 bg-card flex flex-col ${className ?? ''}`}>
-      <div className="border-b border-border px-4 py-2 flex-shrink-0">
-        <h3 className="font-display text-xs uppercase tracking-widest text-muted-foreground">
+      <div className="border-b border-border px-4 py-3 flex-shrink-0">
+        <h3 className="font-display text-sm uppercase tracking-widest text-muted-foreground">
           Council Whispers
         </h3>
       </div>
-      <div className="flex-1 min-h-0 h-48 overflow-y-auto px-3 py-2">
-        <div className="flex flex-col gap-1.5">
+      <div className="flex-1 min-h-0 h-48 overflow-y-auto px-4 py-3">
+        <div className="flex flex-col gap-3">
           {messages.length === 0 && (
-            <p className="py-4 text-center text-xs italic text-muted-foreground">
+            <p className="py-6 text-center text-sm italic text-muted-foreground">
               No whispers yet...
             </p>
           )}
@@ -139,18 +139,24 @@ const LobbyChat = ({ roomId, currentPlayerId, players, className }: LobbyChatPro
             const player = msg.players || getPlayerInfo(msg.player_id);
             const displayName = player ? ('display_name' in player ? player.display_name : '') : 'Unknown';
             const sigil = player ? ('sigil' in player ? player.sigil : 'crown') : 'crown';
+            const isOwn = msg.player_id === currentPlayerId;
             return (
-              <div key={msg.id} className="flex items-start gap-2">
+              <div key={msg.id} className="flex items-start gap-2.5">
                 <img
                   src={sigilImageUrl(sigil || 'crown')}
                   alt=""
-                  className="mt-0.5 h-5 w-5 rounded-full object-cover flex-shrink-0"
+                  className="mt-0.5 h-7 w-7 rounded-full object-cover flex-shrink-0 border border-border"
                 />
-                <div className="min-w-0">
-                  <span className="font-display text-[10px] uppercase tracking-wider text-primary/70">
-                    {displayName}
-                  </span>
-                  <p className="font-body text-xs text-foreground/80 break-words">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className={`font-display text-xs uppercase tracking-wider ${isOwn ? 'text-primary' : 'text-primary/70'}`}>
+                      {displayName}
+                    </span>
+                    <span className="text-[9px] text-muted-foreground/50 font-mono">
+                      {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <p className="font-body text-sm text-foreground/85 break-words leading-snug mt-0.5">
                     {msg.content}
                   </p>
                 </div>
@@ -161,22 +167,22 @@ const LobbyChat = ({ roomId, currentPlayerId, players, className }: LobbyChatPro
         </div>
       </div>
       {currentPlayerId && (
-        <div className="flex gap-2 border-t border-border px-3 py-2">
+        <div className="flex gap-2 border-t border-border px-4 py-3">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value.slice(0, 200))}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Whisper to the council..."
-            className="h-8 border-border bg-muted/50 font-body text-xs placeholder:text-muted-foreground/50"
+            className="h-9 border-border bg-muted/50 font-body text-sm placeholder:text-muted-foreground/50"
             maxLength={200}
           />
           <Button
             size="sm"
             onClick={handleSend}
             disabled={!input.trim() || sending}
-            className="h-8 w-8 p-0 text-primary-foreground"
+            className="h-9 w-9 p-0 text-primary-foreground"
           >
-            <Send className="h-3.5 w-3.5" />
+            <Send className="h-4 w-4" />
           </Button>
         </div>
       )}
