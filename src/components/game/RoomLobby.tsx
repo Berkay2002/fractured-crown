@@ -367,7 +367,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 * idx }}
-            className={`group relative flex min-w-0 w-full aspect-square flex-col items-center justify-center gap-1 rounded-lg border bg-card p-2 ${
+            className={`group relative flex min-w-0 w-full aspect-square overflow-hidden flex-col items-center justify-center gap-1 rounded-lg border bg-card p-2 ${
               playerIsReady && !playerIsSpectator
                 ? 'border-primary/50 shadow-[0_0_8px_hsl(var(--primary)/0.2)]'
                 : 'border-border'
