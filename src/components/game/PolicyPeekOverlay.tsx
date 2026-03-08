@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Skull, X } from 'lucide-react';
+import { X } from 'lucide-react';
+import edictLoyalist from '@/assets/edict-loyalist.png';
+import edictShadow from '@/assets/edict-shadow.png';
 import { Button } from '@/components/ui/button';
 
 type PolicyCard = 'loyalist' | 'shadow';
@@ -48,11 +50,11 @@ const PolicyPeekOverlay = ({ cards, onClose }: PolicyPeekOverlayProps) => {
                 : 'border-accent bg-accent/10 shadow-[0_0_24px_hsl(var(--accent)/0.35)]'
             }`}
           >
-            {card === 'loyalist' ? (
-              <Shield className="h-10 w-10 text-primary" />
-            ) : (
-              <Skull className="h-10 w-10 text-accent-foreground" />
-            )}
+            <img
+              src={card === 'loyalist' ? edictLoyalist : edictShadow}
+              alt={card === 'loyalist' ? 'Loyalist Edict' : 'Shadow Edict'}
+              className="h-16 w-16 object-contain"
+            />
             <div className="text-center">
               <p className={`font-display text-[10px] uppercase tracking-widest ${
                 card === 'loyalist' ? 'text-primary' : 'text-accent-foreground'

@@ -6,6 +6,7 @@ import roleTraitorImg from '@/assets/role-traitor.png';
 import roleUsurperImg from '@/assets/role-usurper.png';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { powerInvestigate, powerExecution } from '@/lib/powerImages';
 import EdictTracker from './EdictTracker';
 import PlayerCouncil from './PlayerCouncil';
 import PolicyCardUI from './PolicyCardUI';
@@ -341,7 +342,7 @@ const useSteps = (): TutorialStep[] => {
         <div className="flex flex-col gap-5">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3 sm:p-4">
-              <Search className="h-6 w-6 text-primary" />
+              <img src={powerInvestigate} alt="Investigate" className="h-10 w-10 object-contain" />
               <span className="font-display text-[10px] uppercase tracking-widest text-primary">Investigate</span>
               <p className="text-center font-body text-[11px] text-muted-foreground leading-snug">
                 View one player&apos;s faction secretly. You may lie about what you saw.

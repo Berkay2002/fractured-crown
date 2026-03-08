@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, Search, Vote, Skull } from 'lucide-react';
+import { powerImageMap } from '@/lib/powerImages';
 
 interface EdictTrackerProps {
   type: 'loyalist' | 'shadow' | 'election';
@@ -18,13 +18,9 @@ const SHADOW_POWERS: Record<number, Record<number, string>> = {
 };
 
 const powerIcon = (power: string) => {
-  switch (power) {
-    case 'peek': return <Eye className="h-3 w-3" />;
-    case 'investigate': return <Search className="h-3 w-3" />;
-    case 'election': return <Vote className="h-3 w-3" />;
-    case 'execution': return <Skull className="h-3 w-3" />;
-    default: return null;
-  }
+  const img = powerImageMap[power];
+  if (!img) return null;
+  return <img src={img} alt={power} className="h-3 w-3 object-contain opacity-60" />;
 };
 
 const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
@@ -49,7 +45,6 @@ const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
       }
       if (fresh.size > 0) {
         setNewlyFilled(fresh);
-        // Mark as animated after animation completes
         const timer = setTimeout(() => {
           fresh.forEach(i => animatedSlots.current.add(i));
           setNewlyFilled(new Set());
