@@ -103,6 +103,7 @@ const GameBoard = ({
     if (data?.herald_hand && isHerald) {
       setHeraldHand(data.herald_hand);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only reinvoke when room_id changes, not other gameState fields
   }, [gameState?.room_id, isHerald, setHeraldHand, sound]);
 
   if (!gameState || loading) return <GameBoardSkeleton />;

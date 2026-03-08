@@ -6,6 +6,7 @@ export const SIGILS = ['crown', 'sword', 'shield', 'wolf', 'raven', 'rose', 'fla
 export type SigilName = (typeof SIGILS)[number];
 
 /** Resolves sigil name → storage URL */
+// eslint-disable-next-line react-refresh/only-export-components
 export const sigilImageUrl = (sigil: string): string =>
   sigilUrl(`${sigil}.webp`);
 

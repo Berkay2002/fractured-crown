@@ -71,6 +71,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
 
   const myPresencePayload = useMemo(
     () => myPlayer ? { id: myPlayer.id, username: myPlayer.display_name, sigil: mySigil } : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only recompute when specific display fields change
     [myPlayer?.id, myPlayer?.display_name, mySigil]
   );
   const { cursors, updateCursor } = useLobbyPresence(room.room_code, myPresencePayload);

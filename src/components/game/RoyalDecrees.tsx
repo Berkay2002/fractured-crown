@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 import { Badge } from '@/components/ui/badge';
 
 export interface GameSettings {
@@ -11,6 +12,7 @@ export interface GameSettings {
   reveal_team_size: boolean;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const DEFAULT_SETTINGS: GameSettings = {
   turn_timer_enabled: false,
   turn_timer_seconds: 120,
@@ -19,6 +21,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   reveal_team_size: true,
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function parseSettings(raw: unknown): GameSettings {
   if (raw && typeof raw === 'object') {
     const s = raw as Record<string, unknown>;
@@ -142,7 +145,7 @@ interface RoyalDecreesProps {
 export default function RoyalDecrees({ roomId, settings, isHost }: RoyalDecreesProps) {
   const updateSetting = async (patch: Partial<GameSettings>) => {
     const updated = { ...settings, ...patch };
-    await supabase.from('rooms').update({ settings: updated as any }).eq('id', roomId);
+    await supabase.from('rooms').update({ settings: updated as unknown as Json }).eq('id', roomId);
   };
 
   // ── Non-host: read-only pill badges ──

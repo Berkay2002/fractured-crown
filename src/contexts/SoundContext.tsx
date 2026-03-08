@@ -10,6 +10,7 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
   return <SoundContext.Provider value={sound}>{children}</SoundContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useSoundContext = () => {
   const ctx = useContext(SoundContext);
   if (!ctx) throw new Error('useSoundContext must be used within SoundProvider');

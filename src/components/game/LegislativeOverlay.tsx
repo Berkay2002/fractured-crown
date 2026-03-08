@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Scroll, Shield, Skull } from 'lucide-react';
@@ -142,11 +142,15 @@ const LegislativeOverlay = ({
 
   const heraldAlreadyPassed = isHerald && !resolvedHeraldHand && !!resolvedChancellorHand;
 
-  const cards: PolicyCard[] = isHerald
-    ? resolvedHeraldHand || []
-    : isLC
-    ? resolvedChancellorHand || []
-    : [];
+  const cards: PolicyCard[] = useMemo(
+    () =>
+      isHerald
+        ? resolvedHeraldHand || []
+        : isLC
+        ? resolvedChancellorHand || []
+        : [],
+    [isHerald, isLC, resolvedHeraldHand, resolvedChancellorHand]
+  );
 
   const waitingForCards = ((isHerald && !resolvedHeraldHand && !heraldAlreadyPassed) || (isLC && !resolvedChancellorHand));
 

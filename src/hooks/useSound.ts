@@ -22,7 +22,7 @@ export function useSound() {
   const toggle = useCallback(() => {
     setEnabled(prev => {
       const next = !prev;
-      try { localStorage.setItem(STORAGE_KEY, next ? '1' : '0'); } catch {}
+      try { localStorage.setItem(STORAGE_KEY, next ? '1' : '0'); } catch (_e) { /* storage unavailable */ }
       return next;
     });
   }, []);
