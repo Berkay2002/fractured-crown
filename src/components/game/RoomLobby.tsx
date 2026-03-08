@@ -158,7 +158,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * idx }}
-              className="group relative flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-4"
+              className="group relative flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-4 pt-5"
             >
               <div className="absolute right-2 top-2">
                 {isOnline ? (
@@ -167,6 +167,27 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
                   <WifiOff className="h-3 w-3 text-muted-foreground/50" />
                 )}
               </div>
+
+              {/* Host crown badge — sits inside card above avatar */}
+              <AnimatePresence mode="wait">
+                {isPlayerHost && (
+                  <motion.div
+                    key={`crown-${player.id}`}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    transition={{ duration: 0.4 }}
+                    className="absolute top-1 left-1/2 -translate-x-1/2"
+                  >
+                    <motion.div
+                      animate={{ filter: ['drop-shadow(0 0 3px hsl(var(--primary) / 0.4))', 'drop-shadow(0 0 8px hsl(var(--primary) / 0.7))', 'drop-shadow(0 0 3px hsl(var(--primary) / 0.4))'] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                      <Crown className="h-4 w-4 text-primary" />
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <div className={`flex h-12 w-12 items-center justify-center rounded-full border-2 ${
                 isPlayerHost ? 'border-primary bg-primary/10' : 'border-border bg-muted'
@@ -177,28 +198,6 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
                   {initials}
                 </span>
               </div>
-
-              {/* Host crown badge with glow + animate on change */}
-              <AnimatePresence mode="wait">
-                {isPlayerHost && (
-                  <motion.div
-                    key={`crown-${player.id}`}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.5 }}
-                    transition={{ duration: 0.4 }}
-                    className="absolute -top-2 left-1/2 -translate-x-1/2"
-                  >
-                    <motion.div
-                      animate={{ boxShadow: ['0 0 6px hsl(var(--primary) / 0.4)', '0 0 14px hsl(var(--primary) / 0.7)', '0 0 6px hsl(var(--primary) / 0.4)'] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                      className="flex h-5 w-5 items-center justify-center rounded-full"
-                    >
-                      <Crown className="h-4 w-4 text-primary drop-shadow-[0_0_4px_hsl(var(--primary)/0.6)]" />
-                    </motion.div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
 
               <span className="text-center font-body text-sm text-foreground">
                 {player.display_name}
@@ -225,25 +224,25 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
                     transition={{ duration: 0.25 }}
                     className="w-full overflow-hidden"
                   >
-                    <div className="mt-1 rounded border-t-2 border-t-primary bg-muted/60 px-2 py-2 text-center">
-                      <p className="mb-2 font-display text-[10px] uppercase tracking-widest text-primary">
-                        Transfer Crown?
+                    <div className="mt-1 rounded-md border border-primary/30 bg-muted/80 px-3 py-3 text-center">
+                      <p className="mb-2 font-display text-[11px] uppercase tracking-widest text-primary">
+                        Transfer Crown to {player.display_name}?
                       </p>
                       <div className="flex justify-center gap-2">
                         <Button
                           size="sm"
                           disabled={isTransferring}
                           onClick={() => handleTransferHost(player.id)}
-                          className="h-6 px-2 font-display text-[10px] tracking-wider text-primary-foreground"
+                          className="h-7 px-3 font-display text-[11px] tracking-wider text-primary-foreground"
                         >
                           {isTransferring ? '...' : 'Transfer'}
                         </Button>
                         <Button
                           size="sm"
-                          variant="ghost"
+                          variant="outline"
                           disabled={isTransferring}
                           onClick={() => setConfirmingTransfer(null)}
-                          className="h-6 px-2 font-display text-[10px] tracking-wider text-muted-foreground"
+                          className="h-7 px-3 font-display text-[11px] tracking-wider border-border text-muted-foreground"
                         >
                           Cancel
                         </Button>
