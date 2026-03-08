@@ -158,6 +158,7 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
       fetchVotes(),
       fetchEvents(),
       fetchChat(),
+      fetchRoomSettings(),
     ]);
   }, [fetchGameState, fetchRounds, fetchPlayers, fetchMyRole, fetchVotes, fetchEvents, fetchChat, roomId]);
 
