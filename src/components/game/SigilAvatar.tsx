@@ -1,6 +1,5 @@
 import { useState } from 'react';
-
-const SIGIL_BASE = 'https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/public/sigils';
+import { sigilUrl } from '@/lib/storageUrl';
 
 /** All available sigils — the canonical list used everywhere */
 export const SIGILS = ['crown', 'sword', 'shield', 'wolf', 'raven', 'rose', 'flame', 'anchor', 'dragon', 'skull'] as const;
@@ -8,7 +7,7 @@ export type SigilName = (typeof SIGILS)[number];
 
 /** Resolves sigil name → storage URL */
 export const sigilImageUrl = (sigil: string): string =>
-  `${SIGIL_BASE}/${sigil}.webp`;
+  sigilUrl(`${sigil}.webp`);
 
 interface SigilAvatarProps {
   sigil: string;
