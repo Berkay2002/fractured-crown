@@ -160,6 +160,64 @@ const LegislativeOverlay = ({
     ? resolvedChancellorHand ? 'Choose one edict to enact' : 'Waiting for the Herald...'
     : 'The legislative session is in progress...';
 
+  const handleCardAction = useCallback(async (index: number) => {
+    setSelectedCard(index);
+    setActing(true);
+
+    if (isHerald) {
+      const { data, error } = await supabase.functions.invoke('herald-discard', {
+        body: { room_id: gameState.room_id, card_index: index },
+      });
+      setActing(false);
+      if (error || data?.error) {
+        toast({
+          title: 'Error',
+          description: data?.error || error?.message,
+          variant: 'destructive',
+          action: <ToastAction altText="Try again" onClick={() => handleCardAction(index)}>Try Again</ToastAction>,
+        });
+        setSelectedCard(null);
+        return;
+      }
+      if (data?.chancellor_hand) {
+        setChancellorHand(data.chancellor_hand);
+      }
+    } else if (isLC) {
+      const enacted = cards[index];
+      const { data, error } = await supabase.functions.invoke('enact-policy', {
+        body: { room_id: gameState.room_id, card_index: index },
+      });
+      setActing(false);
+      if (error || data?.error) {
+        toast({
+          title: 'Error',
+          description: data?.error || error?.message,
+          variant: 'destructive',
+          action: <ToastAction altText="Try again" onClick={() => handleCardAction(index)}>Try Again</ToastAction>,
+        });
+        setSelectedCard(null);
+        return;
+      }
+      sound.playEdictEnacted(enacted);
+    }
+  }, [isHerald, isLC, gameState.room_id, cards, setChancellorHand, sound]);
+
+  // Keyboard shortcuts: 1, 2, 3 for card selection — must be before early returns
+  useEffect(() => {
+    if (!isHerald && !isLC) return;
+    if (selectedCard !== null || acting || waitingForCards || cards.length === 0) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      const num = parseInt(e.key);
+      if (num >= 1 && num <= cards.length) {
+        handleCardAction(num - 1);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isHerald, isLC, selectedCard, acting, waitingForCards, cards.length, handleCardAction]);
+
+  // Non-participant view
   if (!isHerald && !isLC) {
     return (
       <motion.div
@@ -221,63 +279,6 @@ const LegislativeOverlay = ({
       </motion.div>
     );
   }
-
-  const handleCardAction = async (index: number) => {
-    setSelectedCard(index);
-    setActing(true);
-
-    if (isHerald) {
-      const { data, error } = await supabase.functions.invoke('herald-discard', {
-        body: { room_id: gameState.room_id, card_index: index },
-      });
-      setActing(false);
-      if (error || data?.error) {
-        toast({
-          title: 'Error',
-          description: data?.error || error?.message,
-          variant: 'destructive',
-          action: <ToastAction altText="Try again" onClick={() => handleCardAction(index)}>Try Again</ToastAction>,
-        });
-        setSelectedCard(null);
-        return;
-      }
-      if (data?.chancellor_hand) {
-        setChancellorHand(data.chancellor_hand);
-      }
-    } else if (isLC) {
-      const enacted = cards[index];
-      const { data, error } = await supabase.functions.invoke('enact-policy', {
-        body: { room_id: gameState.room_id, card_index: index },
-      });
-      setActing(false);
-      if (error || data?.error) {
-        toast({
-          title: 'Error',
-          description: data?.error || error?.message,
-          variant: 'destructive',
-          action: <ToastAction altText="Try again" onClick={() => handleCardAction(index)}>Try Again</ToastAction>,
-        });
-        setSelectedCard(null);
-        return;
-      }
-      // Play edict enacted sound
-      sound.playEdictEnacted(enacted);
-    }
-  };
-
-  // Keyboard shortcuts: 1, 2, 3 for card selection
-  useEffect(() => {
-    if (selectedCard !== null || acting || waitingForCards || cards.length === 0) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      const num = parseInt(e.key);
-      if (num >= 1 && num <= cards.length) {
-        handleCardAction(num - 1);
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [selectedCard, acting, waitingForCards, cards.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <motion.div
