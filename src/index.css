@@ -334,3 +334,46 @@
   scrollbar-width: thin;
   scrollbar-color: rgba(201, 168, 76, 0.25) transparent;
 }
+
+/* Landing page: crown breathing pulse */
+@keyframes crown-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+.crown-breathe {
+  animation: crown-breathe 3s ease-in-out infinite;
+}
+
+/* Landing page: floating embers */
+@keyframes float-up {
+  0% { transform: translateY(0); opacity: 0.6; }
+  100% { transform: translateY(-100vh); opacity: 0; }
+}
+.ember {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 9999px;
+  background: #c9a84c;
+  pointer-events: none;
+  animation: float-up linear infinite;
+}
+
+/* Landing page: staggered fadeInUp */
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeInUp {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crown-breathe,
+  .ember,
+  .animate-fadeInUp {
+    animation: none;
+    opacity: 1;
+  }
+}
