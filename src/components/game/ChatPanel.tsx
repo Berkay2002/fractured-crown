@@ -59,14 +59,22 @@ const ChatPanel = ({ messages, players, sendChat }: ChatPanelProps) => {
               Silence fills the chamber...
             </p>
           )}
-          {messages.map((msg) => (
-            <div key={msg.id} className="px-1 py-0.5">
-              <span className="font-display text-xs font-semibold text-primary">
-                {playerName(msg.player_id)}:
-              </span>{' '}
-              <span className="font-body text-xs text-foreground/80">{msg.content}</span>
-            </div>
-          ))}
+          {messages.map((msg) => {
+            const sender = findPlayer(msg.player_id);
+            return (
+              <div key={msg.id} className="flex items-start gap-1.5 px-1 py-0.5">
+                <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full overflow-hidden bg-muted">
+                  <SigilAvatar sigil={sender?.sigil ?? 'crown'} displayName={sender?.display_name ?? '?'} size="h-5 w-5" />
+                </div>
+                <div>
+                  <span className="font-display text-xs font-semibold text-primary">
+                    {playerName(msg.player_id)}:
+                  </span>{' '}
+                  <span className="font-body text-xs text-foreground/80">{msg.content}</span>
+                </div>
+              </div>
+            );
+          })}
           <div ref={bottomRef} />
         </div>
       </ScrollArea>

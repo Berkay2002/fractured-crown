@@ -257,14 +257,10 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
                 </AnimatePresence>
               </div>
 
-              <div className={`flex h-12 w-12 items-center justify-center rounded-full border-2 ${
+              <div className={`flex h-12 w-12 items-center justify-center rounded-full border-2 overflow-hidden ${
                 isPlayerHost ? 'border-primary bg-primary/10' : 'border-border bg-muted'
               }`}>
-                <span className={`font-display text-sm font-bold ${
-                  isPlayerHost ? 'text-primary' : 'text-foreground'
-                }`}>
-                  {initials}
-                </span>
+                <SigilAvatar sigil={playerSigil} displayName={player.display_name} size="h-12 w-12" />
               </div>
 
               {/* Name + sigil */}
