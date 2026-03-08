@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Crown, Copy, Link, Users, Wifi, WifiOff } from 'lucide-react';
+import { Crown, Copy, Link as LinkIcon, Users, Wifi, WifiOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate, Link } from 'react-router-dom';
