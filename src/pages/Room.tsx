@@ -333,6 +333,8 @@ const Room = () => {
       players={lobbyPlayers}
       currentPlayerId={currentPlayerId}
       onlinePlayers={onlinePlayers}
+      lobbyMessages={lobbyMessages}
+      onSendLobbyMessage={handleSendLobbyMessage}
     />
   );
 };

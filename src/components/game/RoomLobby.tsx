@@ -647,9 +647,10 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
             {/* Chat fills remaining space */}
             <div className="flex-1 min-h-0 mt-6 flex flex-col">
               <LobbyChat
-                roomId={room.id}
                 currentPlayerId={currentPlayerId}
                 players={players}
+                messages={lobbyMessages}
+                onSendMessage={onSendLobbyMessage}
                 className="flex-1 min-h-0"
               />
             </div>
