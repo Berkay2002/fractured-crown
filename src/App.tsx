@@ -15,6 +15,13 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
+        {/* Vignette overlay — candlelight edge darkening */}
+        <div
+          className="pointer-events-none fixed inset-0 z-[1]"
+          style={{
+            background: 'radial-gradient(ellipse at center, transparent 50%, hsl(20 18% 4% / 0.4) 75%, hsl(20 18% 4% / 0.85) 100%)',
+          }}
+        />
         <Toaster />
         <Sonner />
         <BrowserRouter>

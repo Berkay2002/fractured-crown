@@ -9,6 +9,7 @@ import ExecutivePowerOverlay from './ExecutivePowerOverlay';
 import EventLogFeed from './EventLogFeed';
 import ChatPanel from './ChatPanel';
 import RoleReveal from './RoleReveal';
+import PhaseTransitionBanner from './PhaseTransitionBanner';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { GameRoomState } from '@/hooks/useGameRoom';
@@ -102,6 +103,7 @@ const GameBoard = ({
 
   return (
     <div className="noise-overlay flex min-h-screen flex-col bg-background">
+      <PhaseTransitionBanner phase={phase} />
       {/* Top Bar */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">

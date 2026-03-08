@@ -1,4 +1,4 @@
-import { Crown, Sword, Wifi, WifiOff, Skull } from 'lucide-react';
+import { Crown, Sword, Wifi, WifiOff, Skull, Swords } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -47,7 +47,7 @@ const PlayerCouncil = ({
             onClick={() => onPlayerClick?.(player.id)}
             className={`relative flex flex-col items-center gap-1.5 rounded-lg border p-3 transition-all ${
               !player.is_alive
-                ? 'border-border/50 bg-card/30 opacity-50'
+                ? 'border-accent/20 bg-card/40'
                 : isHerald
                 ? 'border-primary bg-primary/5 shadow-[0_0_12px_hsl(var(--primary)/0.2)] herald-glow'
                 : isLC
@@ -71,21 +71,23 @@ const PlayerCouncil = ({
             {isLC && <Sword className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 text-muted-foreground" />}
 
             {/* Avatar */}
-            <div className={`flex h-11 w-11 items-center justify-center rounded-full border-2 ${
+            <div className={`relative flex h-11 w-11 items-center justify-center rounded-full border-2 ${
               !player.is_alive
-                ? 'border-border bg-muted'
+                ? 'border-accent/40 bg-muted'
                 : isHerald
                 ? 'border-primary bg-primary/10'
                 : isLC
                 ? 'border-muted-foreground bg-muted'
                 : 'border-border bg-muted'
             }`}>
-              {!player.is_alive ? (
-                <Skull className="h-5 w-5 text-muted-foreground/60" />
-              ) : (
-                <span className={`font-display text-xs font-bold ${
-                  isHerald ? 'text-primary' : 'text-foreground'
-                }`}>{initials}</span>
+              <span className={`font-display text-xs font-bold ${
+                !player.is_alive ? 'text-muted-foreground/40' : isHerald ? 'text-primary' : 'text-foreground'
+              }`}>{initials}</span>
+              {!player.is_alive && (
+                <>
+                  <div className="execution-overlay absolute inset-0 rounded-full bg-accent/20" />
+                  <Swords className="execution-icon absolute h-6 w-6 text-accent-foreground drop-shadow-[0_0_4px_hsl(var(--accent)/0.6)]" />
+                </>
               )}
             </div>
 

@@ -64,7 +64,7 @@ const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
             >
               {filled && (
                 <div className={`h-4 w-4 rounded-full ${
-                  type === 'loyalist' ? 'bg-primary' : type === 'shadow' ? 'bg-accent' : 'bg-muted-foreground'
+                  type === 'loyalist' ? 'bg-primary edict-fill-loyalist' : type === 'shadow' ? 'bg-accent edict-fill-shadow' : 'bg-muted-foreground'
                 }`} />
               )}
               {power && !filled && (

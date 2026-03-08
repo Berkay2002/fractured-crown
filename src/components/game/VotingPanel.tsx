@@ -161,14 +161,14 @@ const VotingPanel = ({
             animate={{ opacity: 1 }}
             className="mt-4 flex flex-wrap justify-center gap-2"
           >
-            {roundVotes.map((vote) => {
+            {roundVotes.map((vote, idx) => {
               const player = players.find(p => p.id === vote.player_id);
               return (
                 <motion.div
                   key={vote.id}
                   initial={{ scale: 0, rotateY: 180 }}
                   animate={{ scale: 1, rotateY: 0 }}
-                  transition={{ delay: 0.1 }}
+                  transition={{ delay: idx * 0.15, duration: 0.5 }}
                   className={`rounded border px-3 py-1.5 text-xs font-display ${
                     vote.vote === 'ja'
                       ? 'border-primary bg-primary/10 text-primary'
