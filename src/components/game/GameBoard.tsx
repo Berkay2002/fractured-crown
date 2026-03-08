@@ -322,6 +322,7 @@ const GameBoard = ({
                 </div>
               )}
             </div>
+          </div>
 
           {/* Council */}
           <div className="px-3 py-2 flex-shrink-0">
