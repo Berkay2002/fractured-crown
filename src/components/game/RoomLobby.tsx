@@ -294,8 +294,8 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               <SigilAvatar sigil={playerSigil} displayName={player.display_name} size="h-12 w-12 lg:h-20 lg:w-20" />
             </div>
 
-            <div className="mt-1 flex items-center gap-1">
-              <span className="text-center font-body text-sm text-foreground truncate max-w-[80px]">
+            <div className="flex items-center gap-1">
+              <span className="text-center font-body text-sm lg:text-base text-foreground truncate max-w-[80px] lg:max-w-[100px]">
                 {player.display_name}
               </span>
             </div>
