@@ -335,7 +335,7 @@ const useSteps = (): TutorialStep[] => {
     /* 10 — Investigate & Execute */
     {
       title: 'Investigate & Execute',
-      icon: Skull,
+      icon: Search,
       description: 'Other executive powers let the Herald investigate loyalty or execute a player.',
       render: () => (
         <div className="flex flex-col gap-5">
