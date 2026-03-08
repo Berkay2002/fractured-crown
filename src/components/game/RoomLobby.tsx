@@ -196,7 +196,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       <p className="mb-2 text-center font-display text-xs uppercase tracking-widest text-muted-foreground">
         Choose Your Sigil
       </p>
-      <div className="inline-grid grid-cols-5 gap-1.5">
+      <div className="inline-grid grid-cols-5 gap-1.5 md:gap-2">
         {SIGILS.map(sigil => {
           const isSelected = mySigil === sigil;
           const isTaken = takenSigils.has(sigil);
@@ -240,7 +240,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
   ) : null;
 
   const playerGrid = (
-    <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3">
+    <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3">
       {players.map((player, idx) => {
         const isPlayerHost = room.host_player_id === player.id;
         const isOnline = onlinePlayers.has(player.id);
@@ -430,8 +430,8 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
         );
       }}
     >
-      {/* ── Mobile layout (below lg) ── */}
-      <div className="flex flex-col items-center px-4 py-8 lg:hidden">
+      {/* ── Mobile + Tablet layout (below lg) ── */}
+      <div className="flex flex-col items-center px-4 py-8 md:max-w-2xl md:mx-auto lg:hidden">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -444,15 +444,25 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           </h1>
         </motion.div>
 
-        <div className="mb-8 w-full max-w-md">{roomCodeCard}</div>
-        <div className="mb-6">{howToPlay}</div>
+        <div className="mb-8 w-full max-w-md md:max-w-none">{roomCodeCard}</div>
+        <div className="mb-6 md:w-full">{howToPlay}</div>
         {royalDecrees}
+
+        {/* Player count + grid in surface card on md */}
+        <div className="mb-6 w-full max-w-lg md:max-w-none md:rounded-lg md:border md:border-border md:bg-card md:p-6">
+          <div className="mb-4 flex items-center justify-center gap-2 text-muted-foreground md:justify-start">
+            <Users className="h-5 w-5" />
+            <span className="font-body text-lg">
+              {players.length} / 10 players
+            </span>
+          </div>
+          {waitingMessage && <div className="mb-4">{waitingMessage}</div>}
+          {playerGrid}
+        </div>
+
         {sigilPicker && <div className="mb-6 w-full max-w-2xl">{sigilPicker}</div>}
-        <div className="mb-6">{playerCount}</div>
-        {waitingMessage && <div className="mb-6">{waitingMessage}</div>}
-        <div className="mb-8 w-full max-w-lg">{playerGrid}</div>
-        <div className="flex flex-col items-center">{actionButtons}</div>
-        <div className="mt-8">{footerLinks}</div>
+        <div className="flex flex-col items-center md:w-full md:mt-6">{actionButtons}</div>
+        <div className="mt-8 flex justify-center">{footerLinks}</div>
       </div>
 
       {/* ── Desktop layout (lg+) ── */}
