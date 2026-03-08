@@ -118,3 +118,80 @@ export const MOCK_ROLE_TRAITOR: PlayerRole = {
 export const MOCK_ROLE_USURPER: PlayerRole = {
   id: 3, player_id: 5, room_id: 1, role: 'usurper', revealed_allies: [],
 };
+
+// ── Extended mock data for Demo simulation ──
+
+export const MOCK_ALL_ROLES: PlayerRole[] = [
+  { id: 1, player_id: 1, room_id: 1, role: 'loyalist', revealed_allies: [] },
+  { id: 2, player_id: 2, room_id: 1, role: 'traitor', revealed_allies: [5] },
+  { id: 3, player_id: 3, room_id: 1, role: 'loyalist', revealed_allies: [] },
+  { id: 4, player_id: 4, room_id: 1, role: 'loyalist', revealed_allies: [] },
+  { id: 5, player_id: 5, room_id: 1, role: 'usurper', revealed_allies: [] },
+  { id: 6, player_id: 6, room_id: 1, role: 'traitor', revealed_allies: [5] },
+  { id: 7, player_id: 7, room_id: 1, role: 'loyalist', revealed_allies: [] },
+];
+
+type EventLog = Tables<'event_log'>;
+type ChatMessage = Tables<'chat_messages'>;
+type Round = Tables<'rounds'>;
+
+export const MOCK_ROUND: Round = {
+  id: 1,
+  room_id: 1,
+  round_number: 1,
+  herald_id: 1,
+  lord_commander_id: 3,
+  herald_hand: null,
+  chancellor_hand: null,
+  enacted_policy: null,
+  power_triggered: null,
+  veto_requested: false,
+  veto_approved: null,
+  chaos_policy: false,
+  created_at: now,
+};
+
+export const MOCK_EVENTS: EventLog[] = [
+  { id: 1, room_id: 1, round_id: 1, event_type: 'nomination', description: 'Aldric nominated Caius as Lord Commander.', metadata: null, created_at: now },
+  { id: 2, room_id: 1, round_id: 1, event_type: 'vote_passed', description: 'The council voted Ja — Caius is Lord Commander.', metadata: null, created_at: now },
+  { id: 3, room_id: 1, round_id: 1, event_type: 'policy_enacted', description: 'A Loyalist Edict was enacted.', metadata: null, created_at: now },
+  { id: 4, room_id: 1, round_id: 1, event_type: 'vote_failed', description: 'The council voted Nein — nomination rejected.', metadata: null, created_at: now },
+  { id: 5, room_id: 1, round_id: 1, event_type: 'policy_enacted', description: 'A Shadow Edict was enacted.', metadata: null, created_at: now },
+  { id: 6, room_id: 1, round_id: 1, event_type: 'executive_power', description: 'Aldric used Investigate Loyalty on Brenna.', metadata: null, created_at: now },
+  { id: 7, room_id: 1, round_id: 1, event_type: 'execution', description: 'Elric was executed by the Herald.', metadata: null, created_at: now },
+  { id: 8, room_id: 1, round_id: 1, event_type: 'chaos_policy', description: 'The election tracker reached 3 — a chaos edict was enacted.', metadata: null, created_at: now },
+];
+
+export const MOCK_CHAT_MESSAGES: ChatMessage[] = [
+  { id: 1, room_id: 1, player_id: 1, content: 'I trust Caius. He should be Lord Commander.', created_at: now, phase: 'game' },
+  { id: 2, room_id: 1, player_id: 2, content: 'Something feels wrong about that vote...', created_at: now, phase: 'game' },
+  { id: 3, room_id: 1, player_id: 4, content: 'Two shadow edicts already? We need to be careful.', created_at: now, phase: 'game' },
+  { id: 4, room_id: 1, player_id: 7, content: 'I say we investigate Brenna next round.', created_at: now, phase: 'game' },
+];
+
+export const MOCK_ROUND_HISTORY = [
+  {
+    round_id: 1, round_number: 1, herald_id: 1, lord_commander_id: 3,
+    herald_hand: ['loyalist', 'shadow', 'loyalist'], chancellor_hand: ['loyalist', 'loyalist'],
+    enacted_policy: 'loyalist' as const, power_triggered: null,
+    veto_requested: false, veto_approved: false, chaos_policy: false, created_at: now,
+  },
+  {
+    round_id: 2, round_number: 2, herald_id: 2, lord_commander_id: 4,
+    herald_hand: ['shadow', 'shadow', 'loyalist'], chancellor_hand: ['shadow', 'loyalist'],
+    enacted_policy: 'shadow' as const, power_triggered: null,
+    veto_requested: false, veto_approved: false, chaos_policy: false, created_at: now,
+  },
+  {
+    round_id: 3, round_number: 3, herald_id: 3, lord_commander_id: 6,
+    herald_hand: ['shadow', 'loyalist', 'shadow'], chancellor_hand: ['shadow', 'shadow'],
+    enacted_policy: 'shadow' as const, power_triggered: 'investigate_loyalty' as const,
+    veto_requested: false, veto_approved: false, chaos_policy: false, created_at: now,
+  },
+  {
+    round_id: 4, round_number: 4, herald_id: 4, lord_commander_id: 1,
+    herald_hand: ['loyalist', 'loyalist', 'shadow'], chancellor_hand: ['loyalist', 'loyalist'],
+    enacted_policy: 'loyalist' as const, power_triggered: null,
+    veto_requested: false, veto_approved: false, chaos_policy: false, created_at: now,
+  },
+];

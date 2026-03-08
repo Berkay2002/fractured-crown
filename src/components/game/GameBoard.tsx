@@ -32,6 +32,7 @@ interface GameBoardProps extends GameRoomState {
   roomCode: string;
   currentPlayerId: number | null;
   onlinePlayers: Set<number>;
+  decayStageOverride?: number;
 }
 
 const phaseLabels: Record<string, string> = {
@@ -62,6 +63,7 @@ const GameBoard = ({
   activeReactions,
   sendReaction,
   roomSettings,
+  decayStageOverride,
 }: GameBoardProps) => {
   const [showRoleReveal, setShowRoleReveal] = useState(true);
   const [nominatingLC, setNominatingLC] = useState(false);
@@ -112,7 +114,8 @@ const GameBoard = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only reinvoke when room_id changes, not other gameState fields
   }, [gameState?.room_id, isHerald, setHeraldHand, sound]);
 
-  const decayStage = useDecayStage(gameState?.shadow_edicts_passed ?? 0);
+  const derivedDecay = useDecayStage(gameState?.shadow_edicts_passed ?? 0);
+  const decayStage = decayStageOverride ?? derivedDecay;
 
   if (!gameState || loading) return <GameBoardSkeleton />;
 
