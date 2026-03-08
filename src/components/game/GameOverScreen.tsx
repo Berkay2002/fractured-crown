@@ -1,6 +1,6 @@
 import { bgUrl, BACKGROUNDS } from '@/lib/backgroundImage';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Crown, Swords, Skull, Shield, Scroll as ScrollIcon, Vote, Eye, Zap, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useSoundContext } from '@/contexts/SoundContext';
-import { useState } from 'react';
 import type { Tables } from '@/integrations/supabase/types';
 import GameReplay from './GameReplay';
 import SigilAvatar from './SigilAvatar';
@@ -29,6 +28,7 @@ interface GameOverScreenProps {
   events: EventLog[];
   allRoles: PlayerRole[];
   isHost: boolean;
+  room: { id: number; room_code: string };
 }
 
 const winMessages: Record<string, { title: string; subtitle: string; color: string; isWin: boolean }> = {
@@ -95,7 +95,13 @@ const eventIcon = (eventType: string) => {
   return ScrollIcon;
 };
 
-const GameOverScreen = ({ gameState, players, events, allRoles, isHost }: GameOverScreenProps) => {
+interface VoteStats {
+  player: Player;
+  ja: number;
+  nein: number;
+}
+
+const GameOverScreen = ({ gameState, players, events, allRoles, isHost, room }: GameOverScreenProps) => {
   const navigate = useNavigate();
   const [resetting, setResetting] = useState(false);
   const [showReplay, setShowReplay] = useState(false);
@@ -105,7 +111,11 @@ const GameOverScreen = ({ gameState, players, events, allRoles, isHost }: GameOv
   const isLoyalistWin = winCondition === 'loyalists_edicts' || winCondition === 'usurper_executed';
   const endBgUrl = isLoyalistWin ? bgUrl(BACKGROUNDS.loyalistWin) : bgUrl(BACKGROUNDS.traitorWin);
 
-  // Play game over sound once
+  // Council Ledger stats
+  const [voteStats, setVoteStats] = useState<VoteStats[]>([]);
+  const [roundCount, setRoundCount] = useState(0);
+  const [statsLoaded, setStatsLoaded] = useState(false);
+
   useEffect(() => {
     if (msg.isWin) {
       sound.playGameOverWin();
@@ -113,6 +123,45 @@ const GameOverScreen = ({ gameState, players, events, allRoles, isHost }: GameOv
       sound.playGameOverLoss();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch stats on mount
+  useEffect(() => {
+    const fetchStats = async () => {
+      const [votesRes, roundsRes] = await Promise.all([
+        supabase
+          .from('votes')
+          .select('player_id, vote')
+          .eq('room_id', room.id)
+          .eq('revealed', true),
+        supabase
+          .from('rounds')
+          .select('id')
+          .eq('room_id', room.id),
+      ]);
+
+      if (votesRes.data) {
+        const map = new Map<number, { ja: number; nein: number }>();
+        for (const v of votesRes.data) {
+          const entry = map.get(v.player_id) || { ja: 0, nein: 0 };
+          if (v.vote === 'ja') entry.ja++;
+          else entry.nein++;
+          map.set(v.player_id, entry);
+        }
+        const stats: VoteStats[] = players
+          .map(p => ({
+            player: p,
+            ja: map.get(p.id)?.ja ?? 0,
+            nein: map.get(p.id)?.nein ?? 0,
+          }))
+          .sort((a, b) => (b.ja + b.nein) - (a.ja + a.nein));
+        setVoteStats(stats);
+      }
+
+      setRoundCount(roundsRes.data?.length ?? 0);
+      setStatsLoaded(true);
+    };
+    fetchStats();
+  }, [room.id, players]);
 
   const reveals: PlayerRoleReveal[] = allRoles.length > 0
     ? allRoles.map(r => ({
@@ -134,6 +183,11 @@ const GameOverScreen = ({ gameState, players, events, allRoles, isHost }: GameOv
     e.description.toLowerCase().includes('chaos')
   );
 
+  // Find "Most Deceptive" — player who voted nein the most
+  const mostDeceptive = voteStats.length > 0
+    ? voteStats.reduce((max, s) => s.nein > max.nein ? s : max, voteStats[0])
+    : null;
+
   const handlePlayAgain = async () => {
     setResetting(true);
     const { data, error } = await supabase.functions.invoke('reset-room', {
@@ -144,11 +198,12 @@ const GameOverScreen = ({ gameState, players, events, allRoles, isHost }: GameOv
       toast({ title: 'Error', description: data?.error || error?.message, variant: 'destructive' });
       return;
     }
-    // Navigate to the room using the returned room_code
     if (data?.room_code) {
       navigate(`/room/${data.room_code}`);
     }
   };
+
+  const animDelay = reveals.length * 0.3 + 0.5;
 
   return (
     <motion.div
@@ -156,7 +211,6 @@ const GameOverScreen = ({ gameState, players, events, allRoles, isHost }: GameOv
       animate={{ opacity: 1 }}
       className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4"
     >
-      {/* Full-screen background */}
       <div className="fixed inset-0 w-screen h-screen overflow-hidden pointer-events-none" style={{ zIndex: -1 }}>
         <img src={endBgUrl} alt="" className="w-full h-full object-cover object-center" aria-hidden="true" />
         <div className={`absolute inset-0 ${isLoyalistWin ? 'bg-[#0f0d0b]/60' : 'bg-[#0f0d0b]/80'}`} />
@@ -178,7 +232,7 @@ const GameOverScreen = ({ gameState, players, events, allRoles, isHost }: GameOv
           </p>
         </motion.div>
 
-        {/* Rematch / Play Again */}
+        {/* Rematch */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -244,7 +298,7 @@ const GameOverScreen = ({ gameState, players, events, allRoles, isHost }: GameOv
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: reveals.length * 0.3 + 0.5 }}
+          transition={{ delay: animDelay }}
           className="w-full"
         >
           <h2 className="mb-4 text-center font-display text-sm uppercase tracking-widest text-muted-foreground">
@@ -261,7 +315,7 @@ const GameOverScreen = ({ gameState, players, events, allRoles, isHost }: GameOv
                         key={event.id}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: reveals.length * 0.3 + 0.6 + idx * 0.05 }}
+                        transition={{ delay: animDelay + 0.1 + idx * 0.05 }}
                         className="flex items-start gap-2.5 border-b border-border/30 px-3 py-2 last:border-0"
                       >
                         <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-border bg-muted">
@@ -279,7 +333,7 @@ const GameOverScreen = ({ gameState, players, events, allRoles, isHost }: GameOv
                       key={event.id}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: reveals.length * 0.3 + 0.6 + idx * 0.05 }}
+                      transition={{ delay: animDelay + 0.1 + idx * 0.05 }}
                       className="flex items-start gap-2.5 border-b border-border/30 px-3 py-2 last:border-0"
                     >
                       <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-border bg-muted">
@@ -300,12 +354,11 @@ const GameOverScreen = ({ gameState, players, events, allRoles, isHost }: GameOv
             </ScrollArea>
           </div>
 
-          {/* Replay button */}
           {events.length > 0 && !showReplay && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: reveals.length * 0.3 + 1 }}
+              transition={{ delay: animDelay + 0.5 }}
               className="mt-4 flex justify-center"
             >
               <Button
@@ -327,6 +380,89 @@ const GameOverScreen = ({ gameState, players, events, allRoles, isHost }: GameOv
             players={players}
             onClose={() => setShowReplay(false)}
           />
+        )}
+
+        {/* Council Ledger — Stats */}
+        {statsLoaded && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: animDelay + 0.8 }}
+            className="w-full"
+          >
+            <h2 className="mb-4 flex items-center justify-center gap-2 text-center font-display text-sm uppercase tracking-widest text-muted-foreground">
+              <ScrollIcon className="h-4 w-4" />
+              Council Ledger
+            </h2>
+
+            <div className="space-y-4">
+              {/* Game Summary */}
+              <div className="rounded-lg border border-primary/20 bg-card p-4">
+                <div className="flex flex-wrap justify-center gap-6 font-body text-sm text-foreground/80">
+                  <div className="text-center">
+                    <p className="font-display text-2xl text-primary">{roundCount}</p>
+                    <p className="text-xs text-muted-foreground">Rounds Played</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="font-display text-2xl text-primary">{gameState.loyalist_edicts_passed}</p>
+                    <p className="text-xs text-muted-foreground">Loyalist Edicts</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="font-display text-2xl text-accent-foreground">{gameState.shadow_edicts_passed}</p>
+                    <p className="text-xs text-muted-foreground">Shadow Edicts</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Voting Record */}
+              {voteStats.length > 0 && (
+                <div className="rounded-lg border border-primary/20 bg-card p-4">
+                  <h3 className="mb-3 font-display text-xs uppercase tracking-widest text-muted-foreground">
+                    Voting Record
+                  </h3>
+                  <div className="space-y-2">
+                    {voteStats.map((stat, idx) => {
+                      const total = stat.ja + stat.nein;
+                      const isMostDeceptive = mostDeceptive && stat.player.id === mostDeceptive.player.id && mostDeceptive.nein > 0;
+                      return (
+                        <motion.div
+                          key={stat.player.id}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: animDelay + 1 + idx * 0.1 }}
+                          className="flex items-center gap-3"
+                        >
+                          <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border border-border">
+                            <SigilAvatar sigil={stat.player.sigil ?? 'crown'} displayName={stat.player.display_name} size="h-7 w-7" />
+                          </div>
+                          <span className="min-w-[80px] truncate font-body text-xs text-foreground/80">
+                            {stat.player.display_name}
+                          </span>
+                          <div className="flex flex-1 items-center gap-2">
+                            <span className="text-xs text-primary">✓{stat.ja}</span>
+                            <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                              {total > 0 && (
+                                <div
+                                  className="h-full rounded-full bg-primary"
+                                  style={{ width: `${(stat.ja / total) * 100}%` }}
+                                />
+                              )}
+                            </div>
+                            <span className="text-xs text-accent-foreground">✗{stat.nein}</span>
+                          </div>
+                          {isMostDeceptive && (
+                            <span className="whitespace-nowrap rounded border border-accent/30 bg-accent/10 px-1.5 py-0.5 text-[9px] uppercase tracking-widest text-accent-foreground">
+                              Most Deceptive
+                            </span>
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
         )}
 
         {/* Actions */}

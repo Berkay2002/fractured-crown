@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Eye, Search, Vote, Skull } from 'lucide-react';
 
 interface EdictTrackerProps {
@@ -30,18 +31,43 @@ const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
   const total = type === 'loyalist' ? 5 : type === 'shadow' ? 6 : 3;
   const label = type === 'loyalist' ? 'Loyalist Edicts' : type === 'shadow' ? 'Shadow Edicts' : 'Election Tracker';
   const prevCountRef = useRef(count);
+  const animatedSlots = useRef(new Set<number>());
   const [shaking, setShaking] = useState(false);
+  const [newlyFilled, setNewlyFilled] = useState<Set<number>>(new Set());
 
   const powers = type === 'shadow' ? (SHADOW_POWERS[playerCount] || SHADOW_POWERS[5]) : {};
 
-  // Detect chaos: election tracker hits 3
+  // Detect new fills
   useEffect(() => {
-    if (type === 'election' && count === 3 && prevCountRef.current < 3) {
+    const prev = prevCountRef.current;
+    if (count > prev) {
+      const fresh = new Set<number>();
+      for (let i = prev; i < count; i++) {
+        if (!animatedSlots.current.has(i)) {
+          fresh.add(i);
+        }
+      }
+      if (fresh.size > 0) {
+        setNewlyFilled(fresh);
+        // Mark as animated after animation completes
+        const timer = setTimeout(() => {
+          fresh.forEach(i => animatedSlots.current.add(i));
+          setNewlyFilled(new Set());
+        }, 1000);
+        prevCountRef.current = count;
+        return () => clearTimeout(timer);
+      }
+    }
+    prevCountRef.current = count;
+  }, [count]);
+
+  // Detect chaos
+  useEffect(() => {
+    if (type === 'election' && count === 3 && prevCountRef.current <= 3) {
       setShaking(true);
       const timer = setTimeout(() => setShaking(false), 650);
       return () => clearTimeout(timer);
     }
-    prevCountRef.current = count;
   }, [count, type]);
 
   return (
@@ -54,23 +80,59 @@ const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
           const filled = i < count;
           const slotIndex = i + 1;
           const power = powers[slotIndex];
+          const isNew = newlyFilled.has(i);
+
+          const baseClasses = `relative flex h-10 w-10 items-center justify-center rounded border-2 transition-all`;
+          const colorClasses = type === 'loyalist'
+            ? filled
+              ? 'border-primary bg-primary/20 shadow-[0_0_8px_hsl(var(--primary)/0.4)]'
+              : 'border-border bg-card'
+            : type === 'shadow'
+            ? filled
+              ? 'border-accent bg-accent/20 shadow-[0_0_8px_hsl(var(--accent)/0.4)]'
+              : 'border-border bg-card'
+            : filled
+            ? 'border-muted-foreground bg-muted-foreground/20'
+            : 'border-border bg-card';
 
           return (
-            <div
+            <motion.div
               key={i}
-              className={`relative flex h-10 w-10 items-center justify-center rounded border-2 transition-all ${
-                type === 'loyalist'
-                  ? filled
-                    ? 'border-primary bg-primary/20 shadow-[0_0_8px_hsl(var(--primary)/0.4)]'
-                    : 'border-border bg-card'
-                  : type === 'shadow'
-                  ? filled
-                    ? 'border-accent bg-accent/20 shadow-[0_0_8px_hsl(var(--accent)/0.4)]'
-                    : 'border-border bg-card'
-                  : filled
-                  ? 'border-muted-foreground bg-muted-foreground/20'
-                  : 'border-border bg-card'
-              }`}
+              initial={isNew ? { opacity: 0, y: -8 } : false}
+              animate={
+                isNew
+                  ? {
+                      opacity: 1,
+                      y: 0,
+                      scale: [1, 1.1, 1],
+                      boxShadow:
+                        type === 'loyalist'
+                          ? [
+                              '0 0 0px rgba(201,168,76,0)',
+                              '0 0 20px rgba(201,168,76,0.6)',
+                              '0 0 0px rgba(201,168,76,0)',
+                            ]
+                          : type === 'shadow'
+                          ? [
+                              '0 0 0px rgba(139,26,26,0)',
+                              '0 0 20px rgba(139,26,26,0.6)',
+                              '0 0 0px rgba(139,26,26,0)',
+                            ]
+                          : undefined,
+                    }
+                  : {}
+              }
+              transition={
+                isNew
+                  ? {
+                      opacity: { duration: 0.3, ease: 'easeOut' },
+                      y: { duration: 0.3, ease: 'easeOut' },
+                      scale: { delay: 0.3, duration: 0.2, times: [0, 0.5, 1] },
+                      boxShadow: { delay: 0.3, duration: 0.6, times: [0, 0.3, 1] },
+                    }
+                  : undefined
+              }
+              className={`${baseClasses} ${colorClasses}`}
             >
               {filled && (
                 <div className={`h-4 w-4 rounded-full ${
@@ -80,7 +142,7 @@ const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
               {power && !filled && (
                 <span className="text-muted-foreground/60">{powerIcon(power)}</span>
               )}
-            </div>
+            </motion.div>
           );
         })}
       </div>
