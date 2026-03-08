@@ -317,7 +317,7 @@ const useSteps = (): TutorialStep[] => {
             ))}
           </div>
           <Annotation>
-            The Herald sees these cards but must <strong className="text-foreground">not share them</strong> — at least not truthfully. You might bluff about what you saw to manipulate the council's trust.
+            The Herald sees these cards but must <strong className="text-foreground">not share them</strong> — at least not truthfully. You might bluff about what you saw to manipulate the council&apos;s trust.
           </Annotation>
         </div>
       ),
