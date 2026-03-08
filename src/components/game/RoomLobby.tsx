@@ -421,8 +421,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
 
   return (
     <div
-      className="noise-overlay relative min-h-screen overflow-hidden bg-background"
-      style={bgStyle(bgUrl(BACKGROUNDS.lobby))}
+      className="noise-overlay relative min-h-screen overflow-hidden"
       onMouseMove={(e) => {
         if (window.matchMedia('(hover: none)').matches) return;
         const rect = e.currentTarget.getBoundingClientRect();
@@ -432,8 +431,11 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
         );
       }}
     >
-      {/* Background overlay */}
-      <div className="absolute inset-0 bg-[hsl(24_22%_6%/0.75)] pointer-events-none z-0" />
+      {/* Full-screen background — must be first child */}
+      <div className="fixed inset-0 w-screen h-screen overflow-hidden -z-10 pointer-events-none">
+        <img src={bgUrl(BACKGROUNDS.lobby)} alt="" className="w-full h-full object-cover object-center" aria-hidden="true" />
+        <div className="absolute inset-0 bg-[#0f0d0b]/75" />
+      </div>
       {/* ── Mobile + Tablet layout (below lg) ── */}
       <div className="relative z-10 flex flex-col items-center px-4 py-8 md:max-w-2xl md:mx-auto lg:hidden">
         {/* Header */}
