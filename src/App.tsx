@@ -46,6 +46,7 @@ const App = () => (
           </BrowserRouter>
         </TooltipProvider>
       </SoundProvider>
+      </DiscordProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
