@@ -474,6 +474,20 @@ const GameOverScreen = ({ gameState, players, events, allRoles, isHost, room }: 
           </motion.div>
         )}
 
+        {/* Inquisitor's Lens — Round History Reveal */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: animDelay + 1.5 }}
+          className="w-full"
+        >
+          <InquisitorsLens
+            roomId={room.id}
+            players={players}
+            gameOver={gameState.winner != null}
+          />
+        </motion.div>
+
         {/* Actions */}
         <div className="flex gap-4">
           <Button
