@@ -305,7 +305,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       <p className="mb-2 text-center font-display text-xs uppercase tracking-widest text-muted-foreground">
         Choose Your Sigil
       </p>
-      <div className="inline-grid grid-cols-5 gap-1.5 md:grid md:w-full md:gap-2">
+      <div className="grid w-full grid-cols-5 gap-1.5 md:gap-2">
         {SIGILS.map(sigil => {
           const isSelected = mySigil === sigil;
           const isTaken = takenSigils.has(sigil);
@@ -612,7 +612,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           {playerGrid}
         </div>
 
-        {sigilPicker && <div className="mb-6 w-full max-w-2xl">{sigilPicker}</div>}
+        {sigilPicker && <div className="mb-6 w-full max-w-lg md:max-w-none">{sigilPicker}</div>}
         <div className="mb-6 w-full max-w-lg md:max-w-none">{lobbyChat}</div>
         <div className="flex flex-col items-center md:w-full md:mt-6">{actionButtons}</div>
         <div className="mt-8 flex justify-center">{footerLinks}</div>
