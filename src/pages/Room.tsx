@@ -181,7 +181,17 @@ const Room = () => {
     };
   }, [room?.id, currentPlayerId]);
 
-  if (loading || authLoading) {
+  // Discord Activity updates
+  useEffect(() => {
+    if (!isDiscord || !room) return;
+    if (room.status === 'lobby') {
+      setActivity(buildLobbyActivity({ roomCode: room.room_code, playerCount: lobbyPlayers.length }));
+    } else if ((room.status === 'in_progress' || room.status === 'finished') && gameRoom.gameState) {
+      const round = gameRoom.currentRound?.round_number ?? 1;
+      setActivity(buildGameActivity({ round, phase: gameRoom.gameState.current_phase }));
+    }
+  }, [isDiscord, room?.status, room?.room_code, lobbyPlayers.length, gameRoom.gameState?.current_phase, gameRoom.currentRound?.round_number]);
+
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-muted-foreground font-display text-lg tracking-widest animate-pulse">
