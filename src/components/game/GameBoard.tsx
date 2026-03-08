@@ -69,6 +69,22 @@ const GameBoard = ({
     }
   };
 
+  const handleMobileVote = useCallback(async (choice: 'ja' | 'nein') => {
+    if (!gameState) return;
+    setMobileVoting(true);
+    const { data, error } = await supabase.functions.invoke('submit-vote', {
+      body: { room_id: gameState.room_id, vote: choice },
+    });
+    setMobileVoting(false);
+    if (error || data?.error) {
+      toast({ title: 'Vote failed', description: data?.error || error?.message, variant: 'destructive' });
+      return;
+    }
+    if (data?.herald_hand && isHerald) {
+      setHeraldHand(data.herald_hand);
+    }
+  }, [gameState?.room_id, isHerald, setHeraldHand]);
+
   if (!gameState) return null;
 
   // Role reveal overlay
@@ -90,21 +106,6 @@ const GameBoard = ({
       (players.filter(pl => pl.is_alive).length <= 5 || p.id !== gameState.last_elected_herald_id)
     )
     .map(p => p.id);
-
-  const handleMobileVote = useCallback(async (choice: 'ja' | 'nein') => {
-    setMobileVoting(true);
-    const { data, error } = await supabase.functions.invoke('submit-vote', {
-      body: { room_id: gameState.room_id, vote: choice },
-    });
-    setMobileVoting(false);
-    if (error || data?.error) {
-      toast({ title: 'Vote failed', description: data?.error || error?.message, variant: 'destructive' });
-      return;
-    }
-    if (data?.herald_hand && isHerald) {
-      setHeraldHand(data.herald_hand);
-    }
-  }, [gameState.room_id, isHerald, setHeraldHand]);
 
   const roundVotes = votes.filter(v => v.round_id === currentRound?.id);
   const allVotesRevealed = roundVotes.length > 0 && roundVotes.every(v => v.revealed);
