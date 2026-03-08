@@ -51,8 +51,19 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
   const [allRoles, setAllRoles] = useState<PlayerRole[]>([]);
   const [disconnected, setDisconnected] = useState(false);
   const [activeReactions, setActiveReactions] = useState<Map<number, ActiveReaction>>(new Map());
+  const [roomSettings, setRoomSettings] = useState<Record<string, unknown> | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const lastReactionSentRef = useRef(0);
+
+  const fetchRoomSettings = useCallback(async () => {
+    if (!roomId) return;
+    const { data } = await supabase
+      .from('rooms')
+      .select('settings')
+      .eq('id', roomId)
+      .maybeSingle();
+    if (data?.settings) setRoomSettings(data.settings as Record<string, unknown>);
+  }, [roomId]);
 
   const fetchGameState = useCallback(async () => {
     if (!roomId) return;
