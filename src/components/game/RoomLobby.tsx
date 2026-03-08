@@ -160,12 +160,12 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mb-6 w-full max-w-2xl"
+          className="mb-6 flex w-full max-w-2xl flex-col items-center"
         >
           <p className="mb-2 text-center font-display text-xs uppercase tracking-widest text-muted-foreground">
             Choose Your Sigil
           </p>
-          <div className="inline-grid grid-cols-5 gap-1.5 mx-auto">
+          <div className="inline-grid grid-cols-5 gap-1.5">
             {SIGILS.map(sigil => {
               const isSelected = mySigil === sigil;
               const isTaken = takenSigils.has(sigil);
