@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,10 +30,50 @@ const VotingPanel = ({
   onHeraldHand,
 }: VotingPanelProps) => {
   const [hasVoted, setHasVoted] = useState(false);
+  const [serverHasVoted, setServerHasVoted] = useState(false);
+  const [castCount, setCastCount] = useState(0);
+  const [aliveCount, setAliveCount] = useState(0);
   const [voting, setVoting] = useState(false);
+
   const roundVotes = votes.filter(v => v.round_id === currentRoundId);
   const alivePlayers = players.filter(p => p.is_alive);
   const allRevealed = roundVotes.length > 0 && roundVotes.every(v => v.revealed);
+  const hasSubmittedVote = hasVoted || serverHasVoted;
+
+  const fetchVoteStatus = useCallback(async () => {
+    if (!currentRoundId || !currentPlayerId) return;
+
+    const { data, error } = await supabase.functions.invoke('vote-status', {
+      body: { room_id: roomId, round_id: currentRoundId },
+    });
+
+    if (error || data?.error) return;
+
+    setCastCount(data.cast_count ?? 0);
+    setAliveCount(data.alive_count ?? alivePlayers.length);
+    setServerHasVoted(Boolean(data.has_voted));
+  }, [roomId, currentRoundId, currentPlayerId, alivePlayers.length]);
+
+  useEffect(() => {
+    setHasVoted(false);
+    setServerHasVoted(false);
+    setCastCount(0);
+    setAliveCount(alivePlayers.length);
+  }, [currentRoundId, alivePlayers.length]);
+
+  useEffect(() => {
+    fetchVoteStatus();
+
+    if (!currentRoundId || allRevealed) return;
+
+    const intervalId = window.setInterval(() => {
+      fetchVoteStatus();
+    }, 1500);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [fetchVoteStatus, currentRoundId, allRevealed]);
 
   const handleVote = async (choice: 'ja' | 'nein') => {
     setVoting(true);
@@ -43,17 +83,27 @@ const VotingPanel = ({
     setVoting(false);
 
     if (error || data?.error) {
+      if ((data?.error || error?.message || '').toLowerCase().includes('already voted')) {
+        setServerHasVoted(true);
+        return;
+      }
       toast({ title: 'Vote failed', description: data?.error || error?.message, variant: 'destructive' });
       return;
     }
 
     setHasVoted(true);
+    setCastCount(prev => Math.max(prev, 1));
 
     // If herald and response contains hand, pass it up
     if (data?.herald_hand && isHerald) {
       onHeraldHand(data.herald_hand);
     }
+
+    fetchVoteStatus();
   };
+
+  const shownCastCount = allRevealed ? roundVotes.length : castCount;
+  const shownAliveCount = allRevealed ? alivePlayers.length : aliveCount || alivePlayers.length;
 
   return (
     <motion.div
@@ -72,7 +122,7 @@ const VotingPanel = ({
       )}
 
       {/* Vote buttons */}
-      {!hasVoted && !allRevealed && (
+      {!hasSubmittedVote && !allRevealed && (
         <div className="flex justify-center gap-4">
           <Button
             onClick={() => handleVote('ja')}
@@ -92,7 +142,7 @@ const VotingPanel = ({
         </div>
       )}
 
-      {hasVoted && !allRevealed && (
+      {hasSubmittedVote && !allRevealed && (
         <p className="text-center text-sm italic text-muted-foreground">
           Your vote has been cast. Waiting for others...
         </p>
@@ -100,7 +150,7 @@ const VotingPanel = ({
 
       {/* Vote progress */}
       <div className="mt-3 text-center text-xs text-muted-foreground">
-        {roundVotes.length} / {alivePlayers.length} votes cast
+        {shownCastCount} / {shownAliveCount} votes cast
       </div>
 
       {/* Revealed votes */}
