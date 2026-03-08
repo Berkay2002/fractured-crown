@@ -180,6 +180,15 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
 
   const sendChat = useCallback(async (content: string) => {
     if (!roomId || !currentPlayerId) return;
+    // Optimistic update — show the message immediately
+    const optimistic: ChatMessage = {
+      id: -Date.now(), // temporary negative id
+      room_id: roomId,
+      player_id: currentPlayerId,
+      content,
+      created_at: new Date().toISOString(),
+    };
+    setChatMessages(prev => [...prev, optimistic]);
     await supabase.from('chat_messages').insert({
       room_id: roomId,
       player_id: currentPlayerId,
