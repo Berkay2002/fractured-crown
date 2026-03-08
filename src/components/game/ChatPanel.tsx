@@ -51,7 +51,7 @@ const ChatPanel = ({ messages, players, sendChat }: ChatPanelProps) => {
       <h3 className="flex-shrink-0 border-b border-primary/15 px-3 py-2 font-display text-xs uppercase tracking-widest text-muted-foreground">
         Council Chat
       </h3>
-      <ScrollArea className="h-40 lg:flex-1 lg:h-auto">
+      <ScrollArea className="max-h-40 md:max-h-none md:flex-1 lg:flex-1 lg:h-auto">
         <div className="flex flex-col gap-1 p-2 lg:p-3">
           {messages.length === 0 && (
             <p className="px-2 py-4 text-center text-xs italic text-muted-foreground">
