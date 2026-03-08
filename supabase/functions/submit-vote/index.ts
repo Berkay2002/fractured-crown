@@ -65,6 +65,13 @@ async function reshuffleDeck(supabase: any, roomId: number) {
   }
 }
 
+const WINNER_LABELS: Record<string, string> = {
+  'loyalists_edicts': 'The Loyalists have enacted enough edicts to secure the realm!',
+  'usurper_executed': 'The Usurper has been executed! The Loyalists win!',
+  'traitors_edicts': 'The Shadow Court has enacted enough edicts to seize control!',
+  'usurper_crowned': 'The Usurper has been crowned Lord Commander! The Shadow Court wins!',
+}
+
 async function checkWinCondition(supabase: any, roomId: number, gs: any, context?: { executedPlayerId?: number }) {
   let winner: string | null = null
 
@@ -82,7 +89,7 @@ async function checkWinCondition(supabase: any, roomId: number, gs: any, context
     await supabase.from('event_log').insert({
       room_id: roomId,
       event_type: 'game_over',
-      description: `Game over! Winner: ${winner}`,
+      description: WINNER_LABELS[winner] || 'Game over! The realm has been decided.',
     })
     return winner
   }
