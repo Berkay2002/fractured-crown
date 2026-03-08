@@ -32,6 +32,7 @@ export function useLobbyPresence(
     channel
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
+        console.log('[Presence] sync state:', state);
         const flat: Record<string, CursorPresence> = {};
         Object.entries(state).forEach(([key, presences]) => {
           if (presences[0] && key !== myIdStr) {
@@ -41,6 +42,7 @@ export function useLobbyPresence(
         setCursors(flat);
       })
       .on('presence', { event: 'leave' }, ({ key }) => {
+        console.log('[Presence] leave:', key);
         setCursors((prev) => {
           const next = { ...prev };
           delete next[key];
@@ -48,16 +50,19 @@ export function useLobbyPresence(
         });
       })
       .subscribe(async (status) => {
+        console.log('[Presence] subscribe status:', status);
         if (status === 'SUBSCRIBED') {
           const p = myPlayerRef.current;
+          console.log('[Presence] tracking:', p);
           if (p) {
-            await channel.track({
+            const result = await channel.track({
               playerId: String(p.id),
               username: p.username,
               sigil: p.sigil,
               x: 50,
               y: 50,
             });
+            console.log('[Presence] track result:', result);
           }
         }
       });
@@ -75,6 +80,7 @@ export function useLobbyPresence(
     const now = Date.now();
     const p = myPlayerRef.current;
     if (!channelRef.current || !p || now - lastTrackTime.current < 50) return;
+    console.log('[Presence] updateCursor called', x.toFixed(1), y.toFixed(1));
     lastTrackTime.current = now;
     await channelRef.current.track({
       playerId: String(p.id),
