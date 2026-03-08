@@ -94,7 +94,7 @@ const PlayerCouncil = ({
                     ? 'border-accent/50 bg-accent/10'
                     : 'border-border bg-muted'
                 }`}>
-                  <SigilAvatar sigil={playerSigil} displayName={player.display_name} size="h-10 w-10 md:h-12 md:w-12 lg:h-11 lg:w-11" />
+                  <SigilAvatar sigil={playerSigil} displayName={player.display_name} size="h-10 w-10 md:h-12 md:w-12 lg:h-16 lg:w-16" />
                   {!player.is_alive && (
                     <>
                       <div className="execution-overlay absolute inset-0 rounded-full bg-accent/20" />
