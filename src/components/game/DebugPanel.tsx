@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Settings2, ChevronDown, ChevronUp } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -32,8 +30,20 @@ interface DebugPanelProps {
 }
 
 const PHASES: GameState['current_phase'][] = ['election', 'legislative', 'executive_action', 'game_over'];
-const POWERS: (GameState['active_power'])[] = [null, 'policy_peek', 'investigate_loyalty', 'special_election', 'execution'];
-const WINNERS: (GameState['winner'])[] = [null, 'loyalists_edicts', 'usurper_executed', 'traitors_edicts', 'usurper_crowned'];
+const POWERS: { label: string; value: string }[] = [
+  { label: 'None', value: 'none' },
+  { label: 'Policy Peek', value: 'policy_peek' },
+  { label: 'Investigate', value: 'investigate_loyalty' },
+  { label: 'Special Election', value: 'special_election' },
+  { label: 'Execution', value: 'execution' },
+];
+const WINNERS: { label: string; value: string }[] = [
+  { label: 'None', value: 'none' },
+  { label: 'Loyalists (Edicts)', value: 'loyalists_edicts' },
+  { label: 'Usurper Executed', value: 'usurper_executed' },
+  { label: 'Traitors (Edicts)', value: 'traitors_edicts' },
+  { label: 'Usurper Crowned', value: 'usurper_crowned' },
+];
 
 const STORAGE_KEY = 'fc-debug-panel';
 
@@ -60,9 +70,11 @@ const DebugPanel = ({ state, onChange, players }: DebugPanelProps) => {
     onChange({ [hand]: next });
   };
 
+  const selectClass = 'h-8 w-full rounded border border-border bg-card px-2 font-body text-xs text-foreground focus:border-primary focus:outline-none';
+  const rangeClass = 'w-full accent-[hsl(var(--primary))] cursor-pointer';
+
   return (
     <div className="fixed bottom-4 right-4 z-[9999] flex flex-col items-end gap-2">
-      {/* Toggle button */}
       <button
         onClick={() => setOpen(o => !o)}
         className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary/40 bg-card shadow-lg transition-colors hover:border-primary hover:bg-primary/10"
@@ -87,30 +99,23 @@ const DebugPanel = ({ state, onChange, players }: DebugPanelProps) => {
             <div className="space-y-4">
               {/* Phase */}
               <Field label="Phase">
-                <Select value={state.phase} onValueChange={(v) => onChange({ phase: v as GameState['current_phase'] })}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {PHASES.map(p => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <select
+                  className={selectClass}
+                  value={state.phase}
+                  onChange={(e) => onChange({ phase: e.target.value as GameState['current_phase'] })}
+                >
+                  {PHASES.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
               </Field>
 
               {/* Shadow Edicts */}
               <Field label={`Shadow Edicts: ${state.shadowEdicts}`}>
-                <Slider
-                  value={[state.shadowEdicts]}
-                  onValueChange={([v]) => onChange({ shadowEdicts: v })}
-                  min={0} max={6} step={1}
-                />
+                <input type="range" className={rangeClass} value={state.shadowEdicts} onChange={(e) => onChange({ shadowEdicts: Number(e.target.value) })} min={0} max={6} step={1} />
               </Field>
 
               {/* Loyalist Edicts */}
               <Field label={`Loyalist Edicts: ${state.loyalistEdicts}`}>
-                <Slider
-                  value={[state.loyalistEdicts]}
-                  onValueChange={([v]) => onChange({ loyalistEdicts: v })}
-                  min={0} max={5} step={1}
-                />
+                <input type="range" className={rangeClass} value={state.loyalistEdicts} onChange={(e) => onChange({ loyalistEdicts: Number(e.target.value) })} min={0} max={5} step={1} />
               </Field>
 
               {/* Decay Override */}
@@ -121,43 +126,30 @@ const DebugPanel = ({ state, onChange, players }: DebugPanelProps) => {
                     onCheckedChange={(on) => onChange({ decayOverride: on ? state.shadowEdicts : null })}
                   />
                   {state.decayOverride !== null && (
-                    <Slider
-                      value={[state.decayOverride]}
-                      onValueChange={([v]) => onChange({ decayOverride: v })}
-                      min={0} max={6} step={1}
-                      className="flex-1"
-                    />
+                    <input type="range" className={`${rangeClass} flex-1`} value={state.decayOverride} onChange={(e) => onChange({ decayOverride: Number(e.target.value) })} min={0} max={6} step={1} />
                   )}
                 </div>
               </Field>
 
               {/* Election Tracker */}
               <Field label={`Election Tracker: ${state.electionTracker}`}>
-                <Slider
-                  value={[state.electionTracker]}
-                  onValueChange={([v]) => onChange({ electionTracker: v })}
-                  min={0} max={3} step={1}
-                />
+                <input type="range" className={rangeClass} value={state.electionTracker} onChange={(e) => onChange({ electionTracker: Number(e.target.value) })} min={0} max={3} step={1} />
               </Field>
 
               {/* Herald */}
               <Field label="Herald">
-                <Select value={String(state.heraldId ?? '')} onValueChange={(v) => onChange({ heraldId: v ? Number(v) : null })}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="None" /></SelectTrigger>
-                  <SelectContent>
-                    {players.map(p => <SelectItem key={p.id} value={String(p.id)} className="text-xs">{p.display_name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <select className={selectClass} value={state.heraldId ?? ''} onChange={(e) => onChange({ heraldId: e.target.value ? Number(e.target.value) : null })}>
+                  <option value="">None</option>
+                  {players.map(p => <option key={p.id} value={p.id}>{p.display_name}</option>)}
+                </select>
               </Field>
 
               {/* Lord Commander */}
               <Field label="Lord Commander">
-                <Select value={String(state.lordCommanderId ?? '')} onValueChange={(v) => onChange({ lordCommanderId: v ? Number(v) : null })}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="None" /></SelectTrigger>
-                  <SelectContent>
-                    {players.map(p => <SelectItem key={p.id} value={String(p.id)} className="text-xs">{p.display_name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <select className={selectClass} value={state.lordCommanderId ?? ''} onChange={(e) => onChange({ lordCommanderId: e.target.value ? Number(e.target.value) : null })}>
+                  <option value="">None</option>
+                  {players.map(p => <option key={p.id} value={p.id}>{p.display_name}</option>)}
+                </select>
               </Field>
 
               {/* Veto */}
@@ -167,24 +159,16 @@ const DebugPanel = ({ state, onChange, players }: DebugPanelProps) => {
 
               {/* Active Power */}
               <Field label="Active Power">
-                <Select value={state.activePower ?? 'none'} onValueChange={(v) => onChange({ activePower: v === 'none' ? null : v as GameState['active_power'] })}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none" className="text-xs">None</SelectItem>
-                    {POWERS.filter(Boolean).map(p => <SelectItem key={p!} value={p!} className="text-xs">{p}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <select className={selectClass} value={state.activePower ?? 'none'} onChange={(e) => onChange({ activePower: e.target.value === 'none' ? null : e.target.value as GameState['active_power'] })}>
+                  {POWERS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                </select>
               </Field>
 
               {/* Winner */}
               <Field label="Winner">
-                <Select value={state.winner ?? 'none'} onValueChange={(v) => onChange({ winner: v === 'none' ? null : v as GameState['winner'] })}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none" className="text-xs">None</SelectItem>
-                    {WINNERS.filter(Boolean).map(w => <SelectItem key={w!} value={w!} className="text-xs">{w}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <select className={selectClass} value={state.winner ?? 'none'} onChange={(e) => onChange({ winner: e.target.value === 'none' ? null : e.target.value as GameState['winner'] })}>
+                  {WINNERS.map(w => <option key={w.value} value={w.value}>{w.label}</option>)}
+                </select>
               </Field>
 
               {/* Dead Players */}
@@ -210,17 +194,15 @@ const DebugPanel = ({ state, onChange, players }: DebugPanelProps) => {
               <CollapsibleField label="Herald Hand (3 cards)">
                 <div className="flex gap-2">
                   {[0, 1, 2].map(i => (
-                    <Select
+                    <select
                       key={i}
+                      className={`${selectClass} flex-1`}
                       value={(state.heraldHand ?? ['loyalist', 'shadow', 'loyalist'])[i]}
-                      onValueChange={(v) => setHandCard('heraldHand', i, v)}
+                      onChange={(e) => setHandCard('heraldHand', i, e.target.value)}
                     >
-                      <SelectTrigger className="h-7 text-[10px] flex-1"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="loyalist" className="text-xs">Loyalist</SelectItem>
-                        <SelectItem value="shadow" className="text-xs">Shadow</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <option value="loyalist">Loyalist</option>
+                      <option value="shadow">Shadow</option>
+                    </select>
                   ))}
                 </div>
               </CollapsibleField>
@@ -229,17 +211,15 @@ const DebugPanel = ({ state, onChange, players }: DebugPanelProps) => {
               <CollapsibleField label="LC Hand (2 cards)">
                 <div className="flex gap-2">
                   {[0, 1].map(i => (
-                    <Select
+                    <select
                       key={i}
+                      className={`${selectClass} flex-1`}
                       value={(state.chancellorHand ?? ['loyalist', 'shadow'])[i]}
-                      onValueChange={(v) => setHandCard('chancellorHand', i, v)}
+                      onChange={(e) => setHandCard('chancellorHand', i, e.target.value)}
                     >
-                      <SelectTrigger className="h-7 text-[10px] flex-1"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="loyalist" className="text-xs">Loyalist</SelectItem>
-                        <SelectItem value="shadow" className="text-xs">Shadow</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <option value="loyalist">Loyalist</option>
+                      <option value="shadow">Shadow</option>
+                    </select>
                   ))}
                 </div>
               </CollapsibleField>
