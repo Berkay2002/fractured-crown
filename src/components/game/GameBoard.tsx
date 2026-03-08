@@ -218,6 +218,8 @@ const GameBoard = ({
               currentPlayerId={currentPlayerId}
               selectablePlayerIds={nominatingLC ? selectablePlayers : undefined}
               onPlayerClick={nominatingLC ? handleNominate : undefined}
+              activeReactions={activeReactions}
+              onSendReaction={sendReaction}
             />
           </div>
 
