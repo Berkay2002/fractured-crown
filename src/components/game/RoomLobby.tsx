@@ -12,7 +12,7 @@ import SigilAvatar, { SIGILS, sigilImageUrl } from './SigilAvatar';
 import { useLobbyPresence } from '@/hooks/useLobbyPresence';
 import { LobbyPresenceCursor } from '@/components/lobby/LobbyPresenceCursor';
 import RoyalDecrees, { type GameSettings, parseSettings } from './RoyalDecrees';
-import LobbyChat from './LobbyChat';
+import LobbyChat, { type LobbyMessage } from './LobbyChat';
 
 interface Player {
   id: number;
@@ -39,11 +39,13 @@ interface RoomLobbyProps {
   players: Player[];
   currentPlayerId: number | null;
   onlinePlayers: Set<number>;
+  lobbyMessages: LobbyMessage[];
+  onSendLobbyMessage: (content: string) => Promise<void>;
 }
 
 const MAX_SLOTS = 10;
 
-const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyProps) => {
+const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessages, onSendLobbyMessage }: RoomLobbyProps) => {
   const navigate = useNavigate();
   const [starting, setStarting] = useState(false);
   const [selectedSigil, setSelectedSigil] = useState<string | null>(null);
@@ -556,9 +558,10 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
 
   const lobbyChat = (
     <LobbyChat
-      roomId={room.id}
       currentPlayerId={currentPlayerId}
       players={players}
+      messages={lobbyMessages}
+      onSendMessage={onSendLobbyMessage}
     />
   );
 
@@ -644,9 +647,10 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
             {/* Chat fills remaining space */}
             <div className="flex-1 min-h-0 mt-6 flex flex-col">
               <LobbyChat
-                roomId={room.id}
                 currentPlayerId={currentPlayerId}
                 players={players}
+                messages={lobbyMessages}
+                onSendMessage={onSendLobbyMessage}
                 className="flex-1 min-h-0"
               />
             </div>

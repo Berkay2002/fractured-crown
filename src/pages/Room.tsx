@@ -30,6 +30,15 @@ interface PlayerData {
   joined_at: string;
 }
 
+interface LobbyMessage {
+  id: number;
+  room_id: number;
+  player_id: number;
+  content: string;
+  created_at: string;
+  phase: string;
+}
+
 const phaseLabels: Record<string, string> = {
   election: 'Election',
   legislative: 'Legislative',
@@ -48,6 +57,7 @@ const Room = () => {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
   const [onlinePlayers, setOnlinePlayers] = useState<Set<number>>(new Set());
+  const [lobbyMessages, setLobbyMessages] = useState<LobbyMessage[]>([]);
 
   const gameRoom = useGameRoom(
     room?.status === 'in_progress' || room?.status === 'finished' ? room.id : null,
@@ -104,6 +114,17 @@ const Room = () => {
           if (me) setCurrentPlayerId(me.id);
         }
       }
+
+      const { data: chatData } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('room_id', roomData.id)
+        .eq('phase', 'lobby')
+        .order('created_at', { ascending: true });
+
+      if (chatData) {
+        setLobbyMessages(chatData as unknown as LobbyMessage[]);
+      }
     } catch {
       setFetchError(true);
     }
@@ -144,6 +165,22 @@ const Room = () => {
           setRoom(payload.new as unknown as RoomData);
         }
       )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `room_id=eq.${room.id}` },
+        (payload) => {
+          const newMsg = payload.new as LobbyMessage;
+          if (newMsg.phase !== 'lobby') return;
+
+          setLobbyMessages(prev => {
+            const filtered = prev.filter(
+              (m) => !(m.id < 0 && m.player_id === newMsg.player_id && m.content === newMsg.content)
+            );
+            if (filtered.some(m => m.id === newMsg.id)) return filtered;
+            return [...filtered, newMsg];
+          });
+        }
+      )
       .subscribe();
 
     return () => {
@@ -181,6 +218,33 @@ const Room = () => {
       supabase.removeChannel(presenceChannel);
     };
   }, [room?.id, currentPlayerId]);
+
+  const handleSendLobbyMessage = useCallback(async (content: string) => {
+    if (!room || !currentPlayerId) return;
+
+    const optimistic: LobbyMessage = {
+      id: -Date.now(),
+      room_id: room.id,
+      player_id: currentPlayerId,
+      content,
+      created_at: new Date().toISOString(),
+      phase: 'lobby',
+    };
+
+    setLobbyMessages(prev => [...prev, optimistic]);
+
+    const { error } = await supabase.from('chat_messages').insert({
+      room_id: room.id,
+      player_id: currentPlayerId,
+      content,
+      phase: 'lobby',
+    });
+
+    if (error) {
+      setLobbyMessages(prev => prev.filter(m => m.id !== optimistic.id));
+      toast({ title: 'Error', description: 'Failed to send message', variant: 'destructive' });
+    }
+  }, [room, currentPlayerId]);
 
   // Discord Activity updates
   useEffect(() => {
@@ -269,6 +333,8 @@ const Room = () => {
       players={lobbyPlayers}
       currentPlayerId={currentPlayerId}
       onlinePlayers={onlinePlayers}
+      lobbyMessages={lobbyMessages}
+      onSendLobbyMessage={handleSendLobbyMessage}
     />
   );
 };
