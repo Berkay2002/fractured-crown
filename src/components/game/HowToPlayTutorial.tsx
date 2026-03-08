@@ -6,7 +6,7 @@ import roleTraitorImg from '@/assets/role-traitor.png';
 import roleUsurperImg from '@/assets/role-usurper.png';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { powerInvestigate, powerExecution } from '@/lib/powerImages';
+import { powerInvestigate, powerExecution, powerElection } from '@/lib/powerImages';
 import EdictTracker from './EdictTracker';
 import PlayerCouncil from './PlayerCouncil';
 import PolicyCardUI from './PolicyCardUI';
