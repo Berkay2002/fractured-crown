@@ -89,7 +89,12 @@ const VotingPanel = ({
         setServerHasVoted(true);
         return;
       }
-      toast({ title: 'Vote failed', description: data?.error || error?.message, variant: 'destructive' });
+      toast({
+        title: 'Vote failed',
+        description: data?.error || error?.message,
+        variant: 'destructive',
+        action: <ToastAction altText="Try again" onClick={() => handleVote(choice)}>Try Again</ToastAction>,
+      });
       return;
     }
 
