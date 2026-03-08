@@ -114,7 +114,6 @@ const Index = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, delay: 0.2 }}
           >
-            <Crown className="mx-auto mb-4 h-12 w-12 text-primary" />
             <h1 className="font-display text-4xl font-bold tracking-wider text-primary sm:text-5xl md:text-6xl">
               Fractured Crown
             </h1>
