@@ -82,7 +82,7 @@ const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
           const power = powers[slotIndex];
           const isNew = newlyFilled.has(i);
 
-          const baseClasses = `relative flex h-10 w-10 items-center justify-center rounded border-2 transition-all`;
+          const baseClasses = `relative flex h-7 w-7 md:h-8 md:w-8 lg:h-10 lg:w-10 items-center justify-center rounded border-2 transition-all`;
           const colorClasses = type === 'loyalist'
             ? filled
               ? 'border-primary bg-primary/20 shadow-[0_0_8px_hsl(var(--primary)/0.4)]'
