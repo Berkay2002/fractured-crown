@@ -34,7 +34,7 @@ const PlayerCouncil = ({
   return (
     <div>
       {/* Mobile: compact 5-col grid | Tablet: 5-col grid | Desktop: flex-wrap */}
-      <div className="grid grid-cols-5 gap-1.5 md:gap-2 lg:flex lg:flex-wrap lg:justify-center lg:gap-3">
+      <div className="grid grid-cols-5 gap-1.5 md:gap-2 lg:grid-cols-5 lg:gap-4 lg:justify-items-center">
         {players.map((player, idx) => {
           const isHerald = gameState?.current_herald_id === player.id;
           const isLC = gameState?.current_lord_commander_id === player.id;
