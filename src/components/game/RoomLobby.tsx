@@ -43,7 +43,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
   const showTransferUI = isHost && players.length > 1;
 
   const myPlayer = players.find(p => p.id === currentPlayerId);
-  const mySigil = (myPlayer as any)?.sigil || 'crown';
+  const mySigil = selectedSigil || myPlayer?.sigil || 'crown';
 
   const copyCode = () => {
     navigator.clipboard.writeText(room.room_code);
