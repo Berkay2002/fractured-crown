@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Crown, Copy, Link, Users, Wifi, WifiOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import HowToPlayModal from './HowToPlayModal';
