@@ -525,6 +525,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_stale_rooms: { Args: never; Returns: undefined }
       get_user_room_ids: { Args: { _user_id: string }; Returns: number[] }
       is_player_in_room: {
         Args: { _room_id: number; _user_id: string }

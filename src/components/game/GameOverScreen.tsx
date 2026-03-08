@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Crown, Swords, Skull, Shield } from 'lucide-react';
+import { Crown, Swords, Skull, Shield, Scroll as ScrollIcon, Vote, Eye, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
@@ -60,6 +60,32 @@ const roleColors = {
   usurper: 'border-purple-600 text-purple-400',
 };
 
+// Key event types to show in the chronicle
+const CHRONICLE_EVENT_TYPES = new Set([
+  'vote_passed',
+  'vote_failed',
+  'policy_enacted',
+  'executive_power',
+  'execution',
+  'veto_approved',
+  'veto_rejected',
+  'chaos_policy',
+  'game_over',
+  'investigation',
+  'special_election',
+  'policy_peek',
+]);
+
+const eventIcon = (eventType: string) => {
+  if (eventType.includes('vote')) return Vote;
+  if (eventType.includes('policy') || eventType.includes('edict') || eventType.includes('chaos')) return ScrollIcon;
+  if (eventType.includes('execution')) return Skull;
+  if (eventType.includes('investigation') || eventType.includes('peek')) return Eye;
+  if (eventType.includes('election')) return Zap;
+  if (eventType.includes('game_over')) return Shield;
+  return ScrollIcon;
+};
+
 const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreenProps) => {
   const navigate = useNavigate();
   const [resetting, setResetting] = useState(false);
@@ -77,6 +103,20 @@ const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreen
         role: (i === 0 ? 'usurper' : i < 3 ? 'traitor' : 'loyalist') as 'loyalist' | 'traitor' | 'usurper',
       }));
 
+  // Find the Usurper for highlighting
+  const usurperReveal = reveals.find(r => r.role === 'usurper');
+
+  // Filter key events for chronicle
+  const chronicleEvents = events.filter(e =>
+    CHRONICLE_EVENT_TYPES.has(e.event_type) ||
+    e.description.toLowerCase().includes('edict') ||
+    e.description.toLowerCase().includes('vote') ||
+    e.description.toLowerCase().includes('executed') ||
+    e.description.toLowerCase().includes('power') ||
+    e.description.toLowerCase().includes('veto') ||
+    e.description.toLowerCase().includes('chaos')
+  );
+
   const handlePlayAgain = async () => {
     setResetting(true);
     const { data, error } = await supabase.functions.invoke('reset-room', {
@@ -86,7 +126,6 @@ const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreen
     if (error || data?.error) {
       toast({ title: 'Error', description: data?.error || error?.message, variant: 'destructive' });
     }
-    // Room status change via Realtime will transition UI back to lobby
   };
 
   return (
@@ -120,13 +159,16 @@ const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreen
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {reveals.map(({ player, role }, idx) => {
               const Icon = roleIcons[role];
+              const isUsurper = role === 'usurper';
               return (
                 <motion.div
                   key={player.id}
                   initial={{ rotateY: 180, opacity: 0 }}
                   animate={{ rotateY: 0, opacity: 1 }}
                   transition={{ delay: idx * 0.3, duration: 0.6 }}
-                  className={`card-flip flex flex-col items-center gap-2 rounded-lg border-2 bg-card p-4 ${roleColors[role]}`}
+                  className={`card-flip flex flex-col items-center gap-2 rounded-lg border-2 bg-card p-4 ${roleColors[role]} ${
+                    isUsurper ? 'shadow-[0_0_16px_rgba(147,51,234,0.3)]' : ''
+                  }`}
                 >
                   <Icon className="h-6 w-6" />
                   <span className="font-display text-sm font-semibold">
@@ -135,32 +177,77 @@ const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreen
                   <span className="text-xs uppercase tracking-wider opacity-70">
                     {role}
                   </span>
+                  {isUsurper && (
+                    <span className="mt-1 rounded border border-purple-600/30 bg-purple-900/20 px-2 py-0.5 text-[9px] uppercase tracking-widest text-purple-400">
+                      The Shadow King
+                    </span>
+                  )}
                 </motion.div>
               );
             })}
           </div>
         </div>
 
-        {/* Event Summary */}
-        <div className="w-full rounded-lg border border-border bg-card">
-          <h3 className="border-b border-border px-4 py-2 font-display text-xs uppercase tracking-widest text-muted-foreground">
-            Chronicle Summary
-          </h3>
-          <ScrollArea className="h-48">
-            <div className="flex flex-col gap-1 p-3">
-              {events.map((event) => (
-                <p key={event.id} className="font-body text-xs text-foreground/70">
-                  {event.description}
-                </p>
-              ))}
-              {events.length === 0 && (
-                <p className="py-4 text-center text-xs italic text-muted-foreground">
-                  No events recorded.
-                </p>
-              )}
-            </div>
-          </ScrollArea>
-        </div>
+        {/* Chronicle of the Council */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: reveals.length * 0.3 + 0.5 }}
+          className="w-full"
+        >
+          <h2 className="mb-4 text-center font-display text-sm uppercase tracking-widest text-muted-foreground">
+            Chronicle of the Council
+          </h2>
+          <div className="rounded-lg border border-primary/20 bg-card">
+            <ScrollArea className="h-56">
+              <div className="flex flex-col gap-0 p-2">
+                {chronicleEvents.length > 0 ? (
+                  chronicleEvents.map((event, idx) => {
+                    const Icon = eventIcon(event.event_type);
+                    return (
+                      <motion.div
+                        key={event.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: reveals.length * 0.3 + 0.6 + idx * 0.05 }}
+                        className="flex items-start gap-2.5 border-b border-border/30 px-3 py-2 last:border-0"
+                      >
+                        <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-border bg-muted">
+                          <Icon className="h-3 w-3 text-muted-foreground" />
+                        </div>
+                        <p className="font-body text-xs leading-relaxed text-foreground/70">
+                          {event.description}
+                        </p>
+                      </motion.div>
+                    );
+                  })
+                ) : (
+                  events.map((event, idx) => (
+                    <motion.div
+                      key={event.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: reveals.length * 0.3 + 0.6 + idx * 0.05 }}
+                      className="flex items-start gap-2.5 border-b border-border/30 px-3 py-2 last:border-0"
+                    >
+                      <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-border bg-muted">
+                        <ScrollIcon className="h-3 w-3 text-muted-foreground" />
+                      </div>
+                      <p className="font-body text-xs leading-relaxed text-foreground/70">
+                        {event.description}
+                      </p>
+                    </motion.div>
+                  ))
+                )}
+                {events.length === 0 && (
+                  <p className="py-4 text-center text-xs italic text-muted-foreground">
+                    No events recorded.
+                  </p>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+        </motion.div>
 
         {/* Actions */}
         <div className="flex gap-4">

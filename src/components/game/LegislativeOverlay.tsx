@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Scroll, Shield, Skull } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 import type { Tables } from '@/integrations/supabase/types';
 
 type GameState = Tables<'game_state'>;
@@ -225,8 +226,12 @@ const LegislativeOverlay = ({
       });
       setActing(false);
       if (error || data?.error) {
-        toast({ title: 'Error', description: data?.error || error?.message, variant: 'destructive' });
-        setSelectedCard(null);
+        toast({
+          title: 'Error',
+          description: data?.error || error?.message,
+          variant: 'destructive',
+          action: <ToastAction altText="Try again" onClick={() => handleCardAction(index)}>Try Again</ToastAction>,
+        });
         return;
       }
       // The chancellor_hand will come via Realtime round update for LC
@@ -240,8 +245,12 @@ const LegislativeOverlay = ({
       });
       setActing(false);
       if (error || data?.error) {
-        toast({ title: 'Error', description: data?.error || error?.message, variant: 'destructive' });
-        setSelectedCard(null);
+        toast({
+          title: 'Error',
+          description: data?.error || error?.message,
+          variant: 'destructive',
+          action: <ToastAction altText="Try again" onClick={() => handleCardAction(index)}>Try Again</ToastAction>,
+        });
         return;
       }
     }

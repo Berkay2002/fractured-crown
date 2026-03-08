@@ -5,6 +5,7 @@ import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
+import HowToPlayModal from './HowToPlayModal';
 
 interface Player {
   id: number;
@@ -100,6 +101,11 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           Copy invite link
         </button>
       </motion.div>
+
+      {/* How to Play */}
+      <div className="mb-6">
+        <HowToPlayModal />
+      </div>
 
       {/* Player Count */}
       <div className="mb-6 flex items-center gap-2 text-muted-foreground">

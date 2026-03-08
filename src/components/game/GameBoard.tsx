@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Crown, Scroll, User, Shield, Skull, Eye } from 'lucide-react';
+import { Crown, Scroll, User, Shield, Skull, Eye, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EdictTracker from './EdictTracker';
 import PlayerCouncil from './PlayerCouncil';
@@ -11,6 +11,8 @@ import ChatPanel from './ChatPanel';
 import RoleReveal from './RoleReveal';
 import PhaseTransitionBanner from './PhaseTransitionBanner';
 import MobileActionBar from './MobileActionBar';
+import HowToPlayModal from './HowToPlayModal';
+import GameBoardSkeleton from './GameBoardSkeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { GameRoomState } from '@/hooks/useGameRoom';
@@ -37,6 +39,7 @@ const GameBoard = ({
   events,
   chatMessages,
   sendChat,
+  loading,
   roomCode,
   currentPlayerId,
   onlinePlayers,
@@ -85,7 +88,7 @@ const GameBoard = ({
     }
   }, [gameState?.room_id, isHerald, setHeraldHand]);
 
-  if (!gameState) return null;
+  if (!gameState || loading) return <GameBoardSkeleton />;
 
   // Role reveal overlay
   if (showRoleReveal && myRole) {
@@ -131,6 +134,13 @@ const GameBoard = ({
         <div className="flex items-center gap-3">
           <Crown className="h-5 w-5 text-primary" />
           <span className="font-mono text-sm tracking-widest text-primary">{roomCode}</span>
+          <HowToPlayModal
+            trigger={
+              <button className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" title="How to Play">
+                <BookOpen className="h-4 w-4" />
+              </button>
+            }
+          />
         </div>
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           {currentRound && (

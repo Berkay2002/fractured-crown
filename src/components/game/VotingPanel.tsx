@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Stamp, Lock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Player = Tables<'players'>;
@@ -88,7 +89,12 @@ const VotingPanel = ({
         setServerHasVoted(true);
         return;
       }
-      toast({ title: 'Vote failed', description: data?.error || error?.message, variant: 'destructive' });
+      toast({
+        title: 'Vote failed',
+        description: data?.error || error?.message,
+        variant: 'destructive',
+        action: <ToastAction altText="Try again" onClick={() => handleVote(choice)}>Try Again</ToastAction>,
+      });
       return;
     }
 
