@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Player = Tables<'players'>;
@@ -12,6 +14,9 @@ interface VotingPanelProps {
   currentRoundId: number | null;
   currentPlayerId: number | null;
   nominatedPlayerName?: string;
+  roomId: number;
+  isHerald: boolean;
+  onHeraldHand: (hand: string[]) => void;
 }
 
 const VotingPanel = ({
@@ -20,19 +25,34 @@ const VotingPanel = ({
   currentRoundId,
   currentPlayerId,
   nominatedPlayerName,
+  roomId,
+  isHerald,
+  onHeraldHand,
 }: VotingPanelProps) => {
   const [hasVoted, setHasVoted] = useState(false);
+  const [voting, setVoting] = useState(false);
   const roundVotes = votes.filter(v => v.round_id === currentRoundId);
   const alivePlayers = players.filter(p => p.is_alive);
   const allRevealed = roundVotes.length > 0 && roundVotes.every(v => v.revealed);
 
-  const handleVote = (choice: 'ja' | 'nein') => {
-    console.log('TODO: Phase 3 edge function — cast_vote', {
-      round_id: currentRoundId,
-      player_id: currentPlayerId,
-      vote: choice,
+  const handleVote = async (choice: 'ja' | 'nein') => {
+    setVoting(true);
+    const { data, error } = await supabase.functions.invoke('submit-vote', {
+      body: { room_id: roomId, vote: choice },
     });
+    setVoting(false);
+
+    if (error || data?.error) {
+      toast({ title: 'Vote failed', description: data?.error || error?.message, variant: 'destructive' });
+      return;
+    }
+
     setHasVoted(true);
+
+    // If herald and response contains hand, pass it up
+    if (data?.herald_hand && isHerald) {
+      onHeraldHand(data.herald_hand);
+    }
   };
 
   return (
@@ -56,12 +76,14 @@ const VotingPanel = ({
         <div className="flex justify-center gap-4">
           <Button
             onClick={() => handleVote('ja')}
+            disabled={voting}
             className="gold-shimmer h-12 w-24 font-display text-lg tracking-wider text-primary-foreground"
           >
             Ja
           </Button>
           <Button
             onClick={() => handleVote('nein')}
+            disabled={voting}
             variant="destructive"
             className="h-12 w-24 font-display text-lg tracking-wider"
           >

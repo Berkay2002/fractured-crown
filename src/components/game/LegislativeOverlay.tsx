@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Scroll, Shield, Skull } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
 
 type GameState = Tables<'game_state'>;
@@ -12,6 +14,9 @@ interface LegislativeOverlayProps {
   currentRound: Round | null;
   currentPlayerId: number | null;
   onClose: () => void;
+  heraldHand: string[] | null;
+  chancellorHand: string[] | null;
+  setChancellorHand: (hand: string[] | null) => void;
 }
 
 type PolicyCard = 'loyalist' | 'shadow';
@@ -74,29 +79,31 @@ const LegislativeOverlay = ({
   currentRound,
   currentPlayerId,
   onClose,
+  heraldHand,
+  chancellorHand,
+  setChancellorHand,
 }: LegislativeOverlayProps) => {
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
+  const [acting, setActing] = useState(false);
   const isHerald = gameState.current_herald_id === currentPlayerId;
   const isLC = gameState.current_lord_commander_id === currentPlayerId;
 
-  // Parse hand from round data (will be populated by Edge Functions in Phase 3)
-  const heraldHand = (currentRound?.herald_hand as PolicyCard[] | null) ?? [];
-  const lcHand = (currentRound?.chancellor_hand as PolicyCard[] | null) ?? [];
+  const vetoRequested = currentRound?.veto_requested === true;
+  const vetoResolved = currentRound?.veto_approved !== null;
 
-  // Demo cards for UI preview
-  const demoHeraldHand: PolicyCard[] = ['loyalist', 'shadow', 'shadow'];
-  const demoLCHand: PolicyCard[] = ['loyalist', 'shadow'];
-
-  const cards = isHerald
-    ? (heraldHand.length > 0 ? heraldHand : demoHeraldHand)
+  // Determine which cards to show
+  const cards: PolicyCard[] = isHerald
+    ? (heraldHand as PolicyCard[]) || []
     : isLC
-    ? (lcHand.length > 0 ? lcHand : demoLCHand)
+    ? (chancellorHand as PolicyCard[]) || []
     : [];
 
+  const waitingForCards = (isHerald && !heraldHand) || (isLC && !chancellorHand);
+
   const instruction = isHerald
-    ? 'Choose one edict to discard'
+    ? heraldHand ? 'Choose one edict to discard' : 'Waiting for cards...'
     : isLC
-    ? 'Choose one edict to enact'
+    ? chancellorHand ? 'Choose one edict to enact' : 'Waiting for the Herald...'
     : 'The legislative session is in progress...';
 
   if (!isHerald && !isLC) {
@@ -112,15 +119,85 @@ const LegislativeOverlay = ({
     );
   }
 
-  const handleCardAction = (index: number) => {
+  // Herald: handle veto response
+  if (isHerald && vetoRequested && !vetoResolved) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="rounded-xl border-2 border-border bg-card p-6 text-center"
+      >
+        <h3 className="mb-2 font-display text-sm uppercase tracking-widest text-primary">
+          Veto Requested
+        </h3>
+        <p className="mb-6 font-body text-sm text-muted-foreground">
+          The Lord Commander wishes to veto this agenda. Do you accept?
+        </p>
+        <div className="flex justify-center gap-4">
+          <Button
+            onClick={async () => {
+              setActing(true);
+              const { data, error } = await supabase.functions.invoke('respond-veto', {
+                body: { room_id: gameState.room_id, accept: true },
+              });
+              setActing(false);
+              if (error || data?.error) toast({ title: 'Error', description: data?.error || error?.message, variant: 'destructive' });
+            }}
+            disabled={acting}
+            className="gold-shimmer font-display tracking-wider text-primary-foreground"
+          >
+            Accept Veto
+          </Button>
+          <Button
+            onClick={async () => {
+              setActing(true);
+              const { data, error } = await supabase.functions.invoke('respond-veto', {
+                body: { room_id: gameState.room_id, accept: false },
+              });
+              setActing(false);
+              if (error || data?.error) toast({ title: 'Error', description: data?.error || error?.message, variant: 'destructive' });
+            }}
+            disabled={acting}
+            variant="destructive"
+            className="font-display tracking-wider"
+          >
+            Reject Veto
+          </Button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  const handleCardAction = async (index: number) => {
     setSelectedCard(index);
-    const action = isHerald ? 'discard' : 'enact';
-    console.log('TODO: Phase 3 edge function — legislative_action', {
-      action,
-      card_index: index,
-      card_type: cards[index],
-      round_id: currentRound?.id,
-    });
+    setActing(true);
+
+    if (isHerald) {
+      const { data, error } = await supabase.functions.invoke('herald-discard', {
+        body: { room_id: gameState.room_id, card_index: index },
+      });
+      setActing(false);
+      if (error || data?.error) {
+        toast({ title: 'Error', description: data?.error || error?.message, variant: 'destructive' });
+        setSelectedCard(null);
+        return;
+      }
+      // The chancellor_hand will come via Realtime round update for LC
+      // But also set it locally if we got it in response (for LC's client when they fetch)
+      if (data?.chancellor_hand) {
+        setChancellorHand(data.chancellor_hand);
+      }
+    } else if (isLC) {
+      const { data, error } = await supabase.functions.invoke('enact-policy', {
+        body: { room_id: gameState.room_id, card_index: index },
+      });
+      setActing(false);
+      if (error || data?.error) {
+        toast({ title: 'Error', description: data?.error || error?.message, variant: 'destructive' });
+        setSelectedCard(null);
+        return;
+      }
+    }
   };
 
   return (
@@ -134,17 +211,23 @@ const LegislativeOverlay = ({
       </h3>
       <p className="mb-6 text-center font-body text-sm text-muted-foreground">{instruction}</p>
 
-      <div className="flex justify-center gap-4">
-        {cards.map((card, i) => (
-          <PolicyCardUI
-            key={i}
-            type={card}
-            faceUp={true}
-            onClick={() => handleCardAction(i)}
-            disabled={selectedCard !== null}
-          />
-        ))}
-      </div>
+      {waitingForCards ? (
+        <p className="text-center text-sm italic text-muted-foreground animate-pulse">
+          Awaiting edicts...
+        </p>
+      ) : (
+        <div className="flex justify-center gap-4">
+          {cards.map((card, i) => (
+            <PolicyCardUI
+              key={i}
+              type={card}
+              faceUp={true}
+              onClick={() => handleCardAction(i)}
+              disabled={selectedCard !== null || acting}
+            />
+          ))}
+        </div>
+      )}
 
       {selectedCard !== null && (
         <motion.p
@@ -156,16 +239,20 @@ const LegislativeOverlay = ({
         </motion.p>
       )}
 
-      {isLC && gameState.veto_unlocked && selectedCard === null && (
+      {isLC && gameState.veto_unlocked && selectedCard === null && !waitingForCards && !vetoRequested && (
         <div className="mt-4 text-center">
           <Button
             variant="outline"
             size="sm"
+            disabled={acting}
             className="border-accent/30 font-display text-xs tracking-wider text-accent-foreground hover:bg-accent/10"
-            onClick={() => {
-              console.log('TODO: Phase 3 edge function — veto_request', {
-                round_id: currentRound?.id,
+            onClick={async () => {
+              setActing(true);
+              const { data, error } = await supabase.functions.invoke('request-veto', {
+                body: { room_id: gameState.room_id },
               });
+              setActing(false);
+              if (error || data?.error) toast({ title: 'Error', description: data?.error || error?.message, variant: 'destructive' });
             }}
           >
             Invoke Veto

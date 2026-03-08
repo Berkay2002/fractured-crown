@@ -20,6 +20,11 @@ export interface GameRoomState {
   chatMessages: ChatMessage[];
   loading: boolean;
   sendChat: (content: string) => Promise<void>;
+  heraldHand: string[] | null;
+  setHeraldHand: (hand: string[] | null) => void;
+  chancellorHand: string[] | null;
+  setChancellorHand: (hand: string[] | null) => void;
+  allRoles: PlayerRole[];
 }
 
 export function useGameRoom(roomId: number | null, currentPlayerId: number | null): GameRoomState {
@@ -31,6 +36,9 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
   const [events, setEvents] = useState<EventLog[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [heraldHand, setHeraldHand] = useState<string[] | null>(null);
+  const [chancellorHand, setChancellorHand] = useState<string[] | null>(null);
+  const [allRoles, setAllRoles] = useState<PlayerRole[]>([]);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const fetchGameState = useCallback(async () => {
@@ -40,7 +48,17 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
       .select('*')
       .eq('room_id', roomId)
       .maybeSingle();
-    if (data) setGameState(data);
+    if (data) {
+      setGameState(data);
+      // If game over, fetch all roles
+      if (data.current_phase === 'game_over') {
+        const { data: roles } = await supabase
+          .from('player_roles')
+          .select('*')
+          .eq('room_id', roomId);
+        if (roles) setAllRoles(roles);
+      }
+    }
   }, [roomId]);
 
   const fetchRounds = useCallback(async () => {
@@ -139,7 +157,6 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages', filter: `room_id=eq.${roomId}` }, () => fetchChat())
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'CLOSED') {
-          // Reconnect: refetch everything
           fetchAll();
         }
       });
@@ -152,6 +169,14 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
     };
   }, [roomId, fetchAll, fetchGameState, fetchRounds, fetchPlayers, fetchMyRole, fetchVotes, fetchEvents, fetchChat]);
 
+  // Clear hands on phase change
+  useEffect(() => {
+    if (gameState?.current_phase === 'election') {
+      setHeraldHand(null);
+      setChancellorHand(null);
+    }
+  }, [gameState?.current_phase]);
+
   const sendChat = useCallback(async (content: string) => {
     if (!roomId || !currentPlayerId) return;
     await supabase.from('chat_messages').insert({
@@ -161,5 +186,9 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
     });
   }, [roomId, currentPlayerId]);
 
-  return { gameState, currentRound, players, myRole, votes, events, chatMessages, loading, sendChat };
+  return {
+    gameState, currentRound, players, myRole, votes, events, chatMessages,
+    loading, sendChat, heraldHand, setHeraldHand, chancellorHand, setChancellorHand,
+    allRoles,
+  };
 }
