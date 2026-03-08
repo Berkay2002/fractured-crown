@@ -33,6 +33,7 @@ interface GameBoardProps extends GameRoomState {
   currentPlayerId: number | null;
   onlinePlayers: Set<number>;
   decayStageOverride?: number;
+  demoMode?: boolean;
 }
 
 const phaseLabels: Record<string, string> = {
