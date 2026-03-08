@@ -192,6 +192,7 @@ const Room = () => {
     }
   }, [isDiscord, room?.status, room?.room_code, lobbyPlayers.length, gameRoom.gameState?.current_phase, gameRoom.currentRound?.round_number]);
 
+  if (loading || authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-muted-foreground font-display text-lg tracking-widest animate-pulse">
