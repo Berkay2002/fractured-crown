@@ -196,7 +196,7 @@ const GameBoard = ({
               ? 'border-primary/30 bg-primary/10 text-primary'
               : 'border-accent/30 bg-accent/10 text-accent-foreground'
           }`}>
-            {myRole.role === 'loyalist' ? <Shield className="h-3 w-3" /> : myRole.role === 'usurper' ? <Skull className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+            <img src={myRole.role === 'loyalist' ? roleLoyalistImg : myRole.role === 'usurper' ? roleUsurperImg : roleTraitorImg} alt={myRole.role} className="h-3.5 w-3.5 object-contain" />
             <span className="hidden sm:inline">
               {myRole.role === 'loyalist' ? 'Loyalist' : myRole.role === 'usurper' ? 'Usurper' : 'Traitor'}
             </span>

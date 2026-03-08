@@ -269,21 +269,21 @@ const GameOverScreen = ({ gameState, players, events, allRoles, isHost, room }: 
           </h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {reveals.map(({ player, role }, idx) => {
-              const Icon = roleIcons[role];
-              const isUsurper = role === 'usurper';
-              return (
-                <motion.div
-                  key={player.id}
-                  initial={{ rotateY: 180, opacity: 0 }}
-                  animate={{ rotateY: 0, opacity: 1 }}
-                  transition={{ delay: idx * 0.3, duration: 0.6 }}
-                  className={`card-flip flex flex-col items-center gap-2 rounded-lg border-2 bg-card p-4 ${roleColors[role]} ${
-                    isUsurper ? 'shadow-[0_0_16px_rgba(147,51,234,0.3)]' : ''
-                  }`}
-                >
-                  <div className="relative flex h-12 w-12 items-center justify-center rounded-full border-2 border-current overflow-hidden">
-                    <SigilAvatar sigil={player.sigil ?? 'crown'} displayName={player.display_name} size="h-12 w-12" />
-                    <Icon className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-card p-0.5" />
+               const roleImg = roleImages[role];
+                const isUsurper = role === 'usurper';
+                return (
+                  <motion.div
+                    key={player.id}
+                    initial={{ rotateY: 180, opacity: 0 }}
+                    animate={{ rotateY: 0, opacity: 1 }}
+                    transition={{ delay: idx * 0.3, duration: 0.6 }}
+                    className={`card-flip flex flex-col items-center gap-2 rounded-lg border-2 bg-card p-4 ${roleColors[role]} ${
+                      isUsurper ? 'shadow-[0_0_16px_rgba(147,51,234,0.3)]' : ''
+                    }`}
+                  >
+                    <div className="relative flex h-12 w-12 items-center justify-center rounded-full border-2 border-current overflow-hidden">
+                      <SigilAvatar sigil={player.sigil ?? 'crown'} displayName={player.display_name} size="h-12 w-12" />
+                      <img src={roleImg} alt={role} className="absolute bottom-0 right-0 h-5 w-5 rounded-full bg-card object-contain" />
                   </div>
                   <span className="font-display text-sm font-semibold">
                     {player.display_name}
