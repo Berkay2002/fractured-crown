@@ -1,73 +1,135 @@
-# Welcome to your Lovable project
+# Fractured Crown
 
-## Project info
+**A browser-based multiplayer social deduction game for 5–10 players, set in a dark medieval fantasy world.**
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Fractured Crown is a faithful reskin of *Secret Hitler* — recast as a struggle for a crumbling kingdom where Loyalists defend the Crown, Traitors conspire in the shadows, and a hidden Usurper seeks the throne.
 
-## How can I edit this code?
+🎮 **Play now:** [fractured-crown.lovable.app](https://fractured-crown.lovable.app)
 
-There are several ways of editing your application.
+---
 
-**Use Lovable**
+## Gameplay
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+Each game assigns players secret roles:
 
-Changes made via Lovable will be committed automatically to this repo.
+| Role | Count | Goal |
+|---|---|---|
+| **Loyalist** | Majority | Pass 5 Loyalist Edicts or execute the Usurper |
+| **Traitor** | Minority | Pass 6 Shadow Edicts or crown the Usurper as Lord Commander |
+| **Usurper** | 1 (knows nothing) | Survive and get crowned Lord Commander after 3 Shadow Edicts |
 
-**Use your preferred IDE**
+### Game Flow
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. **Election** — The Herald nominates a Lord Commander; all players vote Ja/Nein
+2. **Legislative Session** — The Herald draws 3 Royal Edicts, discards 1; the Lord Commander receives 2, enacts 1
+3. **Executive Powers** — Shadow Edicts on certain board slots trigger powers: Investigate Loyalty, Policy Peek, Special Election, or Execution
+4. **Repeat** until a win condition is met
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Three failed elections in a row trigger **chaos**: the top edict is enacted automatically.
 
-Follow these steps:
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 18 · TypeScript · Vite · Tailwind CSS |
+| UI Components | shadcn/ui · Framer Motion |
+| Backend | Supabase (Postgres, Auth, Realtime, Edge Functions) |
+| Auth | Anonymous sessions via `supabase.auth.signInAnonymously()` |
+| Realtime | Single Supabase Realtime channel per game room |
+| Platform | Discord Activity SDK integration |
+
+### Key Architecture Rules
+
+- **All sensitive game logic runs in Edge Functions only** — role assignments, deck management, win conditions, and state transitions never execute on the client
+- **Private card hands** are delivered via Edge Function response bodies, stored in local React state, and never written to Realtime-published columns
+- **Single Realtime channel per room** — no overlapping subscriptions
+- **Anonymous auth is by design** — no emails, passwords, or PII
+
+---
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── game/          # GameBoard, PlayerCouncil, VotingPanel, overlays, etc.
+│   ├── lobby/         # Lobby presence cursors
+│   └── ui/            # shadcn/ui primitives
+├── contexts/          # AuthContext, SoundContext, DiscordContext
+├── hooks/             # useGameRoom, useSound, useLobbyPresence, etc.
+├── lib/               # storageUrl, backgroundImage, utils
+├── pages/             # Index, Room, JoinRoom, Privacy, Terms
+└── integrations/
+    └── supabase/      # Client config, generated types
+
+supabase/
+├── functions/         # Edge Functions (game logic)
+│   ├── create-room/
+│   ├── join-room/
+│   ├── start-game/
+│   ├── nominate-chancellor/
+│   ├── submit-vote/
+│   ├── herald-discard/
+│   ├── enact-policy/
+│   ├── request-veto/
+│   ├── respond-veto/
+│   ├── resolve-power/
+│   ├── fetch-hand/
+│   ├── vote-status/
+│   └── reset-room/
+└── migrations/        # Database schema migrations
+```
+
+---
+
+## Development
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Install dependencies
+npm install
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start dev server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Requires a connected Supabase project with the schema migrations applied.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+## Design System
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+**Aesthetic:** Dark medieval war room — gothic, candlelit, conspiratorial
 
-## What technologies are used for this project?
+| Token | Value |
+|---|---|
+| Background | `#0f0d0b` |
+| Surface | `#1c1612` |
+| Gold accent | `#c9a84c` |
+| Crimson accent | `#8b1a1a` |
+| Body text | `#e8dcc8` |
+| Heading font | Cinzel |
+| Body font | Crimson Text |
+| Mono font | Courier Prime |
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Terminology
 
-## How can I deploy this project?
+| Game concept | In-app name |
+|---|---|
+| President | Herald |
+| Chancellor | Lord Commander |
+| Liberal | Loyalist |
+| Fascist | Traitor |
+| Hitler | The Usurper |
+| Policy tile | Royal Edict |
+| Liberal policy | Loyalist Edict |
+| Fascist policy | Shadow Edict |
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
+## License
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Private project. All rights reserved.
