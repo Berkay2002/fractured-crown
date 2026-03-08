@@ -168,7 +168,7 @@ const VotingPanel = ({
                   key={vote.id}
                   initial={{ scale: 0, rotateY: 180 }}
                   animate={{ scale: 1, rotateY: 0 }}
-                  transition={{ delay: 0.1 }}
+                  transition={{ delay: idx * 0.15, duration: 0.5 }}
                   className={`rounded border px-3 py-1.5 text-xs font-display ${
                     vote.vote === 'ja'
                       ? 'border-primary bg-primary/10 text-primary'
