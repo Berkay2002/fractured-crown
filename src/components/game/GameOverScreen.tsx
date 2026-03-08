@@ -1,4 +1,4 @@
-import { bgStyle, bgUrl, BACKGROUNDS } from '@/lib/backgroundImage';
+import { bgUrl, BACKGROUNDS } from '@/lib/backgroundImage';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -149,11 +149,12 @@ const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreen
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4"
-      style={bgStyle(endBgUrl)}
     >
-      <div className={`absolute inset-0 pointer-events-none z-0 ${
-        isLoyalistWin ? 'bg-[hsl(24_22%_6%/0.6)]' : 'bg-[hsl(24_22%_6%/0.8)]'
-      }`} />
+      {/* Full-screen background */}
+      <div className="fixed inset-0 w-screen h-screen overflow-hidden pointer-events-none" style={{ zIndex: -1 }}>
+        <img src={endBgUrl} alt="" className="w-full h-full object-cover object-center" aria-hidden="true" />
+        <div className={`absolute inset-0 ${isLoyalistWin ? 'bg-[#0f0d0b]/60' : 'bg-[#0f0d0b]/80'}`} />
+      </div>
       <div className="relative z-10 flex w-full max-w-2xl flex-col items-center gap-8 py-8">
         {/* Winner Announcement */}
         <motion.div
