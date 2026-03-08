@@ -101,6 +101,8 @@ const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreen
   const sound = useSoundContext();
   const winCondition = gameState.winner ?? 'loyalists_edicts';
   const msg = winMessages[winCondition] || winMessages.loyalists_edicts;
+  const isLoyalistWin = winCondition === 'loyalists_edicts' || winCondition === 'usurper_executed';
+  const endBgUrl = isLoyalistWin ? bgUrl(BACKGROUNDS.loyalistWin) : bgUrl(BACKGROUNDS.traitorWin);
 
   // Play game over sound once
   useEffect(() => {
