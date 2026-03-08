@@ -453,7 +453,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
         {royalDecrees}
 
         {/* Player count + grid in surface card on md */}
-        <div className="mb-6 w-full max-w-lg md:max-w-none md:rounded-lg md:border md:border-border md:bg-card md:p-6">
+        <div className="mb-6 w-full max-w-lg md:max-w-none md:rounded-lg md:border md:border-[#c9a84c]/20 md:bg-card md:p-6">
           <div className="mb-4 flex items-center justify-center gap-2 text-muted-foreground md:justify-start">
             <Users className="h-5 w-5" />
             <span className="font-body text-lg">
