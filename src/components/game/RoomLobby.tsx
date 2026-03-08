@@ -612,7 +612,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           {playerGrid}
         </div>
 
-        {sigilPicker && <div className="mb-6 w-full max-w-2xl">{sigilPicker}</div>}
+        {sigilPicker && <div className="mb-6 w-full max-w-lg md:max-w-none">{sigilPicker}</div>}
         <div className="mb-6 w-full max-w-lg md:max-w-none">{lobbyChat}</div>
         <div className="flex flex-col items-center md:w-full md:mt-6">{actionButtons}</div>
         <div className="mt-8 flex justify-center">{footerLinks}</div>
