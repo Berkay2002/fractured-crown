@@ -139,7 +139,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               </div>
 
               {isPlayerHost && (
-                <Crown className="absolute -top-1 left-1/2 h-4 w-4 -translate-x-1/2 text-primary" />
+                <Crown className="absolute -top-3 left-1/2 h-4 w-4 -translate-x-1/2 text-primary" />
               )}
 
               <span className="text-center font-body text-sm text-foreground">
