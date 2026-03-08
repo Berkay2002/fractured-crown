@@ -49,7 +49,7 @@ const PlayerCouncil = ({
           .slice(0, 2);
 
         return (
-          <div key={player.id} className="relative flex flex-col items-center max-md:min-w-[90px] max-md:flex-shrink-0">
+          <div key={player.id} className="relative flex flex-col items-center">
             {/* Floating reaction */}
             {reaction && (
               <div
