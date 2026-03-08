@@ -65,7 +65,7 @@ const PlayerCouncil = ({
               transition={{ delay: idx * 0.05 }}
               disabled={!isSelectable && !onPlayerClick}
               onClick={() => onPlayerClick?.(player.id)}
-              className={`relative flex w-full flex-col items-center gap-1.5 rounded-lg border p-3 transition-all ${
+              className={`relative flex w-full flex-col items-center gap-1 lg:gap-1.5 rounded-lg border p-1.5 md:p-2 lg:p-3 transition-all ${
                 !player.is_alive
                   ? 'border-accent/20 bg-card/40'
                   : isHerald
