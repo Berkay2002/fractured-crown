@@ -421,6 +421,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
   return (
     <div
       className="noise-overlay relative min-h-screen overflow-hidden bg-background"
+      style={bgStyle(bgUrl(BACKGROUNDS.lobby))}
       onMouseMove={(e) => {
         if (window.matchMedia('(hover: none)').matches) return;
         const rect = e.currentTarget.getBoundingClientRect();
