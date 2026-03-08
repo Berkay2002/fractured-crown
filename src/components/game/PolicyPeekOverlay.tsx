@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Skull, X } from 'lucide-react';
+import { X } from 'lucide-react';
+import edictLoyalist from '@/assets/edict-loyalist.png';
+import edictShadow from '@/assets/edict-shadow.png';
 import { Button } from '@/components/ui/button';
 
 type PolicyCard = 'loyalist' | 'shadow';
