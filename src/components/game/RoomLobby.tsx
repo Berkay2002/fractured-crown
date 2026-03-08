@@ -128,7 +128,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
     >
       <p className="mb-2 text-sm text-muted-foreground">Room Code</p>
       <div className="flex items-center justify-center gap-3">
-        <span className="font-mono text-4xl lg:text-6xl tracking-[0.4em] text-primary">
+        <span className="font-mono text-4xl lg:text-5xl tracking-[0.4em] text-primary">
           {room.room_code}
         </span>
         <button
@@ -456,48 +456,59 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       </div>
 
       {/* ── Desktop layout (lg+) ── */}
-      <div className="hidden lg:grid lg:grid-cols-[2fr_3fr] lg:gap-0 mx-auto max-w-5xl min-h-screen">
-        {/* Left column — administrative side */}
-        <div className="relative flex flex-col h-screen overflow-y-auto px-8 py-10 pr-10">
-          <div className="sticky top-0 flex flex-col gap-6">
-            {/* Header */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <Crown className="mb-2 h-8 w-8 text-primary" />
-              <h1 className="font-display text-2xl font-bold tracking-wider text-primary">
-                The Council Gathers
-              </h1>
-            </motion.div>
+      <div className="hidden lg:flex lg:flex-col mx-auto max-w-5xl min-h-screen px-4 py-10">
+        {/* Full-width centered header */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 text-center"
+        >
+          <Crown className="mx-auto mb-2 h-8 w-8 text-primary" />
+          <h1 className="font-display text-2xl font-bold tracking-wider text-primary">
+            The Council Gathers
+          </h1>
+        </motion.div>
 
-            {roomCodeCard}
-            {howToPlay}
-            {royalDecrees}
+        {/* Two-column grid with gold divider as middle column */}
+        <div className="grid grid-cols-[5fr_1px_6fr] gap-0 flex-1">
+          {/* Left column — administrative side */}
+          <div className="flex flex-col overflow-y-auto px-8">
+            <div className="flex flex-col gap-6">
+              {roomCodeCard}
+              <div className="w-full">{howToPlay}</div>
+              {royalDecrees}
+            </div>
           </div>
 
-          {/* Footer pinned to bottom */}
-          <div className="mt-auto pt-8">
-            {footerLinks}
+          {/* Gold divider */}
+          <div className="self-stretch" style={{ background: 'linear-gradient(to bottom, transparent, rgba(201,168,76,0.2) 20%, rgba(201,168,76,0.2) 80%, transparent)' }} />
+
+          {/* Right column — gathering chamber */}
+          <div className="flex flex-col gap-6 overflow-y-auto px-8">
+            {/* Player count + grid in a surface card */}
+            <div className="rounded-lg border border-border bg-card p-5">
+              <div className="mb-4 flex items-center gap-2 text-muted-foreground">
+                <Users className="h-5 w-5" />
+                <span className="font-body text-lg">
+                  {players.length} / 10 players
+                </span>
+              </div>
+              {waitingMessage && <div className="mb-4">{waitingMessage}</div>}
+              {playerGrid}
+            </div>
+
+            {sigilPicker && <div className="w-full">{sigilPicker}</div>}
+
+            {/* Action button */}
+            <div className="mt-auto flex flex-col items-center w-full">
+              {actionButtons}
+            </div>
           </div>
         </div>
 
-        {/* Gold divider */}
-        <div className="absolute left-[40%] top-0 bottom-0 w-px bg-primary/20 hidden lg:block" />
-
-        {/* Right column — gathering chamber */}
-        <div className="relative flex flex-col h-screen overflow-y-auto px-8 py-10 pl-10">
-          <div className="flex flex-col items-center gap-6 flex-1">
-            {playerCount}
-            {waitingMessage}
-            <div className="w-full">{playerGrid}</div>
-            {sigilPicker && <div className="w-full">{sigilPicker}</div>}
-          </div>
-
-          {/* Action button pinned to bottom */}
-          <div className="mt-auto pt-6 flex flex-col items-center">
-            {actionButtons}
-          </div>
+        {/* Full-width centered footer */}
+        <div className="mt-8 flex justify-center">
+          {footerLinks}
         </div>
       </div>
 
