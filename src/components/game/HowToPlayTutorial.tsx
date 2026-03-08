@@ -100,7 +100,7 @@ const useSteps = (): TutorialStep[] => {
     {
       title: 'The Edict Trackers',
       icon: Scroll,
-      description: 'Three trackers govern the game's progress: Loyalist Edicts, Shadow Edicts, and the Election Tracker.',
+      description: "Three trackers govern the game's progress: Loyalist Edicts, Shadow Edicts, and the Election Tracker.",
       render: () => (
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-4 rounded-lg border border-border bg-card/50 p-4">
