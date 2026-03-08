@@ -4,9 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import HowToPlayModal from './HowToPlayModal';
 import SigilAvatar, { SIGILS, sigilImageUrl } from './SigilAvatar';
+import { useLobbyPresence } from '@/hooks/useLobbyPresence';
+import { LobbyPresenceCursor } from '@/components/lobby/LobbyPresenceCursor';
 
 interface Player {
   id: number;
