@@ -57,6 +57,7 @@ const Room = () => {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
   const [onlinePlayers, setOnlinePlayers] = useState<Set<number>>(new Set());
+  const [lobbyMessages, setLobbyMessages] = useState<LobbyMessage[]>([]);
 
   const gameRoom = useGameRoom(
     room?.status === 'in_progress' || room?.status === 'finished' ? room.id : null,
