@@ -250,6 +250,7 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
       player_id: currentPlayerId,
       content,
       created_at: new Date().toISOString(),
+      phase: 'game',
     };
     setChatMessages(prev => [...prev, optimistic]);
     await supabase.from('chat_messages').insert({
