@@ -84,9 +84,23 @@ const Index = () => {
   const needsAuth = !user;
 
   return (
-    <div className="noise-overlay relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background">
-      <div className="smoke-layer-1 pointer-events-none absolute inset-0 bg-gradient-radial from-smoke/30 via-transparent to-transparent" />
-      <div className="smoke-layer-2 pointer-events-none absolute inset-0 bg-gradient-radial from-crimson/10 via-transparent to-transparent" />
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background">
+      <div className="fixed inset-0 w-screen h-screen overflow-hidden -z-10 pointer-events-none">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          poster="https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/public/sigils/landing-start.png"
+          className="w-full h-full object-cover object-center"
+        >
+          <source
+            src="https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/public/sigils/landing-page-video-desktop.mp4"
+            type="video/mp4"
+          />
+        </video>
+        <div className="absolute inset-0 bg-[#0f0d0b]/70" />
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
