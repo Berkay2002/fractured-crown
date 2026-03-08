@@ -296,9 +296,9 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
 
   const footerLinks = (
     <footer className="flex gap-3 font-body text-xs text-muted-foreground">
-      <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+      <LegalModal page="privacy" trigger={<button className="hover:text-foreground transition-colors">Privacy Policy</button>} />
       <span>·</span>
-      <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+      <LegalModal page="terms" trigger={<button className="hover:text-foreground transition-colors">Terms of Service</button>} />
     </footer>
   );
 
