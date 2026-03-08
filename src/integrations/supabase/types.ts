@@ -541,6 +541,23 @@ export type Database = {
     }
     Functions: {
       cleanup_stale_rooms: { Args: never; Returns: undefined }
+      get_round_history: {
+        Args: { _room_id: number }
+        Returns: {
+          chancellor_hand: Json
+          chaos_policy: boolean
+          created_at: string
+          enacted_policy: Database["public"]["Enums"]["policy_type"]
+          herald_hand: Json
+          herald_id: number
+          lord_commander_id: number
+          power_triggered: Database["public"]["Enums"]["executive_power"]
+          round_id: number
+          round_number: number
+          veto_approved: boolean
+          veto_requested: boolean
+        }[]
+      }
       get_user_room_ids: { Args: { _user_id: string }; Returns: number[] }
       is_player_in_room: {
         Args: { _room_id: number; _user_id: string }
