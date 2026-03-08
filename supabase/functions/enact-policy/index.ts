@@ -80,7 +80,7 @@ async function checkWinCondition(supabase: any, roomId: number, gs: any, context
   if (winner) {
     await supabase.from('game_state').update({ winner, current_phase: 'game_over', updated_at: new Date().toISOString() }).eq('room_id', roomId)
     await supabase.from('rooms').update({ status: 'finished' }).eq('id', roomId)
-    await supabase.from('event_log').insert({ room_id: roomId, event_type: 'game_over', description: `Game over! Winner: ${winner}` })
+    await supabase.from('event_log').insert({ room_id: roomId, event_type: 'game_over', description: WINNER_LABELS[winner] || `Game over! The realm has been decided.` })
     return winner
   }
   return null
