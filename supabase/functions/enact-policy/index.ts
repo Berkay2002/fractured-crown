@@ -23,6 +23,20 @@ const POWER_TABLE: Record<string, Record<number, string>> = {
   '10': { 1: 'investigate_loyalty', 2: 'investigate_loyalty', 3: 'special_election', 4: 'execution', 5: 'execution' },
 }
 
+const POWER_LABELS: Record<string, string> = {
+  'policy_peek': 'Raven\'s Eye',
+  'investigate_loyalty': 'Loyalty Investigation',
+  'special_election': 'Call Conclave',
+  'execution': 'Royal Execution',
+}
+
+const WINNER_LABELS: Record<string, string> = {
+  'loyalists_edicts': 'The Loyalists have enacted enough edicts to secure the realm!',
+  'usurper_executed': 'The Usurper has been executed! The Loyalists win!',
+  'traitors_edicts': 'The Shadow Court has enacted enough edicts to seize control!',
+  'usurper_crowned': 'The Usurper has been crowned Lord Commander! The Shadow Court wins!',
+}
+
 async function advanceHerald(supabase: any, roomId: number, gs: any, players: any[]) {
   const alive = players.filter((p: any) => p.is_alive).sort((a: any, b: any) => a.seat_order - b.seat_order)
   if (alive.length === 0) return null
