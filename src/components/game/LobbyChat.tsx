@@ -26,9 +26,10 @@ interface LobbyChatProps {
   roomId: number;
   currentPlayerId: number | null;
   players: Player[];
+  className?: string;
 }
 
-const LobbyChat = ({ roomId, currentPlayerId, players }: LobbyChatProps) => {
+const LobbyChat = ({ roomId, currentPlayerId, players, className }: LobbyChatProps) => {
   const [messages, setMessages] = useState<LobbyMessage[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -112,13 +113,13 @@ const LobbyChat = ({ roomId, currentPlayerId, players }: LobbyChatProps) => {
   };
 
   return (
-    <div className="w-full rounded-lg border border-primary/20 bg-card">
-      <div className="border-b border-border px-4 py-2">
+    <div className={`w-full rounded-lg border border-primary/20 bg-card flex flex-col ${className ?? ''}`}>
+      <div className="border-b border-border px-4 py-2 flex-shrink-0">
         <h3 className="font-display text-xs uppercase tracking-widest text-muted-foreground">
           Council Whispers
         </h3>
       </div>
-      <div className="h-48 overflow-y-auto px-3 py-2">
+      <div className="flex-1 min-h-0 h-48 overflow-y-auto px-3 py-2">
         <div className="flex flex-col gap-1.5">
           {messages.length === 0 && (
             <p className="py-4 text-center text-xs italic text-muted-foreground">

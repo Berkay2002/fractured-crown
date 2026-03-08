@@ -623,12 +623,12 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       </div>
 
       {/* ── Desktop layout (lg+) ── */}
-      <div className="hidden lg:flex lg:flex-col relative z-10 mx-auto max-w-5xl min-h-screen px-4 py-10">
+      <div className="hidden lg:flex lg:flex-col relative z-10 mx-auto max-w-5xl h-screen px-4 py-10 overflow-hidden">
         {/* Full-width centered header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8 text-center"
+          className="mb-8 text-center flex-shrink-0"
         >
           <Crown className="mx-auto mb-2 h-8 w-8 text-primary" />
           <h1 className="font-display text-2xl font-bold tracking-wider text-primary">
@@ -638,21 +638,29 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
         </motion.div>
 
         {/* Two-column grid with gold divider as middle column */}
-        <div className="grid grid-cols-[5fr_1px_6fr] gap-0 flex-1">
-          {/* Left column — administrative side */}
-          <div className="flex flex-col overflow-y-auto px-8">
-            <div className="flex flex-col gap-6">
+        <div className="grid grid-cols-[5fr_1px_6fr] gap-0 flex-1 min-h-0">
+          {/* Left column — static, no scrolling */}
+          <div className="flex flex-col h-full overflow-hidden px-8">
+            <div className="flex flex-col gap-6 flex-shrink-0">
               {roomCodeCard}
               {royalDecrees}
-              {lobbyChat}
+            </div>
+            {/* Chat fills remaining space */}
+            <div className="flex-1 min-h-0 mt-6 flex flex-col">
+              <LobbyChat
+                roomId={room.id}
+                currentPlayerId={currentPlayerId}
+                players={players}
+                className="flex-1 min-h-0"
+              />
             </div>
           </div>
 
           {/* Gold divider */}
-          <div className="self-stretch" style={{ background: 'linear-gradient(to bottom, transparent, rgba(201,168,76,0.2) 20%, rgba(201,168,76,0.2) 80%, transparent)' }} />
+          <div className="h-full self-stretch" style={{ background: 'linear-gradient(to bottom, transparent, rgba(201,168,76,0.2) 20%, rgba(201,168,76,0.2) 80%, transparent)' }} />
 
-          {/* Right column — gathering chamber */}
-          <div className="flex flex-col gap-6 overflow-y-auto px-8">
+          {/* Right column — independently scrollable */}
+          <div className="flex flex-col gap-6 h-full overflow-y-auto px-8 pr-2">
             {/* Player count + grid in a surface card */}
             <div className="rounded-lg border border-primary/20 bg-card p-5">
               <div className="mb-4 flex items-center gap-2 text-muted-foreground">
@@ -669,14 +677,14 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
             {readyButton}
 
             {/* Action button */}
-            <div className="mt-auto flex flex-col items-center w-full">
+            <div className="mt-auto flex flex-col items-center w-full pb-4">
               {actionButtons}
             </div>
           </div>
         </div>
 
         {/* Full-width centered footer */}
-        <div className="mt-8 flex justify-center">
+        <div className="mt-4 flex justify-center flex-shrink-0">
           {footerLinks}
         </div>
       </div>
