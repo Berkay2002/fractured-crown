@@ -211,7 +211,8 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           const isConfirming = confirmingTransfer === player.id;
           const isTransferring = transferringTo === player.id;
           const canTransferTo = showTransferUI && !isPlayerHost && !transferringTo;
-          const playerSigil = (player as any).sigil || 'crown';
+          const isMe = player.id === currentPlayerId;
+          const playerSigil = isMe && selectedSigil ? selectedSigil : (player.sigil || 'crown');
           const initials = player.display_name
             .split(' ')
             .map(w => w[0])
