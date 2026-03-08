@@ -1,3 +1,4 @@
+import { bgStyle, bgUrl, BACKGROUNDS } from '@/lib/backgroundImage';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
