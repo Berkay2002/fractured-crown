@@ -61,10 +61,10 @@ const winMessages: Record<string, { title: string; subtitle: string; color: stri
   },
 };
 
-const roleIcons = {
-  loyalist: Crown,
-  traitor: Swords,
-  usurper: Skull,
+const roleImages = {
+  loyalist: roleLoyalistImg,
+  traitor: roleTraitorImg,
+  usurper: roleUsurperImg,
 };
 
 const roleColors = {
