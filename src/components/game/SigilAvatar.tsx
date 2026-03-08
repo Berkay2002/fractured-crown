@@ -6,11 +6,9 @@ const SIGIL_BASE = 'https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/p
 export const SIGILS = ['crown', 'sword', 'shield', 'wolf', 'raven', 'rose', 'flame', 'anchor', 'dragon', 'skull'] as const;
 export type SigilName = (typeof SIGILS)[number];
 
-/** Resolves sigil name → storage URL (handles flame→fire mapping) */
-export const sigilImageUrl = (sigil: string): string => {
-  const filename = sigil === 'flame' ? 'fire' : sigil;
-  return `${SIGIL_BASE}/${filename}.webp`;
-};
+/** Resolves sigil name → storage URL */
+export const sigilImageUrl = (sigil: string): string =>
+  `${SIGIL_BASE}/${sigil}.webp`;
 
 interface SigilAvatarProps {
   sigil: string;
