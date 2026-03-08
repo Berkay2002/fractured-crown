@@ -15,6 +15,7 @@ interface LegislativeOverlayProps {
   currentPlayerId: number | null;
   onClose: () => void;
   heraldHand: string[] | null;
+  setHeraldHand: (hand: string[] | null) => void;
   chancellorHand: string[] | null;
   setChancellorHand: (hand: string[] | null) => void;
 }
