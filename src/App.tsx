@@ -19,7 +19,7 @@ const App = () => (
         <div
           className="pointer-events-none fixed inset-0 z-[1]"
           style={{
-            background: 'radial-gradient(ellipse at center, transparent 50%, hsl(20 18% 4% / 0.4) 75%, hsl(20 18% 4% / 0.85) 100%)',
+            background: 'radial-gradient(ellipse at center, transparent 55%, hsl(20 18% 4% / 0.25) 78%, hsl(20 18% 4% / 0.55) 100%)',
           }}
         />
         <Toaster />
