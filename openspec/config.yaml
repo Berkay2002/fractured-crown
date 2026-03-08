@@ -1,0 +1,59 @@
+schema: spec-driven
+
+context: |
+  Project: Fractured Crown — browser-based multiplayer social deduction game (5–10 players).
+  A reskin of Secret Hitler with a dark medieval fantasy theme.
+
+  Tech stack: React + Vite + Tailwind CSS (frontend), Supabase (Postgres, Auth, Realtime, Edge Functions) (backend).
+  Language: TypeScript strict mode throughout.
+
+  ## Terminology (never use Secret Hitler terms)
+  Herald = President, Lord Commander = Chancellor, Loyalist = Liberal, Traitor = Fascist,
+  Usurper = Hitler, Royal Edict / policy = Policy tile, Loyalist Edict = Liberal policy, Shadow Edict = Fascist policy.
+
+  ## Architecture invariants
+  - All sensitive game logic lives in Edge Functions only (start-game, nominate-chancellor, submit-vote,
+    herald-discard, enact-policy, request-veto, respond-veto, resolve-power, reset-room).
+  - Private card hands (heraldHand / chancellorHand) are delivered in Edge Function response bodies only —
+    never written to any Realtime-published column.
+  - Single Realtime channel per game room via useGameRoom.ts. No overlapping channels.
+  - All DB schema changes tracked as migrations under supabase/migrations/.
+
+  ## Security model
+  - Anonymous auth only via supabase.auth.signInAnonymously(). No emails, passwords, or PII.
+  - policy_deck has no client SELECT policy — service role only. Never add one.
+  - Game roles stored in player_roles with RLS; never on players table.
+  - All RLS SELECT policies must be PERMISSIVE (never AS RESTRICTIVE — Realtime breaks silently).
+
+  ## Database conventions
+  - PKs: bigint generated always as identity (no UUIDs on hot tables).
+  - All FK columns have explicit indexes. All tables use REPLICA IDENTITY FULL.
+  - SECURITY DEFINER functions must include SET search_path = ''.
+  - supabase_realtime publication includes: rooms, players, game_state, rounds, votes, event_log, chat_messages.
+    Never add policy_deck or player_roles.
+
+  ## Code conventions
+  - Tailwind utility classes only — no custom CSS except index.css for theme tokens/keyframes.
+  - Custom hooks in src/hooks/ — no direct Supabase calls in components.
+  - All supabase.functions.invoke() calls go through the hook layer.
+  - Optimistic UI updates for user-initiated actions (chat send, vote cast).
+  - Raw DOM asset URLs use storageUrl() / sigilUrl() from src/lib/storageUrl.ts for Discord proxy compatibility.
+
+  ## Design tokens
+  Background: #0f0d0b, Surface: #1c1612, Gold: #c9a84c, Crimson: #8b1a1a, Text: #e8dcc8.
+  Fonts: Cinzel (.font-display), Crimson Text (.font-body), Courier Prime (.font-mono).
+
+  ## File layout
+  src/components/game/ — in-game UI, src/components/lobby/ — lobby UI, src/components/ui/ — shadcn primitives,
+  src/hooks/ — custom hooks, src/lib/ — utilities, src/pages/ — route pages,
+  supabase/functions/ — Edge Functions, supabase/migrations/ — DB migrations.
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
