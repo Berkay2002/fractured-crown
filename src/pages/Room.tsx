@@ -219,6 +219,33 @@ const Room = () => {
     };
   }, [room?.id, currentPlayerId]);
 
+  const handleSendLobbyMessage = useCallback(async (content: string) => {
+    if (!room || !currentPlayerId) return;
+
+    const optimistic: LobbyMessage = {
+      id: -Date.now(),
+      room_id: room.id,
+      player_id: currentPlayerId,
+      content,
+      created_at: new Date().toISOString(),
+      phase: 'lobby',
+    };
+
+    setLobbyMessages(prev => [...prev, optimistic]);
+
+    const { error } = await supabase.from('chat_messages').insert({
+      room_id: room.id,
+      player_id: currentPlayerId,
+      content,
+      phase: 'lobby',
+    });
+
+    if (error) {
+      setLobbyMessages(prev => prev.filter(m => m.id !== optimistic.id));
+      toast({ title: 'Error', description: 'Failed to send message', variant: 'destructive' });
+    }
+  }, [room, currentPlayerId]);
+
   // Discord Activity updates
   useEffect(() => {
     if (!isDiscord || !room) return;
