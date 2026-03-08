@@ -422,13 +422,13 @@ const GameBoard = ({
         <div className="hidden lg:flex flex-1 min-h-0 overflow-hidden">
           {/* ── LEFT PANEL: Trackers + Chronicle ── */}
           <div className="w-80 flex-shrink-0 flex flex-col gap-3 p-4 overflow-y-auto border-r border-primary/15">
-            <div className="rounded-lg bg-card/80 border border-primary/15 p-3">
+            <div className="w-fit rounded-lg bg-card/80 border border-primary/15 p-3">
               <EdictTracker type="loyalist" count={gameState.loyalist_edicts_passed} />
             </div>
-            <div className="rounded-lg bg-card/80 border border-primary/15 p-3">
+            <div className="w-fit rounded-lg bg-card/80 border border-primary/15 p-3">
               <EdictTracker type="shadow" count={gameState.shadow_edicts_passed} playerCount={players.length} />
             </div>
-            <div className="rounded-lg bg-card/80 border border-primary/15 p-3">
+            <div className="w-fit rounded-lg bg-card/80 border border-primary/15 p-3">
               <EdictTracker type="election" count={gameState.election_tracker} />
             </div>
             <div className="flex-1 min-h-0 flex flex-col rounded-lg bg-card/80 border border-primary/15 overflow-hidden">
@@ -440,7 +440,7 @@ const GameBoard = ({
           </div>
 
           {/* ── CENTER STAGE: Council + Action Panel ── */}
-          <div className="flex-1 flex flex-col items-center justify-start gap-6 p-6 overflow-y-auto">
+          <div className="flex-1 flex flex-col items-center justify-center gap-6 p-6 overflow-y-auto">
             <div className="w-full max-w-2xl">
               <h2 className="mb-4 text-center font-display text-xs uppercase tracking-widest text-muted-foreground">
                 The Council
