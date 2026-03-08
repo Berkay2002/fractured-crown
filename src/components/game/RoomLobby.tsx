@@ -1,4 +1,4 @@
-import { bgStyle, bgUrl, BACKGROUNDS } from '@/lib/backgroundImage';
+import { bgUrl, BACKGROUNDS } from '@/lib/backgroundImage';
 import { Button } from '@/components/ui/button';
 import { Crown, Copy, Link as LinkIcon, Users, Wifi, WifiOff, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
