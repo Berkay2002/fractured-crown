@@ -59,6 +59,7 @@ const GameBoard = ({
   const [nominating, setNominating] = useState(false);
   const [mobileVoting, setMobileVoting] = useState(false);
   const sound = useSoundContext();
+  const { isDiscord } = useDiscordContext();
 
   const isHerald = gameState?.current_herald_id === currentPlayerId;
   const phase = gameState?.current_phase ?? 'election';
