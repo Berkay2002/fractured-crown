@@ -252,9 +252,24 @@ const LegislativeOverlay = ({
       <p className="mb-6 text-center font-body text-sm text-muted-foreground">{instruction}</p>
 
       {waitingForCards ? (
-        <p className="text-center text-sm italic text-muted-foreground animate-pulse">
-          Awaiting edicts...
-        </p>
+        <div className="flex flex-col items-center gap-3">
+          <p className="text-sm italic text-muted-foreground animate-pulse">
+            Awaiting edicts...
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={acting}
+            className="border-primary/30 font-display text-xs tracking-wider text-primary hover:bg-primary/10"
+            onClick={() => {
+              fetchingRef.current = false;
+              fetchHand();
+            }}
+          >
+            <Scroll className="mr-1.5 h-3.5 w-3.5" />
+            Retry
+          </Button>
+        </div>
       ) : (
         <div className="flex justify-center gap-4">
           {cards.map((card, i) => (
