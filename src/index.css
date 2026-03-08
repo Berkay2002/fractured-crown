@@ -308,3 +308,9 @@
 .animate-reaction-float {
   animation: reaction-float 2.5s ease-out forwards;
 }
+
+/* Lobby cursor presence aura */
+@keyframes cursorAuraPulse {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.6); opacity: 0; }
+}

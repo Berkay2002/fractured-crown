@@ -4,9 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import HowToPlayModal from './HowToPlayModal';
 import SigilAvatar, { SIGILS, sigilImageUrl } from './SigilAvatar';
+import { useLobbyPresence } from '@/hooks/useLobbyPresence';
+import { LobbyPresenceCursor } from '@/components/lobby/LobbyPresenceCursor';
 
 interface Player {
   id: number;
@@ -44,6 +46,12 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
 
   const myPlayer = players.find(p => p.id === currentPlayerId);
   const mySigil = selectedSigil || myPlayer?.sigil || 'crown';
+
+  const myPresencePayload = useMemo(
+    () => myPlayer ? { id: myPlayer.id, username: myPlayer.display_name, sigil: mySigil } : null,
+    [myPlayer?.id, myPlayer?.display_name, mySigil]
+  );
+  const { cursors, updateCursor } = useLobbyPresence(room.room_code, myPresencePayload);
 
   // Build set of sigils taken by OTHER players in this room
   const takenSigils = new Set(
@@ -107,7 +115,16 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
   };
 
   return (
-    <div className="noise-overlay relative flex min-h-screen flex-col items-center bg-background px-4 py-8">
+    <div
+      className="noise-overlay relative flex min-h-screen flex-col items-center overflow-hidden bg-background px-4 py-8"
+      onMouseMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        updateCursor(
+          ((e.clientX - rect.left) / rect.width) * 100,
+          ((e.clientY - rect.top) / rect.height) * 100
+        );
+      }}
+    >
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -398,6 +415,11 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
         <span>·</span>
         <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
       </footer>
+
+      {/* Live cursor presence overlays */}
+      {Object.values(cursors).map((cursor) => (
+        <LobbyPresenceCursor key={cursor.playerId} cursor={cursor} />
+      ))}
     </div>
   );
 };
