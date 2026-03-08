@@ -107,6 +107,16 @@ const GameBoard = ({
         <div className="flex items-center gap-3">
           <Crown className="h-5 w-5 text-primary" />
           <span className="font-mono text-sm tracking-widest text-primary">{roomCode}</span>
+          {myRole && (
+            <span className={`flex items-center gap-1.5 rounded border px-2 py-0.5 font-display text-[10px] uppercase tracking-wider ${
+              myRole.role === 'loyalist'
+                ? 'border-primary/30 bg-primary/10 text-primary'
+                : 'border-accent/30 bg-accent/10 text-accent-foreground'
+            }`}>
+              {myRole.role === 'loyalist' ? <Shield className="h-3 w-3" /> : myRole.role === 'usurper' ? <Skull className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+              {myRole.role === 'loyalist' ? 'Loyalist' : myRole.role === 'usurper' ? 'Usurper' : 'Traitor'}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           {currentRound && (
