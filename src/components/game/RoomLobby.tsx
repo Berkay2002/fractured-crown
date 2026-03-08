@@ -1,3 +1,4 @@
+import { bgStyle, bgUrl, BACKGROUNDS } from '@/lib/backgroundImage';
 import { Button } from '@/components/ui/button';
 import { Crown, Copy, Link as LinkIcon, Users, Wifi, WifiOff, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -421,6 +422,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
   return (
     <div
       className="noise-overlay relative min-h-screen overflow-hidden bg-background"
+      style={bgStyle(bgUrl(BACKGROUNDS.lobby))}
       onMouseMove={(e) => {
         if (window.matchMedia('(hover: none)').matches) return;
         const rect = e.currentTarget.getBoundingClientRect();
@@ -430,8 +432,10 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
         );
       }}
     >
+      {/* Background overlay */}
+      <div className="absolute inset-0 bg-[hsl(24_22%_6%/0.6)] pointer-events-none z-0" />
       {/* ── Mobile + Tablet layout (below lg) ── */}
-      <div className="flex flex-col items-center px-4 py-8 md:max-w-2xl md:mx-auto lg:hidden">
+      <div className="relative z-10 flex flex-col items-center px-4 py-8 md:max-w-2xl md:mx-auto lg:hidden">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -466,7 +470,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       </div>
 
       {/* ── Desktop layout (lg+) ── */}
-      <div className="hidden lg:flex lg:flex-col mx-auto max-w-5xl min-h-screen px-4 py-10">
+      <div className="hidden lg:flex lg:flex-col relative z-10 mx-auto max-w-5xl min-h-screen px-4 py-10">
         {/* Full-width centered header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}

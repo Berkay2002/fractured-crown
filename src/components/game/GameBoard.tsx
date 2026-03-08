@@ -1,3 +1,4 @@
+import { bgStyle, bgUrl, BACKGROUNDS } from '@/lib/backgroundImage';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Crown, Scroll, User, Shield, Skull, Eye, BookOpen, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -136,7 +137,9 @@ const GameBoard = ({
   };
 
   return (
-    <div className="noise-overlay flex min-h-screen flex-col bg-background">
+    <div className="noise-overlay relative flex min-h-screen flex-col bg-background" style={bgStyle(bgUrl(BACKGROUNDS.inGame))}>
+      <div className="absolute inset-0 bg-[hsl(24_22%_6%/0.65)] pointer-events-none z-0" />
+      <div className="relative z-10 flex flex-1 flex-col">
       <ConnectionBanner disconnected={disconnected} />
       <PhaseTransitionBanner phase={phase} />
       {/* Top Bar */}
@@ -323,6 +326,7 @@ const GameBoard = ({
 
       {/* Bottom padding for mobile action bar */}
       <div className="h-16 md:hidden" />
+      </div>
     </div>
   );
 };
