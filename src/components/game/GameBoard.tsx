@@ -50,6 +50,8 @@ const GameBoard = ({
   chancellorHand,
   setChancellorHand,
   disconnected,
+  activeReactions,
+  sendReaction,
 }: GameBoardProps) => {
   const [showRoleReveal, setShowRoleReveal] = useState(true);
   const [nominatingLC, setNominatingLC] = useState(false);
@@ -218,6 +220,8 @@ const GameBoard = ({
               currentPlayerId={currentPlayerId}
               selectablePlayerIds={nominatingLC ? selectablePlayers : undefined}
               onPlayerClick={nominatingLC ? handleNominate : undefined}
+              activeReactions={activeReactions}
+              onSendReaction={sendReaction}
             />
           </div>
 

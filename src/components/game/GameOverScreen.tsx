@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Crown, Swords, Skull, Shield, Scroll as ScrollIcon, Vote, Eye, Zap } from 'lucide-react';
+import { Crown, Swords, Skull, Shield, Scroll as ScrollIcon, Vote, Eye, Zap, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import { useSoundContext } from '@/contexts/SoundContext';
 import { useState } from 'react';
 import type { Tables } from '@/integrations/supabase/types';
+import GameReplay from './GameReplay';
 
 type GameState = Tables<'game_state'>;
 type Player = Tables<'players'>;
@@ -94,6 +95,7 @@ const eventIcon = (eventType: string) => {
 const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreenProps) => {
   const navigate = useNavigate();
   const [resetting, setResetting] = useState(false);
+  const [showReplay, setShowReplay] = useState(false);
   const sound = useSoundContext();
   const winCondition = gameState.winner ?? 'loyalists_edicts';
   const msg = winMessages[winCondition] || winMessages.loyalists_edicts;
@@ -257,7 +259,35 @@ const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreen
               </div>
             </ScrollArea>
           </div>
+
+          {/* Replay button */}
+          {events.length > 0 && !showReplay && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: reveals.length * 0.3 + 1 }}
+              className="mt-4 flex justify-center"
+            >
+              <Button
+                variant="outline"
+                onClick={() => setShowReplay(true)}
+                className="border-primary/30 font-display text-xs tracking-wider text-primary hover:bg-primary/10"
+              >
+                <BookOpen className="mr-2 h-4 w-4" />
+                Replay the Chronicle
+              </Button>
+            </motion.div>
+          )}
         </motion.div>
+
+        {/* Game Replay */}
+        {showReplay && (
+          <GameReplay
+            events={chronicleEvents.length > 0 ? chronicleEvents : events}
+            players={players}
+            onClose={() => setShowReplay(false)}
+          />
+        )}
 
         {/* Actions */}
         <div className="flex gap-4">
@@ -271,7 +301,6 @@ const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreen
           <Button
             variant="outline"
             onClick={async () => {
-              // Remove self from players table before leaving
               const { data: { user } } = await supabase.auth.getUser();
               if (user) {
                 await supabase
