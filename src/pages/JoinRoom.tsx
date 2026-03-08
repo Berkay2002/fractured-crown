@@ -5,8 +5,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Crown } from 'lucide-react';
+import { Crown, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
+
+interface RoomInfo {
+  id: number;
+  room_code: string;
+  status: string;
+  settings: Record<string, unknown> | null;
+}
 
 const JoinRoom = () => {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -14,17 +21,33 @@ const JoinRoom = () => {
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [roomInfo, setRoomInfo] = useState<RoomInfo | null>(null);
 
-  const handleJoin = async () => {
+  // Fetch room info to check status and settings
+  useEffect(() => {
+    if (!roomCode) return;
+    const fetchRoom = async () => {
+      const { data } = await supabase
+        .from('rooms')
+        .select('id, room_code, status, settings')
+        .eq('room_code', roomCode.toUpperCase())
+        .maybeSingle();
+      if (data) setRoomInfo(data as unknown as RoomInfo);
+    };
+    fetchRoom();
+  }, [roomCode]);
+
+  const handleJoin = async (asSpectator = false) => {
     if (!displayName.trim() || !roomCode || !user) return;
     setSubmitting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('join-room', {
-        body: {
-          room_code: roomCode.toUpperCase(),
-          display_name: displayName.trim(),
-        },
-      });
+      const body: Record<string, unknown> = {
+        room_code: roomCode.toUpperCase(),
+        display_name: displayName.trim(),
+      };
+      if (asSpectator) body.as_spectator = true;
+
+      const { data, error } = await supabase.functions.invoke('join-room', { body });
       if (error || data?.error) {
         toast({
           title: 'Cannot join',
@@ -40,6 +63,10 @@ const JoinRoom = () => {
       setSubmitting(false);
     }
   };
+
+  const allowSpectators = roomInfo?.settings && (roomInfo.settings as Record<string, unknown>).allow_spectators === true;
+  const isInProgress = roomInfo?.status === 'in_progress';
+  const showSpectatorButton = allowSpectators && isInProgress;
 
   if (authLoading) {
     return (
@@ -78,12 +105,23 @@ const JoinRoom = () => {
             autoFocus
           />
           <Button
-            onClick={handleJoin}
+            onClick={() => handleJoin(false)}
             disabled={!displayName.trim() || submitting}
             className="gold-shimmer h-12 font-display tracking-wider text-primary-foreground"
           >
             {submitting ? 'Entering...' : 'Enter the Council'}
           </Button>
+          {showSpectatorButton && (
+            <Button
+              onClick={() => handleJoin(true)}
+              disabled={!displayName.trim() || submitting}
+              variant="outline"
+              className="h-12 border-border font-display tracking-wider text-muted-foreground hover:text-foreground"
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              Join as Spectator
+            </Button>
+          )}
           <Button
             variant="ghost"
             onClick={() => navigate('/')}

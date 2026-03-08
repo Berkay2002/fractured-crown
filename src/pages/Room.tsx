@@ -238,12 +238,14 @@ const Room = () => {
 
   // Game Over
   if (room.status === 'finished' && gameRoom.gameState) {
+    const hostIsMe = currentPlayerId != null && room.host_player_id === currentPlayerId;
     return (
       <GameOverScreen
         gameState={gameRoom.gameState}
         players={gameRoom.players.length > 0 ? gameRoom.players : lobbyPlayers as any}
         events={gameRoom.events}
         allRoles={gameRoom.allRoles}
+        isHost={hostIsMe}
       />
     );
   }

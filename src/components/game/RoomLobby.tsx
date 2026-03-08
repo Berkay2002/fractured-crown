@@ -1,16 +1,18 @@
 import { bgUrl, BACKGROUNDS } from '@/lib/backgroundImage';
 import { Button } from '@/components/ui/button';
-import { Crown, Copy, Link as LinkIcon, Users, Wifi, WifiOff, Lock } from 'lucide-react';
+import { Crown, Copy, Link as LinkIcon, Users, Wifi, WifiOff, Lock, Check, Share2, QrCode, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useMemo } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import HowToPlayModal from './HowToPlayModal';
 import SigilAvatar, { SIGILS, sigilImageUrl } from './SigilAvatar';
 import { useLobbyPresence } from '@/hooks/useLobbyPresence';
 import { LobbyPresenceCursor } from '@/components/lobby/LobbyPresenceCursor';
 import RoyalDecrees, { type GameSettings, parseSettings } from './RoyalDecrees';
+import LobbyChat from './LobbyChat';
 
 interface Player {
   id: number;
@@ -19,6 +21,8 @@ interface Player {
   seat_order: number;
   joined_at: string;
   sigil?: string;
+  is_ready?: boolean;
+  is_spectator?: boolean;
 }
 
 interface Room {
@@ -37,19 +41,27 @@ interface RoomLobbyProps {
   onlinePlayers: Set<number>;
 }
 
+const MAX_SLOTS = 10;
+
 const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyProps) => {
   const navigate = useNavigate();
   const [starting, setStarting] = useState(false);
   const [selectedSigil, setSelectedSigil] = useState<string | null>(null);
   const [transferringTo, setTransferringTo] = useState<number | null>(null);
   const [confirmingTransfer, setConfirmingTransfer] = useState<number | null>(null);
+  const [showQR, setShowQR] = useState(false);
   const isHost = currentPlayerId && room.host_player_id === currentPlayerId;
-  const canStart = isHost && players.length >= 5 && players.length <= 10;
   const gameSettings = parseSettings(room.settings);
   const showTransferUI = isHost && players.length > 1;
 
   const myPlayer = players.find(p => p.id === currentPlayerId);
   const mySigil = selectedSigil || myPlayer?.sigil || 'crown';
+  const isSpectator = myPlayer?.is_spectator === true;
+
+  // Ready system: non-spectator players
+  const activePlayers = players.filter(p => !p.is_spectator);
+  const allReady = activePlayers.length >= 5 && activePlayers.every(p => p.is_ready);
+  const canStart = isHost && allReady && activePlayers.length >= 5 && activePlayers.length <= 10;
 
   const myPresencePayload = useMemo(
     () => myPlayer ? { id: myPlayer.id, username: myPlayer.display_name, sigil: mySigil } : null,
@@ -64,15 +76,28 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       .map(p => p.sigil || 'crown')
   );
 
+  const inviteUrl = `https://fractured-crown.lovable.app/join/${room.room_code}`;
+
   const copyCode = () => {
     navigator.clipboard.writeText(room.room_code);
     toast({ title: 'Copied!', description: 'Room code copied to clipboard' });
   };
 
   const copyLink = () => {
-    const url = `${window.location.origin}/join/${room.room_code}`;
-    navigator.clipboard.writeText(url);
+    navigator.clipboard.writeText(inviteUrl);
     toast({ title: 'Copied!', description: 'Invite link copied to clipboard' });
+  };
+
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Join my Fractured Crown game',
+          text: `Join the council! Room code: ${room.room_code}`,
+          url: inviteUrl,
+        });
+      } catch { /* user cancelled */ }
+    }
   };
 
   const handleStartGame = async () => {
@@ -102,7 +127,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
 
   const handleSelectSigil = async (sigil: string) => {
     if (!currentPlayerId) return;
-    if (takenSigils.has(sigil)) return; // already taken
+    if (takenSigils.has(sigil)) return;
     const previousSigil = selectedSigil;
     setSelectedSigil(sigil);
     const { error } = await supabase
@@ -118,6 +143,23 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
     }
   };
 
+  const handleToggleReady = async () => {
+    if (!currentPlayerId || !myPlayer) return;
+    const newReady = !myPlayer.is_ready;
+    await supabase.from('players').update({ is_ready: newReady }).eq('id', currentPlayerId);
+  };
+
+  // ── Ghost slot for empty player positions ──
+  const ghostSlot = (idx: number) => (
+    <div
+      key={`ghost-${idx}`}
+      className="flex flex-col items-center justify-center w-full aspect-square rounded-lg border border-dashed border-primary/20 bg-card/40 opacity-40"
+    >
+      <div className="w-10 h-10 rounded-full border border-dashed border-primary/30" />
+      <span className="text-[10px] text-muted-foreground mt-1">Empty</span>
+    </div>
+  );
+
   // ── Shared sub-components rendered in both layouts ──
 
   const roomCodeCard = (
@@ -125,7 +167,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.2 }}
-      className="rounded-lg border border-[#c9a84c]/20 bg-card p-6 text-center"
+      className="rounded-lg border border-primary/20 bg-card p-6 text-center"
     >
       <p className="mb-2 text-sm text-muted-foreground">Room Code</p>
       <div className="flex items-center justify-center gap-3">
@@ -140,13 +182,57 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           <Copy className="h-5 w-5" />
         </button>
       </div>
-      <button
-        onClick={copyLink}
-        className="mt-3 flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary mx-auto"
-      >
-        <LinkIcon className="h-4 w-4" />
-        Copy invite link
-      </button>
+      <div className="mt-3 flex flex-col items-center gap-2">
+        <button
+          onClick={copyLink}
+          className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
+        >
+          <LinkIcon className="h-4 w-4" />
+          Copy invite link
+        </button>
+
+        {/* QR Code toggle */}
+        <button
+          onClick={() => setShowQR(!showQR)}
+          className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
+        >
+          <QrCode className="h-4 w-4" />
+          {showQR ? 'Hide QR' : 'Show QR'}
+        </button>
+
+        <AnimatePresence>
+          {showQR && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden"
+            >
+              <div className="mt-2 rounded-lg border border-primary/20 bg-card p-3">
+                <QRCodeSVG
+                  value={inviteUrl}
+                  size={120}
+                  bgColor="#1c1612"
+                  fgColor="#c9a84c"
+                  level="M"
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Native share (mobile only) */}
+        {typeof navigator !== 'undefined' && navigator.share && (
+          <button
+            onClick={handleNativeShare}
+            className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary lg:hidden"
+          >
+            <Share2 className="h-4 w-4" />
+            Share Invite
+          </button>
+        )}
+      </div>
     </motion.div>
   );
 
@@ -181,13 +267,41 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
     </div>
   );
 
-  const waitingMessage = players.length < 5 ? (
+  const waitingMessage = activePlayers.length < 5 ? (
     <p className="text-sm italic text-muted-foreground">
-      Waiting for at least {5 - players.length} more player{5 - players.length !== 1 ? 's' : ''} to begin...
+      Waiting for at least {5 - activePlayers.length} more player{5 - activePlayers.length !== 1 ? 's' : ''} to begin...
     </p>
   ) : null;
 
-  const sigilPicker = currentPlayerId ? (
+  const readyButton = currentPlayerId && !isSpectator ? (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.35 }}
+      className="w-full flex justify-center"
+    >
+      <Button
+        onClick={handleToggleReady}
+        variant={myPlayer?.is_ready ? 'outline' : 'default'}
+        className={`font-display tracking-wider ${
+          myPlayer?.is_ready
+            ? 'border-primary text-primary hover:bg-primary/10'
+            : 'gold-shimmer text-primary-foreground'
+        }`}
+      >
+        {myPlayer?.is_ready ? (
+          <>
+            <Check className="mr-2 h-4 w-4" />
+            Ready
+          </>
+        ) : (
+          'Ready Up'
+        )}
+      </Button>
+    </motion.div>
+  ) : null;
+
+  const sigilPicker = currentPlayerId && !isSpectator ? (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -250,6 +364,8 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
         const canTransferTo = showTransferUI && !isPlayerHost && !transferringTo;
         const isMe = player.id === currentPlayerId;
         const playerSigil = isMe && selectedSigil ? selectedSigil : (player.sigil || 'crown');
+        const playerIsSpectator = player.is_spectator === true;
+        const playerIsReady = player.is_ready === true;
 
         return (
           <motion.div
@@ -257,7 +373,11 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 * idx }}
-            className="group relative flex min-w-0 flex-col items-center justify-center gap-2 rounded-lg border border-border bg-card px-3 py-3 lg:px-4 lg:py-4 lg:w-36 lg:min-h-[10rem]"
+            className={`group relative flex min-w-0 flex-col items-center justify-center gap-2 rounded-lg border bg-card px-3 py-3 lg:px-4 lg:py-4 lg:w-36 lg:min-h-[10rem] ${
+              playerIsReady && !playerIsSpectator
+                ? 'border-primary/50 shadow-[0_0_8px_hsl(var(--primary)/0.2)]'
+                : 'border-border'
+            }`}
           >
             <div className="absolute right-1.5 top-1.5">
               {isOnline ? (
@@ -299,6 +419,19 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
                 {player.display_name}
               </span>
             </div>
+
+            {/* Ready / Spectator indicator */}
+            {playerIsSpectator ? (
+              <span className="flex items-center gap-1 rounded border border-muted-foreground/30 bg-muted/50 px-2 py-0.5 text-[9px] uppercase tracking-widest text-muted-foreground">
+                <Eye className="h-3 w-3" />
+                Spectator
+              </span>
+            ) : playerIsReady ? (
+              <span className="flex items-center gap-1 text-[9px] uppercase tracking-widest text-primary">
+                <Check className="h-3 w-3" />
+                Ready
+              </span>
+            ) : null}
 
             {canTransferTo && !isConfirming && (
               <button
@@ -349,12 +482,14 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           </motion.div>
         );
       })}
+      {/* Ghost slots */}
+      {Array.from({ length: Math.max(0, MAX_SLOTS - players.length) }).map((_, i) => ghostSlot(i))}
     </div>
   );
 
   const actionButtons = (
     <>
-      {isHost && (
+      {isHost && !isSpectator && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -366,9 +501,15 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
             className="gold-shimmer h-14 w-full lg:w-full px-8 font-display text-lg tracking-wider text-primary-foreground disabled:opacity-40"
             size="lg"
             onClick={handleStartGame}
+            title={!allReady && activePlayers.length >= 5 ? 'Waiting for all players to ready up' : undefined}
           >
             {starting ? 'Starting...' : 'Begin the Council'}
           </Button>
+          {!allReady && activePlayers.length >= 5 && (
+            <p className="mt-2 text-center text-xs italic text-muted-foreground">
+              Waiting for all players to ready up
+            </p>
+          )}
         </motion.div>
       )}
 
@@ -419,6 +560,14 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       ))
     : null;
 
+  const lobbyChat = (
+    <LobbyChat
+      roomId={room.id}
+      currentPlayerId={currentPlayerId}
+      players={players}
+    />
+  );
+
   return (
     <div
       className="noise-overlay relative min-h-screen overflow-hidden"
@@ -455,7 +604,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
         {royalDecrees}
 
         {/* Player count + grid in surface card on md */}
-        <div className="mb-6 w-full max-w-lg md:max-w-none md:rounded-lg md:border md:border-[#c9a84c]/20 md:bg-card md:p-6">
+        <div className="mb-6 w-full max-w-lg md:max-w-none md:rounded-lg md:border md:border-primary/20 md:bg-card md:p-6">
           <div className="mb-4 flex items-center justify-center gap-2 text-muted-foreground md:justify-start">
             <Users className="h-5 w-5" />
             <span className="font-body text-lg">
@@ -467,6 +616,8 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
         </div>
 
         {sigilPicker && <div className="mb-6 w-full max-w-2xl">{sigilPicker}</div>}
+        {readyButton && <div className="mb-6">{readyButton}</div>}
+        <div className="mb-6 w-full max-w-lg md:max-w-none">{lobbyChat}</div>
         <div className="flex flex-col items-center md:w-full md:mt-6">{actionButtons}</div>
         <div className="mt-8 flex justify-center">{footerLinks}</div>
       </div>
@@ -493,6 +644,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
             <div className="flex flex-col gap-6">
               {roomCodeCard}
               {royalDecrees}
+              {lobbyChat}
             </div>
           </div>
 
@@ -502,7 +654,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           {/* Right column — gathering chamber */}
           <div className="flex flex-col gap-6 overflow-y-auto px-8">
             {/* Player count + grid in a surface card */}
-            <div className="rounded-lg border border-[#c9a84c]/20 bg-card p-5">
+            <div className="rounded-lg border border-primary/20 bg-card p-5">
               <div className="mb-4 flex items-center gap-2 text-muted-foreground">
                 <Users className="h-5 w-5" />
                 <span className="font-body text-lg">
@@ -514,6 +666,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
             </div>
 
             {sigilPicker && <div className="w-full">{sigilPicker}</div>}
+            {readyButton}
 
             {/* Action button */}
             <div className="mt-auto flex flex-col items-center w-full">

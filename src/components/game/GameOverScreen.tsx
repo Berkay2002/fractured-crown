@@ -28,6 +28,7 @@ interface GameOverScreenProps {
   players: Player[];
   events: EventLog[];
   allRoles: PlayerRole[];
+  isHost: boolean;
 }
 
 const winMessages: Record<string, { title: string; subtitle: string; color: string; isWin: boolean }> = {
@@ -94,7 +95,7 @@ const eventIcon = (eventType: string) => {
   return ScrollIcon;
 };
 
-const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreenProps) => {
+const GameOverScreen = ({ gameState, players, events, allRoles, isHost }: GameOverScreenProps) => {
   const navigate = useNavigate();
   const [resetting, setResetting] = useState(false);
   const [showReplay, setShowReplay] = useState(false);
@@ -141,6 +142,11 @@ const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreen
     setResetting(false);
     if (error || data?.error) {
       toast({ title: 'Error', description: data?.error || error?.message, variant: 'destructive' });
+      return;
+    }
+    // Navigate to the room using the returned room_code
+    if (data?.room_code) {
+      navigate(`/room/${data.room_code}`);
     }
   };
 
@@ -170,6 +176,28 @@ const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreen
           <p className="mt-3 max-w-md font-body text-lg italic text-foreground/70">
             {msg.subtitle}
           </p>
+        </motion.div>
+
+        {/* Rematch / Play Again */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="flex flex-col items-center gap-3"
+        >
+          {isHost ? (
+            <Button
+              onClick={handlePlayAgain}
+              disabled={resetting}
+              className="h-12 bg-primary px-8 font-display text-lg tracking-wider text-primary-foreground hover:bg-primary/90"
+            >
+              {resetting ? 'Resetting...' : 'Play Again'}
+            </Button>
+          ) : (
+            <p className="font-body text-sm italic text-muted-foreground">
+              Waiting for host to start a new game...
+            </p>
+          )}
         </motion.div>
 
         {/* Role Reveals */}
@@ -303,13 +331,6 @@ const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreen
 
         {/* Actions */}
         <div className="flex gap-4">
-          <Button
-            onClick={handlePlayAgain}
-            disabled={resetting}
-            className="gold-shimmer font-display tracking-wider text-primary-foreground"
-          >
-            {resetting ? 'Resetting...' : 'Play Again'}
-          </Button>
           <Button
             variant="outline"
             onClick={async () => {
