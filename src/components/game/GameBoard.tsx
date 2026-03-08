@@ -277,7 +277,7 @@ const GameBoard = ({
         <img src={bgUrl(BACKGROUNDS.inGame)} alt="" className="w-full h-full object-cover object-center" aria-hidden="true" />
         <div className="absolute inset-0 bg-[#0f0d0b]/75" />
       </div>
-      <div className="relative z-10 flex flex-1 flex-col lg:h-screen lg:overflow-hidden">
+      <div className="relative z-10 flex flex-1 flex-col min-h-0 overflow-hidden">
         <ConnectionBanner disconnected={disconnected} />
         <PhaseTransitionBanner phase={phase} />
 
