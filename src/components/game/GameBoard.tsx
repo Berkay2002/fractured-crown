@@ -299,6 +299,8 @@ const GameBoard = ({
         <div className="absolute inset-0 bg-[#0f0d0b]/75" />
       </div>
       <div className="relative z-10 flex flex-1 flex-col min-h-0 overflow-hidden">
+        <GoldTarnish decayStage={decayStage} />
+        <DecayOverlay decayStage={decayStage} />
         <ConnectionBanner disconnected={disconnected} />
         <PhaseTransitionBanner phase={phase} />
 
