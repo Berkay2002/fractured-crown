@@ -197,7 +197,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       <p className="mb-2 text-center font-display text-xs uppercase tracking-widest text-muted-foreground">
         Choose Your Sigil
       </p>
-      <div className="inline-grid grid-cols-5 gap-1.5 md:gap-2">
+      <div className="inline-grid grid-cols-5 gap-1.5 md:grid md:w-full md:gap-2">
         {SIGILS.map(sigil => {
           const isSelected = mySigil === sigil;
           const isTaken = takenSigils.has(sigil);
@@ -206,7 +206,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               key={sigil}
               onClick={() => handleSelectSigil(sigil)}
               disabled={isTaken}
-              className={`relative flex flex-col items-center gap-1 rounded-lg border-2 p-2 transition-all flex-shrink-0 ${
+              className={`relative flex flex-col items-center gap-1 rounded-lg border-2 p-2 md:p-1.5 md:aspect-square md:w-full transition-all flex-shrink-0 ${
                 isSelected
                   ? 'border-primary bg-primary/10 shadow-[0_0_10px_hsl(var(--primary)/0.3)]'
                   : isTaken
@@ -215,11 +215,11 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               }`}
               title={isTaken ? `${sigil} — taken` : sigil}
             >
-              <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full">
+              <div className="relative flex h-10 w-10 md:h-16 md:w-16 lg:h-14 lg:w-14 items-center justify-center overflow-hidden rounded-full">
                 <img
                   src={sigilImageUrl(sigil)}
                   alt={sigil}
-                  className="h-10 w-10 rounded-full object-cover"
+                  className="h-10 w-10 md:h-16 md:w-16 lg:h-14 lg:w-14 rounded-full object-cover"
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 />
                 {isTaken && (
@@ -228,7 +228,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
                   </div>
                 )}
               </div>
-              <span className={`font-display text-[9px] uppercase tracking-wider ${
+              <span className={`font-display text-[9px] md:text-[10px] uppercase tracking-wider ${
                 isSelected ? 'text-primary' : 'text-muted-foreground/60'
               }`}>
                 {sigil}
