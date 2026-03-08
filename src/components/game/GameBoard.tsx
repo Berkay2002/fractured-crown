@@ -19,6 +19,9 @@ import HowToPlayModal from './HowToPlayModal';
 import GameBoardSkeleton from './GameBoardSkeleton';
 import ConnectionBanner from './ConnectionBanner';
 import TurnTimer from './TurnTimer';
+import DecayOverlay from './DecayOverlay';
+import GoldTarnish from './GoldTarnish';
+import { useDecayStage } from '@/hooks/useDecayStage';
 import { useSoundContext } from '@/contexts/SoundContext';
 import { useDiscordContext } from '@/contexts/DiscordContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -108,6 +111,8 @@ const GameBoard = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only reinvoke when room_id changes, not other gameState fields
   }, [gameState?.room_id, isHerald, setHeraldHand, sound]);
+
+  const decayStage = useDecayStage(gameState?.shadow_edicts_passed ?? 0);
 
   if (!gameState || loading) return <GameBoardSkeleton />;
 
@@ -294,6 +299,8 @@ const GameBoard = ({
         <div className="absolute inset-0 bg-[#0f0d0b]/75" />
       </div>
       <div className="relative z-10 flex flex-1 flex-col min-h-0 overflow-hidden">
+        <GoldTarnish decayStage={decayStage} />
+        <DecayOverlay decayStage={decayStage} />
         <ConnectionBanner disconnected={disconnected} />
         <PhaseTransitionBanner phase={phase} />
 

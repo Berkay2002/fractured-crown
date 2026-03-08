@@ -369,11 +369,40 @@
   animation: fadeInUp 0.6s ease-out forwards;
 }
 
+/* Kingdom's Decay: ash fall particles */
+@keyframes decay-ash-fall {
+  0% { transform: translateY(-10%) translateX(0); opacity: 0; }
+  10% { opacity: 0.6; }
+  50% { transform: translateY(50vh) translateX(20px); opacity: 0.4; }
+  100% { transform: translateY(100vh) translateX(-10px); opacity: 0; }
+}
+.decay-ash-fall {
+  animation: decay-ash-fall linear infinite;
+  will-change: transform;
+}
+
+/* Kingdom's Decay: ember rise particles */
+@keyframes decay-ember-rise {
+  0% { transform: translateY(100%) translateX(0); opacity: 0; }
+  10% { opacity: 0.5; }
+  50% { transform: translateY(50vh) translateX(-15px); opacity: 0.3; }
+  100% { transform: translateY(-10%) translateX(10px); opacity: 0; }
+}
+.decay-ember-rise {
+  animation: decay-ember-rise linear infinite;
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .crown-breathe,
   .ember,
   .animate-fadeInUp {
     animation: none;
     opacity: 1;
+  }
+  .decay-ash-fall,
+  .decay-ember-rise {
+    animation: none;
+    opacity: 0;
   }
 }
