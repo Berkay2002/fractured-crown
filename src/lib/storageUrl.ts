@@ -20,4 +20,4 @@ export const storageUrl = (path: string): string => {
  * Shorthand for sigil storage assets.
  */
 export const sigilUrl = (filename: string): string =>
-  storageUrl(`/storage/v1/object/public/sigils/${filename}`);
+  storageUrl(`/v1/object/public/sigils/${filename}`);
