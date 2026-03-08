@@ -106,7 +106,7 @@ const PlayerCouncil = ({
                 {/* Name */}
                 <div className="flex items-center gap-0.5 lg:gap-1">
                   <SigilIcon sigil={playerSigil} size={10} className="text-muted-foreground/60 flex-shrink-0 hidden lg:block" />
-                  <span className="max-w-[48px] md:max-w-[56px] lg:max-w-[60px] truncate text-center font-body text-[9px] md:text-[10px] lg:text-xs text-foreground">
+                  <span className="max-w-[48px] md:max-w-[56px] lg:max-w-[88px] truncate text-center font-body text-[9px] md:text-[10px] lg:text-sm text-foreground">
                     {player.display_name}
                   </span>
                 </div>
