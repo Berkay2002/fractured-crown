@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Scroll, Swords, Vote, Crown, Skull, Eye, Search } from 'lucide-react';
+import { Scroll, Swords, Vote, Crown } from 'lucide-react';
+import { powerImageMap } from '@/lib/powerImages';
 import type { Tables } from '@/integrations/supabase/types';
 
 type EventLog = Tables<'event_log'>;
@@ -14,9 +15,9 @@ const eventIcon = (type: string) => {
     case 'nomination': return <Crown className="h-3.5 w-3.5 text-primary" />;
     case 'vote': return <Vote className="h-3.5 w-3.5 text-muted-foreground" />;
     case 'policy': return <Scroll className="h-3.5 w-3.5 text-primary" />;
-    case 'execution': return <Skull className="h-3.5 w-3.5 text-accent" />;
-    case 'investigation': return <Search className="h-3.5 w-3.5 text-muted-foreground" />;
-    case 'peek': return <Eye className="h-3.5 w-3.5 text-muted-foreground" />;
+    case 'execution': return <img src={powerImageMap.execution} alt="execution" className="h-3.5 w-3.5 object-contain" />;
+    case 'investigation': return <img src={powerImageMap.investigate} alt="investigate" className="h-3.5 w-3.5 object-contain" />;
+    case 'peek': return <img src={powerImageMap.peek} alt="peek" className="h-3.5 w-3.5 object-contain" />;
     default: return <Swords className="h-3.5 w-3.5 text-muted-foreground" />;
   }
 };

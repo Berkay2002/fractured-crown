@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, Search, Vote, Skull } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,6 +15,7 @@ import InvestigationOverlay from './InvestigationOverlay';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
+import { powerInvestigate, powerExecution, powerPeek, powerElection } from '@/lib/powerImages';
 
 type GameState = Tables<'game_state'>;
 type Player = Tables<'players'>;
@@ -57,26 +57,27 @@ const ExecutivePowerOverlay = ({
 
   // Non-Herald waiting screen
   if (!isHerald) {
-    const powerDescriptions: Record<string, { icon: React.ReactNode; title: string; desc: string }> = {
+    const powerDescriptions: Record<string, { image: string; title: string; desc: string; accent?: boolean }> = {
       policy_peek: {
-        icon: <Eye className="mx-auto mb-3 h-8 w-8 text-primary" />,
+        image: powerPeek,
         title: "Raven's Eye",
         desc: 'The Herald is secretly viewing the top 3 edicts from the decree pile.',
       },
       investigate_loyalty: {
-        icon: <Search className="mx-auto mb-3 h-8 w-8 text-primary" />,
+        image: powerInvestigate,
         title: 'Loyalty Investigation',
         desc: "The Herald is investigating a player's party allegiance.",
       },
       special_election: {
-        icon: <Vote className="mx-auto mb-3 h-8 w-8 text-primary" />,
+        image: powerElection,
         title: 'Call Conclave',
         desc: 'The Herald is choosing the next Herald for a special election session.',
       },
       execution: {
-        icon: <Skull className="mx-auto mb-3 h-8 w-8 text-accent-foreground" />,
+        image: powerExecution,
         title: 'Royal Execution',
         desc: 'The Herald is choosing a player to execute. This cannot be undone.',
+        accent: true,
       },
     };
 
@@ -88,8 +89,12 @@ const ExecutivePowerOverlay = ({
         animate={{ opacity: 1 }}
         className="rounded-xl border-2 border-border bg-card p-6 text-center"
       >
-        {info?.icon ?? <Eye className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />}
-        <h3 className="mb-2 font-display text-sm uppercase tracking-widest text-primary">
+        {info ? (
+          <img src={info.image} alt={info.title} className="mx-auto mb-3 h-12 w-12 object-contain" />
+        ) : (
+          <img src={powerPeek} alt="Executive Power" className="mx-auto mb-3 h-12 w-12 object-contain opacity-50" />
+        )}
+        <h3 className={`mb-2 font-display text-sm uppercase tracking-widest ${info?.accent ? 'text-accent-foreground' : 'text-primary'}`}>
           {info?.title ?? 'Executive Power'}
         </h3>
         <p className="font-body text-sm text-muted-foreground">
@@ -124,7 +129,7 @@ const ExecutivePowerOverlay = ({
           animate={{ opacity: 1, scale: 1 }}
           className="rounded-xl border-2 border-border bg-card p-6 text-center"
         >
-          <Eye className="mx-auto mb-3 h-8 w-8 text-primary" />
+          <img src={powerPeek} alt="Raven's Eye" className="mx-auto mb-3 h-12 w-12 object-contain" />
           <h3 className="mb-2 font-display text-sm uppercase tracking-widest text-primary">
             Raven's Eye
           </h3>
@@ -173,7 +178,7 @@ const ExecutivePowerOverlay = ({
           animate={{ opacity: 1, scale: 1 }}
           className="rounded-xl border-2 border-border bg-card p-6 text-center"
         >
-          <Search className="mx-auto mb-3 h-8 w-8 text-primary" />
+          <img src={powerInvestigate} alt="Investigate" className="mx-auto mb-3 h-12 w-12 object-contain" />
           <h3 className="mb-2 font-display text-sm uppercase tracking-widest text-primary">
             Investigate Loyalty
           </h3>
@@ -233,7 +238,7 @@ const ExecutivePowerOverlay = ({
         animate={{ opacity: 1, scale: 1 }}
         className="rounded-xl border-2 border-border bg-card p-6 text-center"
       >
-        <Vote className="mx-auto mb-3 h-8 w-8 text-primary" />
+        <img src={powerElection} alt="Call Conclave" className="mx-auto mb-3 h-12 w-12 object-contain" />
         <h3 className="mb-2 font-display text-sm uppercase tracking-widest text-primary">
           Call Conclave
         </h3>
@@ -263,7 +268,7 @@ const ExecutivePowerOverlay = ({
           animate={{ opacity: 1, scale: 1 }}
           className="rounded-xl border-2 border-accent/30 bg-card p-6 text-center"
         >
-          <Skull className="mx-auto mb-3 h-8 w-8 text-accent-foreground" />
+          <img src={powerExecution} alt="Royal Execution" className="mx-auto mb-3 h-12 w-12 object-contain" />
           <h3 className="mb-2 font-display text-sm uppercase tracking-widest text-accent-foreground">
             Royal Execution
           </h3>

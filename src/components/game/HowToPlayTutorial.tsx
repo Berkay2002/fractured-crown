@@ -7,7 +7,7 @@ import roleUsurperImg from '@/assets/role-usurper.png';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { powerInvestigate, powerExecution } from '@/lib/powerImages';
-import PlayerCouncil from './PlayerCouncil';
+import EdictTracker from './EdictTracker';
 import PolicyCardUI from './PolicyCardUI';
 import {
   MOCK_PLAYERS,
