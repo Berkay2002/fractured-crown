@@ -99,11 +99,11 @@ const Index = () => {
           muted
           loop
           playsInline
-          poster="https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/public/sigils/landing-start.png"
+          poster={sigilUrl('landing-start.png')}
           className="w-full h-full object-cover object-center"
         >
           <source
-            src="https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/public/sigils/landing-page-video-desktop.mp4"
+            src={sigilUrl('landing-page-video-desktop.mp4')}
             type="video/mp4"
           />
         </video>
