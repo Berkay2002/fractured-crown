@@ -19,6 +19,7 @@ interface RoomData {
   host_player_id: number | null;
   status: string;
   player_count: number;
+  settings?: unknown;
 }
 
 interface PlayerData {

@@ -175,6 +175,13 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
         <HowToPlayModal />
       </div>
 
+      {/* Royal Decrees — Game Settings */}
+      <RoyalDecrees
+        roomId={room.id}
+        settings={gameSettings}
+        isHost={!!isHost}
+      />
+
       {/* Sigil Picker — only for current player */}
       {currentPlayerId && (
         <motion.div

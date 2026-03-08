@@ -129,7 +129,10 @@ Deno.serve(async (req) => {
     // 4. Pick random first Herald
     const firstHerald = seatedPlayers[Math.floor(Math.random() * seatedPlayers.length)]
 
-    // 5. Create game_state
+    // 5. Create game_state — respect veto_enabled from room settings
+    const roomSettings = (room as any).settings as Record<string, unknown> | null
+    const vetoEnabled = roomSettings?.veto_enabled !== false // default true
+
     const { error: gsError } = await supabase.from('game_state').insert({
       room_id: room_id,
       current_phase: 'election',

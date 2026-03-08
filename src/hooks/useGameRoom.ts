@@ -293,6 +293,6 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
   return {
     gameState, currentRound, players, myRole, votes, events, chatMessages,
     loading, sendChat, heraldHand, setHeraldHand, chancellorHand, setChancellorHand,
-    allRoles, disconnected, activeReactions, sendReaction,
+    allRoles, disconnected, activeReactions, sendReaction, roomSettings,
   };
 }
