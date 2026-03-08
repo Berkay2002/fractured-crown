@@ -126,7 +126,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           onClick={copyLink}
           className="mt-3 flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary mx-auto"
         >
-          <Link className="h-4 w-4" />
+          <LinkIcon className="h-4 w-4" />
           Copy invite link
         </button>
       </motion.div>
