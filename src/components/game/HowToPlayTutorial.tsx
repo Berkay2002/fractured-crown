@@ -442,7 +442,7 @@ interface HowToPlayTutorialProps {
 
 const HowToPlayTutorial = ({ mode = 'page', onClose }: HowToPlayTutorialProps) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const navigate = mode === 'page' ? useNavigate() : undefined;
+  const navigate = useNavigate();
   const steps = useSteps();
   const step = steps[currentStep];
 
