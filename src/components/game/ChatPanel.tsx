@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
 import { useSoundContext } from '@/contexts/SoundContext';
 import type { Tables } from '@/integrations/supabase/types';
+import SigilAvatar from './SigilAvatar';
 
 type ChatMessage = Tables<'chat_messages'>;
 type Player = Tables<'players'>;
