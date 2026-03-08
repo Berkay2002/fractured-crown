@@ -1,0 +1,180 @@
+{
+  "version": 1,
+  "skills": {
+    "adapt": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "a28f026233a935d229e543f1955e79fccffa58b99c57fa0f371863ebb77ba38a"
+    },
+    "agent-memory": {
+      "source": "openhands/skills",
+      "sourceType": "github",
+      "computedHash": "8af40e28926e456a3ba24b9a43a5fdc3275062fadc4a087c08b9acce55f0e4f5"
+    },
+    "animate": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "104d8c5766505f7ec2178cf832213a9a07174c725b074cfb13a64153f6f3bd92"
+    },
+    "audit": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "85ff89a25110dd68ebb30b45c67b33b8f2d2bb123d407d957329a2931f0a6878"
+    },
+    "bolder": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "e6bbaf76bff75470f12d4583a3ef2f4081372a7167d84a6a7399649a1d0d5e24"
+    },
+    "brainstorming": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "5cafa1558b0b6bd4d4c71f23d5567b7fcbbcdb4b0a50b0c5f69a80a3cebaf9b8"
+    },
+    "clarify": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "d24958a9a929c93191e4959d0daa17155cc5f0119da6ed33998e36bdd48cbbde"
+    },
+    "colorize": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "c7ade3015517ee497c77c39285b25984f52e7948fd6164c3a85f717d6f8ecca9"
+    },
+    "critique": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "59a710d03e1f66e962b145283c676ed411ea71aec641601abd2ed7c5b61b3879"
+    },
+    "delight": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "14599adb8e46a4dd1349ea77bdfaf30a1d0b81460dc07d8b9321b78ac87bae2f"
+    },
+    "dispatching-parallel-agents": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "534432f7d0af6f567ec505ef251e6bbf0a8f2d12a34d9da9517fb131dd9c8646"
+    },
+    "distill": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "b9fb6ad6d67d798d918e0ff339322ed7f86212d2076ce4a280088b02b7ed0f86"
+    },
+    "executing-plans": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "7311ed85870f37e9af1e8354c500e7c4161893d845031eed43dd1d55157da83a"
+    },
+    "extract": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "3c7ecd324b70ce07d525a2f8ecc0cda566b16612f1b413f121e82a65ccee38a2"
+    },
+    "feature-spec": {
+      "source": "anthropics/knowledge-work-plugins",
+      "sourceType": "github",
+      "computedHash": "d2713cde015d3c9afb1870c68ea134d22b820c6d02a703a8bed1c4a57bf588be"
+    },
+    "finishing-a-development-branch": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "9edba9a38684c060fdc38290f640e1dc0c37de286723ac9be73bacacf7cd6f3d"
+    },
+    "frontend-design": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "d3f5281a0299aa4808bbfd4afbfac0e28ff38fb0006c5cde9c4630f372573921"
+    },
+    "harden": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "54072e299abb30b20ddca38dcbb8c585ccd3dcecc414586d6279db1fccae3578"
+    },
+    "normalize": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "8b6ad5717818910fa76c678827019f0d1a106d427c52d520733e7790c24fca46"
+    },
+    "onboard": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "81aecc48ef5a97e24aa108250738e922d9586f47a93485ab1e1c3dcbc78a12cb"
+    },
+    "optimize": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "36de9c64e36c778a01502ca9c98a7a6d54d4fa5215c62c01a2e93dcc5912d869"
+    },
+    "polish": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "3e101ab23d322abd2de3b8a783009e034f85b46d4b86c36e58389f8670edac21"
+    },
+    "quieter": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "3bce17549f6233b5b864fc0ee71ad23d639f621fe6aa057e711a013814305fee"
+    },
+    "receiving-code-review": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "2760c85d4f4117b0006e7ba755f4bbd61f8f4c185f347999763c97f507274e30"
+    },
+    "requesting-code-review": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "93a837ba79c3c3f0b3e503fd9d8b54c638337d73d200c1af3bca9607264bf0e0"
+    },
+    "skill-creator": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "computedHash": "57f470f512f45bdac598e302bc72fd62bf2b649fc7fad032efe97720149cde4d"
+    },
+    "subagent-driven-development": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "1f5831dbfcddda9ac3e706f2ca81a3887fef9598159966d27ef672d86e255242"
+    },
+    "supabase-postgres-best-practices": {
+      "source": "supabase/agent-skills",
+      "sourceType": "github",
+      "computedHash": "e3ba3d760c5f4cc43b02a91fb8924f726c7818f95cc35d79d0a606ca622b72f5"
+    },
+    "systematic-debugging": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "72e9ab72627e4fd8ed26a582e82309a98ecdc4f6e1c99418430ac05682c9e91d"
+    },
+    "teach-impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "computedHash": "5921e7a8c215a14b3adec87675fa608acb578c6782b99a47b02b2742e554f51a"
+    },
+    "test-driven-development": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "126f1ebf6ccd414f42544f6e83d8cc5adb089e1108eaffb7c400701e37eecd9f"
+    },
+    "using-git-worktrees": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "52bbb4b6e80918e83e92a1514f3b3757712154c2a8a42de24919e48a794c54fc"
+    },
+    "using-superpowers": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "4310d74a75f89e81f999bfa5b10886be977f95ee0c7fc1d547f94e32c7c8d7f3"
+    },
+    "verification-before-completion": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "9b446f0c7fe1cfb560b1d34439523b1a76d5f177290007b2c053a1c749a4a8ba"
+    },
+    "writing-plans": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "8c536ae03ef3ab1fa974c0e50a65d803acddf5d4ee7cac68ab25a39b9e338611"
+    }
+  }
+}
