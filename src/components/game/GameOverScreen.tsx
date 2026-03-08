@@ -13,6 +13,7 @@ import { toast } from '@/hooks/use-toast';
 import { useSoundContext } from '@/contexts/SoundContext';
 import type { Tables } from '@/integrations/supabase/types';
 import GameReplay from './GameReplay';
+import InquisitorsLens from './InquisitorsLens';
 import SigilAvatar from './SigilAvatar';
 
 type GameState = Tables<'game_state'>;
