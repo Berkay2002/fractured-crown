@@ -138,7 +138,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       )}
 
       {/* Player List */}
-      <div className="mb-8 grid w-full max-w-md grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="mb-8 grid w-full max-w-lg grid-cols-2 gap-3 sm:grid-cols-3">
         {players.map((player, idx) => {
           const isPlayerHost = room.host_player_id === player.id;
           const isOnline = onlinePlayers.has(player.id);
@@ -158,9 +158,9 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * idx }}
-              className="group relative flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-4 pt-5"
+              className="group relative flex min-w-0 flex-col items-center gap-1 rounded-lg border border-border bg-card px-3 pb-3 pt-2"
             >
-              <div className="absolute right-2 top-2">
+              <div className="absolute right-1.5 top-1.5">
                 {isOnline ? (
                   <Wifi className="h-3 w-3 text-primary" />
                 ) : (
@@ -168,26 +168,27 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
                 )}
               </div>
 
-              {/* Host crown badge — sits inside card above avatar */}
-              <AnimatePresence mode="wait">
-                {isPlayerHost && (
-                  <motion.div
-                    key={`crown-${player.id}`}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.5 }}
-                    transition={{ duration: 0.4 }}
-                    className="absolute top-1 left-1/2 -translate-x-1/2"
-                  >
+              {/* Crown in normal flow, centered above avatar */}
+              <div className="flex h-5 items-center justify-center">
+                <AnimatePresence mode="wait">
+                  {isPlayerHost && (
                     <motion.div
-                      animate={{ filter: ['drop-shadow(0 0 3px hsl(var(--primary) / 0.4))', 'drop-shadow(0 0 8px hsl(var(--primary) / 0.7))', 'drop-shadow(0 0 3px hsl(var(--primary) / 0.4))'] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      key={`crown-${player.id}`}
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.5 }}
+                      transition={{ duration: 0.4 }}
                     >
-                      <Crown className="h-4 w-4 text-primary" />
+                      <motion.div
+                        animate={{ filter: ['drop-shadow(0 0 3px hsl(var(--primary) / 0.4))', 'drop-shadow(0 0 8px hsl(var(--primary) / 0.7))', 'drop-shadow(0 0 3px hsl(var(--primary) / 0.4))'] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      >
+                        <Crown className="h-4 w-4 text-primary" />
+                      </motion.div>
                     </motion.div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  )}
+                </AnimatePresence>
+              </div>
 
               <div className={`flex h-12 w-12 items-center justify-center rounded-full border-2 ${
                 isPlayerHost ? 'border-primary bg-primary/10' : 'border-border bg-muted'
@@ -199,7 +200,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
                 </span>
               </div>
 
-              <span className="text-center font-body text-sm text-foreground">
+              <span className="mt-1 text-center font-body text-sm text-foreground truncate max-w-full">
                 {player.display_name}
               </span>
 
@@ -207,7 +208,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               {canTransferTo && !isConfirming && (
                 <button
                   onClick={() => setConfirmingTransfer(player.id)}
-                  className="absolute left-2 top-2 rounded p-1 text-primary/0 transition-all duration-200 hover:bg-primary/10 group-hover:text-primary/70 hover:!text-primary"
+                  className="absolute left-1.5 top-1.5 rounded p-1 text-primary/0 transition-all duration-200 hover:bg-primary/10 group-hover:text-primary/70 hover:!text-primary"
                   title={`Transfer host to ${player.display_name}`}
                 >
                   <Crown className="h-3.5 w-3.5" />
@@ -222,27 +223,27 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.25 }}
-                    className="w-full overflow-hidden"
+                    className="mt-2 w-full"
                   >
-                    <div className="mt-1 rounded-md border border-primary/30 bg-muted/80 px-3 py-3 text-center">
-                      <p className="mb-2 font-display text-[11px] uppercase tracking-widest text-primary">
-                        Transfer Crown to {player.display_name}?
+                    <div className="rounded-md border border-primary/30 bg-muted/80 px-2 py-2.5 text-center">
+                      <p className="mb-2 font-display text-[10px] leading-tight uppercase tracking-widest text-primary">
+                        Transfer Crown?
                       </p>
-                      <div className="flex justify-center gap-2">
+                      <div className="flex justify-center gap-1.5">
                         <Button
                           size="sm"
                           disabled={isTransferring}
                           onClick={() => handleTransferHost(player.id)}
-                          className="h-7 px-3 font-display text-[11px] tracking-wider text-primary-foreground"
+                          className="h-6 px-2 font-display text-[10px] tracking-wider text-primary-foreground"
                         >
-                          {isTransferring ? '...' : 'Transfer'}
+                          {isTransferring ? '...' : 'Confirm'}
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
                           disabled={isTransferring}
                           onClick={() => setConfirmingTransfer(null)}
-                          className="h-7 px-3 font-display text-[11px] tracking-wider border-border text-muted-foreground"
+                          className="h-6 px-2 font-display text-[10px] tracking-wider border-border text-muted-foreground"
                         >
                           Cancel
                         </Button>
