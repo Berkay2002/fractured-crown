@@ -226,7 +226,12 @@ const GameOverScreen = ({ gameState, players, events, allRoles, isHost, room }: 
           transition={{ duration: 0.8, ease: 'easeOut' }}
           className="text-center"
         >
-          <Shield className={`mx-auto mb-4 h-16 w-16 ${msg.color}`} />
+          {isLoyalistWin
+            ? <img src={roleLoyalistImg} alt="Victory" className="mx-auto mb-4 h-20 w-20 object-contain" />
+            : winCondition === 'usurper_crowned'
+            ? <img src={roleUsurperImg} alt="Defeat" className="mx-auto mb-4 h-20 w-20 object-contain" />
+            : <img src={roleTraitorImg} alt="Defeat" className="mx-auto mb-4 h-20 w-20 object-contain" />
+          }
           <h1 className={`font-display text-3xl font-bold tracking-wider ${msg.color} sm:text-4xl`}>
             {msg.title}
           </h1>
