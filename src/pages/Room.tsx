@@ -165,6 +165,22 @@ const Room = () => {
           setRoom(payload.new as unknown as RoomData);
         }
       )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `room_id=eq.${room.id}` },
+        (payload) => {
+          const newMsg = payload.new as LobbyMessage;
+          if (newMsg.phase !== 'lobby') return;
+
+          setLobbyMessages(prev => {
+            const filtered = prev.filter(
+              (m) => !(m.id < 0 && m.player_id === newMsg.player_id && m.content === newMsg.content)
+            );
+            if (filtered.some(m => m.id === newMsg.id)) return filtered;
+            return [...filtered, newMsg];
+          });
+        }
+      )
       .subscribe();
 
     return () => {
