@@ -109,13 +109,10 @@ const PlayerCouncil = ({
                 )}
               </div>
 
-              {/* Name + sigil */}
-              <div className="flex items-center gap-1">
-                <SigilIcon sigil={playerSigil} size={14} className="text-muted-foreground/60 flex-shrink-0" />
-                <span className="max-w-[50px] md:max-w-[60px] truncate text-center font-body text-[9px] md:text-[10px] lg:text-xs text-foreground">
-                  {player.display_name}
-                </span>
-              </div>
+              {/* Name */}
+              <span className="max-w-[50px] md:max-w-[60px] truncate text-center font-body text-[9px] md:text-[10px] lg:text-xs text-foreground">
+                {player.display_name}
+              </span>
 
               {isHerald && (
                 <span className="text-[10px] uppercase tracking-wider text-primary font-display">Herald</span>
