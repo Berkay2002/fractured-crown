@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Crown, Scroll, User, Shield, Skull, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EdictTracker from './EdictTracker';
@@ -10,6 +10,7 @@ import EventLogFeed from './EventLogFeed';
 import ChatPanel from './ChatPanel';
 import RoleReveal from './RoleReveal';
 import PhaseTransitionBanner from './PhaseTransitionBanner';
+import MobileActionBar from './MobileActionBar';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { GameRoomState } from '@/hooks/useGameRoom';
