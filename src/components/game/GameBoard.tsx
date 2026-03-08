@@ -117,6 +117,12 @@ const GameBoard = ({
           <span className="rounded border border-primary/20 bg-primary/5 px-2 py-0.5 font-display text-xs uppercase tracking-wider text-primary">
             {phaseLabels[phase] ?? phase}
           </span>
+          {currentPlayerId && players.length > 0 && (
+            <span className="flex items-center gap-1.5 rounded border border-border bg-muted/50 px-2 py-0.5 font-body text-xs text-foreground">
+              <User className="h-3 w-3 text-muted-foreground" />
+              {players.find(p => p.id === currentPlayerId)?.display_name ?? ''}
+            </span>
+          )}
         </div>
       </div>
 
