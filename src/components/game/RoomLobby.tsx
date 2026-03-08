@@ -274,31 +274,25 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
   ) : null;
 
   const readyButton = currentPlayerId && !isSpectator ? (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.35 }}
-      className="w-full flex justify-center"
+    <Button
+      onClick={handleToggleReady}
+      size="sm"
+      variant={myPlayer?.is_ready ? 'outline' : 'default'}
+      className={`font-display tracking-wider ${
+        myPlayer?.is_ready
+          ? 'border-primary text-primary hover:bg-primary/10'
+          : 'gold-shimmer text-primary-foreground'
+      }`}
     >
-      <Button
-        onClick={handleToggleReady}
-        variant={myPlayer?.is_ready ? 'outline' : 'default'}
-        className={`font-display tracking-wider ${
-          myPlayer?.is_ready
-            ? 'border-primary text-primary hover:bg-primary/10'
-            : 'gold-shimmer text-primary-foreground'
-        }`}
-      >
-        {myPlayer?.is_ready ? (
-          <>
-            <Check className="mr-2 h-4 w-4" />
-            Ready
-          </>
-        ) : (
-          'Ready Up'
-        )}
-      </Button>
-    </motion.div>
+      {myPlayer?.is_ready ? (
+        <>
+          <Check className="mr-1.5 h-3.5 w-3.5" />
+          Ready
+        </>
+      ) : (
+        'Ready Up'
+      )}
+    </Button>
   ) : null;
 
   const sigilPicker = currentPlayerId && !isSpectator ? (
