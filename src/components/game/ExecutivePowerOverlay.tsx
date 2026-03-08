@@ -50,14 +50,46 @@ const ExecutivePowerOverlay = ({
   const targetName = players.find(p => p.id === selectedTarget)?.display_name ?? '';
 
   if (!isHerald) {
+    const powerDescriptions: Record<string, { icon: React.ReactNode; title: string; desc: string }> = {
+      policy_peek: {
+        icon: <Eye className="mx-auto mb-3 h-8 w-8 text-primary" />,
+        title: "Raven's Eye",
+        desc: 'The Herald is secretly viewing the top 3 edicts from the decree pile. This gives them insider knowledge of upcoming policies.',
+      },
+      investigate_loyalty: {
+        icon: <Search className="mx-auto mb-3 h-8 w-8 text-primary" />,
+        title: 'Loyalty Investigation',
+        desc: 'The Herald is investigating a player\'s party allegiance. They will learn whether the target is Loyalist or Shadow Court.',
+      },
+      special_election: {
+        icon: <Vote className="mx-auto mb-3 h-8 w-8 text-primary" />,
+        title: 'Call Conclave',
+        desc: 'The Herald is choosing the next Herald for a special election session.',
+      },
+      execution: {
+        icon: <Skull className="mx-auto mb-3 h-8 w-8 text-accent-foreground" />,
+        title: 'Royal Execution',
+        desc: 'The Herald is choosing a player to execute. This cannot be undone.',
+      },
+    };
+
+    const info = power ? powerDescriptions[power] : null;
+
     return (
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="rounded-lg border border-border bg-card p-6 text-center"
+        className="rounded-xl border-2 border-border bg-card p-6 text-center"
       >
-        <p className="font-body text-sm italic text-muted-foreground">
-          The Herald is exercising executive power...
+        {info?.icon ?? <Eye className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />}
+        <h3 className="mb-2 font-display text-sm uppercase tracking-widest text-primary">
+          {info?.title ?? 'Executive Power'}
+        </h3>
+        <p className="font-body text-sm text-muted-foreground">
+          {info?.desc ?? 'The Herald is exercising executive power...'}
+        </p>
+        <p className="mt-4 animate-pulse text-xs italic text-muted-foreground/60">
+          Awaiting the Herald's decision...
         </p>
       </motion.div>
     );
@@ -91,29 +123,41 @@ const ExecutivePowerOverlay = ({
         <p className="mb-6 font-body text-sm text-muted-foreground">
           The top three edicts from the decree pile:
         </p>
-        <div className="flex justify-center gap-3">
+        <div className="flex justify-center gap-4">
           {(peeked ? peekedCards : [null, null, null]).map((card, i) => (
             <motion.div
               key={i}
-              initial={peeked ? { rotateY: 180 } : {}}
-              animate={peeked ? { rotateY: 0 } : {}}
-              transition={{ delay: i * 0.2, duration: 0.5 }}
-              className={`card-flip flex h-32 w-20 items-center justify-center rounded-lg border-2 ${
+              initial={peeked ? { rotateY: 180, opacity: 0 } : {}}
+              animate={peeked ? { rotateY: 0, opacity: 1 } : {}}
+              transition={{ delay: i * 0.3, duration: 0.6 }}
+              className={`card-flip flex h-36 w-24 flex-col items-center justify-center gap-2 rounded-lg border-2 ${
                 peeked && card
                   ? card === 'loyalist'
-                    ? 'border-primary bg-primary/10'
-                    : 'border-accent bg-accent/10'
+                    ? 'border-primary bg-primary/10 shadow-[0_0_16px_hsl(var(--primary)/0.3)]'
+                    : 'border-accent bg-accent/10 shadow-[0_0_16px_hsl(var(--accent)/0.3)]'
                   : 'border-border bg-muted'
               }`}
             >
               {peeked && card ? (
-                card === 'loyalist' ? (
-                  <Shield className="h-8 w-8 text-primary" />
-                ) : (
-                  <Skull className="h-8 w-8 text-accent-foreground" />
-                )
+                <>
+                  {card === 'loyalist' ? (
+                    <Shield className="h-8 w-8 text-primary" />
+                  ) : (
+                    <Skull className="h-8 w-8 text-accent-foreground" />
+                  )}
+                  <span className={`font-display text-[10px] uppercase tracking-wider ${
+                    card === 'loyalist' ? 'text-primary' : 'text-accent-foreground'
+                  }`}>
+                    {card === 'loyalist' ? 'Loyalist' : 'Shadow'}
+                  </span>
+                </>
               ) : (
-                <Scroll className="h-8 w-8 text-muted-foreground/30" />
+                <>
+                  <Scroll className="h-8 w-8 text-muted-foreground/30" />
+                  <span className="font-display text-[10px] uppercase tracking-wider text-muted-foreground/30">
+                    Edict
+                  </span>
+                </>
               )}
             </motion.div>
           ))}
