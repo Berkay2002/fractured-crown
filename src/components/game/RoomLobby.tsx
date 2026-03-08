@@ -155,8 +155,8 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       key={`ghost-${idx}`}
       className="flex flex-col items-center justify-center w-full aspect-square rounded-lg border border-dashed border-primary/20 bg-card/40 opacity-40"
     >
-      <div className="w-10 h-10 rounded-full border border-dashed border-primary/30" />
-      <span className="text-[10px] text-muted-foreground mt-1">Empty</span>
+      <div className="w-1/3 aspect-square rounded-full border border-dashed border-primary/30" />
+      <span className="text-[10px] text-muted-foreground mt-2">Empty</span>
     </div>
   );
 
