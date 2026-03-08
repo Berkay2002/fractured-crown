@@ -197,7 +197,7 @@ export default function RoyalDecrees({ roomId, settings, isHost }: RoyalDecreesP
       </div>
 
       {/* Settings card */}
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
+      <div className="rounded-lg border border-[#c9a84c]/20 bg-card overflow-hidden">
         <div className="bg-[#2a1f14] divide-y divide-primary/15">
           {SETTING_ROWS.map((row) => {
             const checked = !!settings[row.key];

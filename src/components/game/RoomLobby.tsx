@@ -500,7 +500,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           {/* Right column — gathering chamber */}
           <div className="flex flex-col gap-6 overflow-y-auto px-8">
             {/* Player count + grid in a surface card */}
-            <div className="rounded-lg border border-border bg-card p-5">
+            <div className="rounded-lg border border-[#c9a84c]/20 bg-card p-5">
               <div className="mb-4 flex items-center gap-2 text-muted-foreground">
                 <Users className="h-5 w-5" />
                 <span className="font-body text-lg">
