@@ -1,11 +1,11 @@
 import { bgUrl, BACKGROUNDS } from '@/lib/backgroundImage';
 import { Button } from '@/components/ui/button';
-import { Crown, Copy, Link as LinkIcon, Users, Wifi, WifiOff, Lock, Check, Share2, QrCode, Eye } from 'lucide-react';
+import { Crown, Copy, Link as LinkIcon, Users, Wifi, WifiOff, Lock, Check, Share2, QrCode, Eye, X, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import HowToPlayModal from './HowToPlayModal';
 import SigilAvatar, { SIGILS, sigilImageUrl } from './SigilAvatar';
@@ -52,6 +52,11 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
   const [transferringTo, setTransferringTo] = useState<number | null>(null);
   const [confirmingTransfer, setConfirmingTransfer] = useState<number | null>(null);
   const [showQR, setShowQR] = useState(false);
+  const [confirmingKick, setConfirmingKick] = useState<number | null>(null);
+  const [kicking, setKicking] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [editNameValue, setEditNameValue] = useState('');
+  const nameInputRef = useRef<HTMLInputElement>(null);
   const isHost = currentPlayerId && room.host_player_id === currentPlayerId;
   const gameSettings = parseSettings(room.settings);
   const showTransferUI = isHost && players.length > 1;
@@ -60,7 +65,6 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
   const mySigil = selectedSigil || myPlayer?.sigil || 'crown';
   const isSpectator = myPlayer?.is_spectator === true;
 
-  // Ready system: non-spectator players
   const activePlayers = players.filter(p => !p.is_spectator);
   const allReady = activePlayers.length >= 5 && activePlayers.every(p => p.is_ready);
   const canStart = isHost && allReady && activePlayers.length >= 5 && activePlayers.length <= 10;
@@ -71,7 +75,6 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
   );
   const { cursors, updateCursor } = useLobbyPresence(room.room_code, myPresencePayload);
 
-  // Build set of sigils taken by OTHER players in this room
   const takenSigils = new Set(
     players
       .filter(p => p.id !== currentPlayerId)
@@ -79,6 +82,14 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
   );
 
   const inviteUrl = `https://fractured-crown.lovable.app/join/${room.room_code}`;
+
+  // Focus name input when editing starts
+  useEffect(() => {
+    if (editingName && nameInputRef.current) {
+      nameInputRef.current.focus();
+      nameInputRef.current.select();
+    }
+  }, [editingName]);
 
   const copyCode = () => {
     navigator.clipboard.writeText(room.room_code);
@@ -127,6 +138,38 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
     }
   };
 
+  const handleKickPlayer = async (targetPlayerId: number) => {
+    setKicking(true);
+    const targetPlayer = players.find(p => p.id === targetPlayerId);
+    const { data, error } = await supabase.functions.invoke('kick-player', {
+      body: { room_id: room.id, player_id: targetPlayerId },
+    });
+    setKicking(false);
+    setConfirmingKick(null);
+    if (error || data?.error) {
+      toast({ title: 'Error', description: data?.error || error?.message || 'Failed to remove player', variant: 'destructive' });
+    } else {
+      toast({ title: `⚔ ${targetPlayer?.display_name ?? 'Player'} has been removed from the council.` });
+    }
+  };
+
+  const handleNameSave = async () => {
+    const trimmed = editNameValue.trim().slice(0, 30);
+    if (!trimmed || trimmed.length < 1 || !currentPlayerId) {
+      setEditingName(false);
+      return;
+    }
+    if (trimmed === myPlayer?.display_name) {
+      setEditingName(false);
+      return;
+    }
+    await supabase
+      .from('players')
+      .update({ display_name: trimmed })
+      .eq('id', currentPlayerId);
+    setEditingName(false);
+  };
+
   const handleSelectSigil = async (sigil: string) => {
     if (!currentPlayerId) return;
     if (takenSigils.has(sigil)) return;
@@ -151,7 +194,6 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
     await supabase.from('players').update({ is_ready: newReady }).eq('id', currentPlayerId);
   };
 
-  // ── Ghost slot for empty player positions ──
   const ghostSlot = (idx: number) => (
     <div
       key={`ghost-${idx}`}
@@ -193,7 +235,6 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
           Copy invite link
         </button>
 
-        {/* QR Code toggle */}
         <button
           onClick={() => setShowQR(!showQR)}
           className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
@@ -224,7 +265,6 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
           )}
         </AnimatePresence>
 
-        {/* Native share (mobile only) */}
         {typeof navigator !== 'undefined' && navigator.share && (
           <button
             onClick={handleNativeShare}
@@ -362,6 +402,8 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
         const playerSigil = isMe && selectedSigil ? selectedSigil : (player.sigil || 'crown');
         const playerIsSpectator = player.is_spectator === true;
         const playerIsReady = player.is_ready === true;
+        const isKickConfirming = confirmingKick === player.id;
+        const canKick = isHost && !isMe && !isPlayerHost;
 
         return (
           <motion.div
@@ -375,6 +417,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
                 : 'border-border'
             }`}
           >
+            {/* Online indicator */}
             <div className="absolute right-1.5 top-1.5">
               {isOnline ? (
                 <Wifi className="h-3 w-3 text-primary" />
@@ -382,6 +425,31 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
                 <WifiOff className="h-3 w-3 text-muted-foreground/50" />
               )}
             </div>
+
+            {/* Kick button — host only, on other players */}
+            {canKick && !isKickConfirming && (
+              <button
+                onClick={() => setConfirmingKick(player.id)}
+                className="absolute right-1.5 top-6 rounded p-0.5 text-accent-foreground/0 transition-all duration-200 hover:bg-accent/20 group-hover:text-accent-foreground/70 hover:!text-accent-foreground"
+                title={`Remove ${player.display_name}`}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+
+            {/* Edit name button — on own card */}
+            {isMe && !editingName && (
+              <button
+                onClick={() => {
+                  setEditNameValue(player.display_name);
+                  setEditingName(true);
+                }}
+                className="absolute left-1.5 bottom-1.5 rounded p-0.5 text-primary/0 transition-all duration-200 hover:bg-primary/10 group-hover:text-primary/50 hover:!text-primary"
+                title="Edit name"
+              >
+                <Pencil className="h-3 w-3" />
+              </button>
+            )}
 
             <div className="flex h-5 items-center justify-center">
               <AnimatePresence mode="wait">
@@ -411,9 +479,24 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
             </div>
 
             <div className="flex items-center gap-1">
-              <span className="text-center font-body text-sm lg:text-base text-foreground truncate max-w-[80px] lg:max-w-[100px]">
-                {player.display_name}
-              </span>
+              {isMe && editingName ? (
+                <input
+                  ref={nameInputRef}
+                  value={editNameValue}
+                  onChange={(e) => setEditNameValue(e.target.value.slice(0, 30))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleNameSave();
+                    if (e.key === 'Escape') setEditingName(false);
+                  }}
+                  onBlur={handleNameSave}
+                  className="w-[80px] lg:w-[100px] bg-transparent border-b border-primary/50 text-center font-body text-sm lg:text-base text-foreground outline-none focus:border-primary"
+                  maxLength={30}
+                />
+              ) : (
+                <span className="text-center font-body text-sm lg:text-base text-foreground truncate max-w-[80px] lg:max-w-[100px]">
+                  {player.display_name}
+                </span>
+              )}
             </div>
 
             {/* Ready / Spectator indicator */}
@@ -439,6 +522,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
               </button>
             )}
 
+            {/* Transfer host confirmation */}
             <AnimatePresence>
               {isConfirming && (
                 <motion.div
@@ -466,6 +550,45 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
                         variant="outline"
                         disabled={isTransferring}
                         onClick={() => setConfirmingTransfer(null)}
+                        className="h-6 px-2 font-display text-[10px] tracking-wider border-border text-muted-foreground"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Kick confirmation */}
+            <AnimatePresence>
+              {isKickConfirming && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="mt-2 w-full"
+                >
+                  <div className="rounded-md border border-accent/30 bg-muted/80 px-2 py-2.5 text-center">
+                    <p className="mb-2 font-display text-[10px] leading-tight uppercase tracking-widest text-accent-foreground">
+                      Remove {player.display_name}?
+                    </p>
+                    <div className="flex justify-center gap-1.5">
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={kicking}
+                        onClick={() => handleKickPlayer(player.id)}
+                        className="h-6 px-2 font-display text-[10px] tracking-wider"
+                      >
+                        {kicking ? '...' : 'Confirm'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={kicking}
+                        onClick={() => setConfirmingKick(null)}
                         className="h-6 px-2 font-display text-[10px] tracking-wider border-border text-muted-foreground"
                       >
                         Cancel
@@ -577,14 +700,13 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
         );
       }}
     >
-      {/* Full-screen background — must be first child */}
+      {/* Full-screen background */}
       <div className="fixed inset-0 w-screen h-screen overflow-hidden -z-10 pointer-events-none">
         <img src={bgUrl(BACKGROUNDS.lobby)} alt="" className="w-full h-full object-cover object-center" aria-hidden="true" />
         <div className="absolute inset-0 bg-[#0f0d0b]/75" />
       </div>
       {/* ── Mobile + Tablet layout (below lg) ── */}
       <div className="relative z-10 flex flex-col items-center px-4 py-8 md:max-w-2xl md:mx-auto lg:hidden">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -600,7 +722,6 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
         <div className="mb-8 w-full max-w-md md:max-w-none">{roomCodeCard}</div>
         {royalDecrees}
 
-        {/* Player count + grid in surface card on md */}
         <div className="mb-6 w-full max-w-lg md:max-w-none md:rounded-lg md:border md:border-primary/20 md:bg-card md:p-6">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2 text-muted-foreground">
@@ -623,7 +744,6 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
 
       {/* ── Desktop layout (lg+) ── */}
       <div className="hidden lg:flex lg:flex-col relative z-10 mx-auto max-w-5xl h-screen px-4 py-10 overflow-hidden">
-        {/* Full-width centered header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -636,15 +756,12 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
           <div className="mt-3">{howToPlay}</div>
         </motion.div>
 
-        {/* Two-column grid with gold divider as middle column */}
         <div className="grid grid-cols-[5fr_1px_6fr] gap-0 flex-1 min-h-0">
-          {/* Left column — static, no scrolling */}
           <div className="flex flex-col h-full overflow-hidden px-8">
             <div className="flex flex-col gap-6 flex-shrink-0">
               {roomCodeCard}
               {royalDecrees}
             </div>
-            {/* Chat fills remaining space */}
             <div className="flex-1 min-h-0 mt-6 flex flex-col">
               <LobbyChat
                 currentPlayerId={currentPlayerId}
@@ -656,14 +773,11 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
             </div>
           </div>
 
-          {/* Gold divider */}
           <div className="h-full self-stretch" style={{ background: 'linear-gradient(to bottom, transparent, rgba(201,168,76,0.2) 20%, rgba(201,168,76,0.2) 80%, transparent)' }} />
 
-          {/* Right column — scrollable content + sticky footer */}
           <div className="flex flex-col h-full overflow-hidden px-8">
             <div className="flex-1 min-h-0 overflow-y-auto pr-2" style={{ scrollbarGutter: 'stable' }}>
               <div className="flex flex-col gap-6">
-                {/* Player count + grid in a surface card */}
                 <div className="rounded-lg border border-primary/20 bg-card p-5">
                   <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-muted-foreground">
@@ -682,20 +796,17 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
               </div>
             </div>
 
-            {/* Sticky footer — always visible */}
             <div className="flex-shrink-0 pt-4 pb-2 flex flex-col items-center w-full">
               {actionButtons}
             </div>
           </div>
         </div>
 
-        {/* Full-width centered footer */}
         <div className="mt-4 flex justify-center flex-shrink-0">
           {footerLinks}
         </div>
       </div>
 
-      {/* Cursor overlays */}
       {cursorOverlays}
     </div>
   );

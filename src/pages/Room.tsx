@@ -146,8 +146,44 @@ const Room = () => {
       .channel(`room:${room.id}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'players', filter: `room_id=eq.${room.id}` },
+        { event: 'INSERT', schema: 'public', table: 'players', filter: `room_id=eq.${room.id}` },
         () => {
+          supabase
+            .from('players')
+            .select('*')
+            .eq('room_id', room.id)
+            .order('joined_at', { ascending: true })
+            .then(({ data }) => {
+              if (data) setLobbyPlayers(data as unknown as PlayerData[]);
+            });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'players', filter: `room_id=eq.${room.id}` },
+        () => {
+          supabase
+            .from('players')
+            .select('*')
+            .eq('room_id', room.id)
+            .order('joined_at', { ascending: true })
+            .then(({ data }) => {
+              if (data) setLobbyPlayers(data as unknown as PlayerData[]);
+            });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'players', filter: `room_id=eq.${room.id}` },
+        (payload) => {
+          const deleted = payload.old as { id?: number };
+          // If I was kicked, redirect home
+          if (deleted.id && deleted.id === currentPlayerId) {
+            toast({ title: 'You have been removed from the council.' });
+            navigate('/');
+            return;
+          }
+          // Otherwise refetch
           supabase
             .from('players')
             .select('*')
@@ -186,7 +222,7 @@ const Room = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [room?.id]);
+  }, [room?.id, currentPlayerId, navigate]);
 
   // Presence tracking
   useEffect(() => {
@@ -267,7 +303,6 @@ const Room = () => {
     );
   }
 
-  // Full-page error state
   if (fetchError) {
     return (
       <div className="noise-overlay flex min-h-screen flex-col items-center justify-center gap-6 bg-background px-4">
@@ -310,6 +345,7 @@ const Room = () => {
         events={gameRoom.events}
         allRoles={gameRoom.allRoles}
         isHost={hostIsMe}
+        room={{ id: room.id, room_code: room.room_code }}
       />
     );
   }
