@@ -39,6 +39,7 @@ const phaseLabels: Record<string, string> = {
 const Room = () => {
   const { roomCode } = useParams<{ roomCode: string }>();
   const { user, loading: authLoading } = useAuth();
+  const { isDiscord, setActivity } = useDiscordContext();
   const navigate = useNavigate();
   const [room, setRoom] = useState<RoomData | null>(null);
   const [lobbyPlayers, setLobbyPlayers] = useState<PlayerData[]>([]);
