@@ -99,6 +99,8 @@ const Index = () => {
     ? '/.proxy/storage/storage/v1/object/public/sigils/landing-page-video-desktop.mp4'
     : null;
 
+  const needsAuth = !user;
+
 
   return (
     <div className="relative min-h-screen overflow-hidden">
