@@ -107,6 +107,16 @@ const GameBoard = ({
         <div className="flex items-center gap-3">
           <Crown className="h-5 w-5 text-primary" />
           <span className="font-mono text-sm tracking-widest text-primary">{roomCode}</span>
+        </div>
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          {currentRound && (
+            <span className="font-display text-xs uppercase tracking-wider">
+              Round {currentRound.round_number}
+            </span>
+          )}
+          <span className="rounded border border-primary/20 bg-primary/5 px-2 py-0.5 font-display text-xs uppercase tracking-wider text-primary">
+            {phaseLabels[phase] ?? phase}
+          </span>
           {myRole && (
             <span className={`flex items-center gap-1.5 rounded border px-2 py-0.5 font-display text-[10px] uppercase tracking-wider ${
               myRole.role === 'loyalist'
@@ -117,16 +127,6 @@ const GameBoard = ({
               {myRole.role === 'loyalist' ? 'Loyalist' : myRole.role === 'usurper' ? 'Usurper' : 'Traitor'}
             </span>
           )}
-        </div>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          {currentRound && (
-            <span className="font-display text-xs uppercase tracking-wider">
-              Round {currentRound.round_number}
-            </span>
-          )}
-          <span className="rounded border border-primary/20 bg-primary/5 px-2 py-0.5 font-display text-xs uppercase tracking-wider text-primary">
-            {phaseLabels[phase] ?? phase}
-          </span>
           {currentPlayerId && players.length > 0 && (
             <span className="flex items-center gap-1.5 rounded border border-border bg-muted/50 px-2 py-0.5 font-body text-xs text-foreground">
               <User className="h-3 w-3 text-muted-foreground" />
