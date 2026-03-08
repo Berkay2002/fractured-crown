@@ -114,7 +114,7 @@ const Index = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.8 }}
-            className="mt-4 max-w-md font-body text-lg italic text-muted-foreground"
+            className="mt-4 max-w-md font-body text-lg italic text-muted-foreground text-center"
           >
             In the kingdom of lies, loyalty is the rarest currency.
           </motion.p>
