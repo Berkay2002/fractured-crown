@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Crown, Copy, Link as LinkIcon, Users, Wifi, WifiOff, Lock, Check, Share2, QrCode, Eye, X, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import LegalModal from './LegalModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
@@ -295,9 +296,9 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
 
   const footerLinks = (
     <footer className="flex gap-3 font-body text-xs text-muted-foreground">
-      <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+      <LegalModal page="privacy" trigger={<button className="hover:text-foreground transition-colors">Privacy Policy</button>} />
       <span>·</span>
-      <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+      <LegalModal page="terms" trigger={<button className="hover:text-foreground transition-colors">Terms of Service</button>} />
     </footer>
   );
 
