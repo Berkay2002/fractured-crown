@@ -61,18 +61,17 @@ const INTENSITY_ORDER: Exclude<CrackIntensity, 'none'>[] = [
 ];
 
 const StoneBorderFrame = memo(({ intensity }: StoneBorderFrameProps) => {
-  if (intensity === 'none') return null;
+  const idx = intensity === 'none' ? -1 : INTENSITY_ORDER.indexOf(intensity);
+  const activeLevels = idx >= 0 ? INTENSITY_ORDER.slice(0, idx + 1) : [];
 
-  const idx = INTENSITY_ORDER.indexOf(intensity);
-  const activeLevels = INTENSITY_ORDER.slice(0, idx + 1);
-
-  // Cumulative paths grouped by their level for staggered animation
   const pathGroups = useMemo(() => {
     return activeLevels.map((level) => ({
       level,
       paths: CRACK_PATHS[level],
     }));
   }, [idx]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (intensity === 'none') return null;
 
   const isChunked = intensity === 'broken' || intensity === 'shattered';
 
