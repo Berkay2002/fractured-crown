@@ -53,10 +53,10 @@ const useSteps = (): TutorialStep[] => {
         <div className="flex flex-col items-center gap-6">
           <div className="grid grid-cols-3 gap-3 sm:gap-4">
             {([
-              { icon: Crown, label: 'Loyalist', color: 'text-primary', border: 'border-primary/60', bg: 'bg-primary/5' },
-              { icon: Swords, label: 'Traitor', color: 'text-accent-foreground', border: 'border-accent/60', bg: 'bg-accent/5' },
-              { icon: Skull, label: 'Usurper', color: 'text-purple-400', border: 'border-purple-600/60', bg: 'bg-purple-900/10' },
-            ] as const).map(({ icon: Icon, label, color, border, bg }, idx) => (
+              { img: roleLoyalistImg, label: 'Loyalist', color: 'text-primary', border: 'border-primary/60', bg: 'bg-primary/5' },
+              { img: roleTraitorImg, label: 'Traitor', color: 'text-accent-foreground', border: 'border-accent/60', bg: 'bg-accent/5' },
+              { img: roleUsurperImg, label: 'Usurper', color: 'text-purple-400', border: 'border-purple-600/60', bg: 'bg-purple-900/10' },
+            ] as const).map(({ img, label, color, border, bg }, idx) => (
               <motion.div
                 key={label}
                 initial={{ opacity: 0, y: 16 }}
@@ -64,7 +64,7 @@ const useSteps = (): TutorialStep[] => {
                 transition={{ delay: 0.15 * idx, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 className={`flex flex-col items-center gap-2.5 rounded-lg border ${border} ${bg} p-4 sm:p-5`}
               >
-                <Icon className={`h-8 w-8 sm:h-10 sm:w-10 ${color}`} />
+                <img src={img} alt={label} className="h-16 w-16 sm:h-20 sm:w-20 object-contain" />
                 <span className={`font-display text-[10px] sm:text-xs uppercase tracking-widest ${color}`}>{label}</span>
               </motion.div>
             ))}
