@@ -161,7 +161,7 @@ const VotingPanel = ({
             animate={{ opacity: 1 }}
             className="mt-4 flex flex-wrap justify-center gap-2"
           >
-            {roundVotes.map((vote) => {
+            {roundVotes.map((vote, idx) => {
               const player = players.find(p => p.id === vote.player_id);
               return (
                 <motion.div

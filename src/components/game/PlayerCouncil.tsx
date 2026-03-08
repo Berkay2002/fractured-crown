@@ -47,7 +47,7 @@ const PlayerCouncil = ({
             onClick={() => onPlayerClick?.(player.id)}
             className={`relative flex flex-col items-center gap-1.5 rounded-lg border p-3 transition-all ${
               !player.is_alive
-                ? 'border-border/50 bg-card/30 opacity-50'
+                ? 'border-accent/20 bg-card/40'
                 : isHerald
                 ? 'border-primary bg-primary/5 shadow-[0_0_12px_hsl(var(--primary)/0.2)] herald-glow'
                 : isLC
