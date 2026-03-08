@@ -19,6 +19,7 @@ export type Database = {
           content: string
           created_at: string
           id: number
+          phase: string
           player_id: number
           room_id: number
         }
@@ -26,6 +27,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: never
+          phase?: string
           player_id: number
           room_id: number
         }
@@ -33,6 +35,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: never
+          phase?: string
           player_id?: number
           room_id?: number
         }
@@ -232,6 +235,8 @@ export type Database = {
           display_name: string
           id: number
           is_alive: boolean
+          is_ready: boolean
+          is_spectator: boolean
           joined_at: string
           room_id: number
           seat_order: number
@@ -242,6 +247,8 @@ export type Database = {
           display_name: string
           id?: never
           is_alive?: boolean
+          is_ready?: boolean
+          is_spectator?: boolean
           joined_at?: string
           room_id: number
           seat_order: number
@@ -252,6 +259,8 @@ export type Database = {
           display_name?: string
           id?: never
           is_alive?: boolean
+          is_ready?: boolean
+          is_spectator?: boolean
           joined_at?: string
           room_id?: number
           seat_order?: number
