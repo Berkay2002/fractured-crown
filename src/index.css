@@ -315,21 +315,22 @@
   50% { transform: scale(1.6); opacity: 0; }
 }
 
-/* Lobby right column themed scrollbar */
-.lobby-right-scroll::-webkit-scrollbar {
+/* Themed gold scrollbar — global */
+*::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
-.lobby-right-scroll::-webkit-scrollbar-track {
+*::-webkit-scrollbar-track {
   background: transparent;
 }
-.lobby-right-scroll::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
   background: rgba(201, 168, 76, 0.25);
   border-radius: 3px;
 }
-.lobby-right-scroll::-webkit-scrollbar-thumb:hover {
+*::-webkit-scrollbar-thumb:hover {
   background: rgba(201, 168, 76, 0.45);
 }
-.lobby-right-scroll {
+* {
   scrollbar-width: thin;
   scrollbar-color: rgba(201, 168, 76, 0.25) transparent;
 }
