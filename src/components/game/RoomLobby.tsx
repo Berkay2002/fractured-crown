@@ -206,7 +206,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               key={sigil}
               onClick={() => handleSelectSigil(sigil)}
               disabled={isTaken}
-              className={`relative flex flex-col items-center gap-1 rounded-lg border-2 p-2 md:p-1.5 md:aspect-square md:w-full transition-all flex-shrink-0 ${
+              className={`relative flex flex-col items-center justify-center gap-1 rounded-lg border-2 p-2 md:p-1.5 md:aspect-square md:w-full transition-all flex-shrink-0 ${
                 isSelected
                   ? 'border-primary bg-primary/10 shadow-[0_0_10px_hsl(var(--primary)/0.3)]'
                   : isTaken
