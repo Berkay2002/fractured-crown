@@ -265,6 +265,24 @@ const GameBoard = ({
           />
         </div>
       </div>
+
+      {/* Mobile bottom action bar */}
+      <MobileActionBar
+        gameState={gameState}
+        currentPlayerId={currentPlayerId}
+        phase={phase}
+        hasVoted={hasVotedAlready}
+        allVotesRevealed={allVotesRevealed}
+        hasNominatedLC={!!gameState.current_lord_commander_id}
+        nominatingLC={nominatingLC}
+        onVote={handleMobileVote}
+        onStartNominate={() => setNominatingLC(true)}
+        voting={mobileVoting}
+        nominating={nominating}
+      />
+
+      {/* Bottom padding for mobile action bar */}
+      <div className="h-16 md:hidden" />
     </div>
   );
 };
