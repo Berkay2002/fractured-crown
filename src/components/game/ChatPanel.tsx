@@ -25,7 +25,6 @@ const ChatPanel = ({ messages, players, sendChat }: ChatPanelProps) => {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    // Play sound for new messages (not on initial load)
     if (messages.length > prevCountRef.current && prevCountRef.current > 0) {
       sound.playChatReceived();
     }
@@ -48,12 +47,12 @@ const ChatPanel = ({ messages, players, sendChat }: ChatPanelProps) => {
   const playerName = (playerId: number) => findPlayer(playerId)?.display_name ?? 'Unknown';
 
   return (
-    <div className="flex flex-col rounded-lg border border-border bg-card">
-      <h3 className="border-b border-border px-3 py-2 font-display text-xs uppercase tracking-widest text-muted-foreground">
+    <div className="flex flex-1 min-h-0 flex-col rounded-lg border border-border bg-card lg:rounded-none lg:border-0 lg:bg-transparent">
+      <h3 className="flex-shrink-0 border-b border-primary/15 px-3 py-2 font-display text-xs uppercase tracking-widest text-muted-foreground">
         Council Chat
       </h3>
-      <ScrollArea className="h-40">
-        <div className="flex flex-col gap-1 p-2">
+      <ScrollArea className="h-40 lg:flex-1 lg:h-auto">
+        <div className="flex flex-col gap-1 p-2 lg:p-3">
           {messages.length === 0 && (
             <p className="px-2 py-4 text-center text-xs italic text-muted-foreground">
               Silence fills the chamber...
@@ -78,7 +77,7 @@ const ChatPanel = ({ messages, players, sendChat }: ChatPanelProps) => {
           <div ref={bottomRef} />
         </div>
       </ScrollArea>
-      <div className="flex gap-2 border-t border-border p-2">
+      <div className="flex flex-shrink-0 gap-2 border-t border-primary/15 p-2 lg:p-3">
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
