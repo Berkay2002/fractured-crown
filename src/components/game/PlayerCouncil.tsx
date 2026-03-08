@@ -55,7 +55,7 @@ const PlayerCouncil = ({
                 : isSelectable
                 ? 'border-primary/50 bg-card cursor-pointer hover:border-primary hover:bg-primary/10'
                 : 'border-border bg-card'
-            } ${isMe && player.is_alive ? 'ring-2 ring-primary/60 shadow-[0_0_16px_hsl(var(--primary)/0.35)]' : ''}`}
+            } ${isMe && player.is_alive && !isHerald ? 'ring-2 ring-primary/40 shadow-[0_0_8px_hsl(var(--primary)/0.15)]' : isMe && player.is_alive && isHerald ? '' : ''}`}
           >
             {/* Online dot */}
             <div className="absolute right-1.5 top-1.5">
