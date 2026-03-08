@@ -44,8 +44,8 @@ const ChatPanel = ({ messages, players, sendChat }: ChatPanelProps) => {
     }
   };
 
-  const playerName = (playerId: number) =>
-    players.find(p => p.id === playerId)?.display_name ?? 'Unknown';
+  const findPlayer = (playerId: number) => players.find(p => p.id === playerId);
+  const playerName = (playerId: number) => findPlayer(playerId)?.display_name ?? 'Unknown';
 
   return (
     <div className="flex flex-col rounded-lg border border-border bg-card">
