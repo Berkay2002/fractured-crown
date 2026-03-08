@@ -111,6 +111,7 @@ export type Database = {
           loyalist_edicts_passed: number
           room_id: number
           shadow_edicts_passed: number
+          special_election_herald_pointer: number | null
           updated_at: string
           veto_unlocked: boolean
           winner: Database["public"]["Enums"]["win_condition"] | null
@@ -127,6 +128,7 @@ export type Database = {
           loyalist_edicts_passed?: number
           room_id: number
           shadow_edicts_passed?: number
+          special_election_herald_pointer?: number | null
           updated_at?: string
           veto_unlocked?: boolean
           winner?: Database["public"]["Enums"]["win_condition"] | null
@@ -143,6 +145,7 @@ export type Database = {
           loyalist_edicts_passed?: number
           room_id?: number
           shadow_edicts_passed?: number
+          special_election_herald_pointer?: number | null
           updated_at?: string
           veto_unlocked?: boolean
           winner?: Database["public"]["Enums"]["win_condition"] | null
