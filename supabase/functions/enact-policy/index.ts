@@ -203,7 +203,7 @@ Deno.serve(async (req) => {
     const { data: latestRound } = await supabase.from('rounds').select('round_number').eq('room_id', room_id).order('round_number', { ascending: false }).limit(1).single()
     await supabase.from('rounds').insert({ room_id, round_number: (latestRound?.round_number ?? 0) + 1, herald_id: nextHeraldId })
 
-    await supabase.from('event_log').insert({ room_id, event_type: 'policy_enacted', description: `A ${enactedCard} edict has been enacted.`, round_id: currentRound.id })
+    await supabase.from('event_log').insert({ room_id, event_type: 'policy_enacted', description: `A ${enactedCard === 'loyalist' ? 'Loyalist' : 'Shadow'} edict has been enacted.`, round_id: currentRound.id })
 
     return new Response(JSON.stringify({ success: true, enacted: enactedCard }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
