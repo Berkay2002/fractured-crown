@@ -369,6 +369,7 @@ export type Database = {
           id: number
           player_count: number
           room_code: string
+          settings: Json
           status: Database["public"]["Enums"]["room_status"]
         }
         Insert: {
@@ -377,6 +378,7 @@ export type Database = {
           id?: never
           player_count?: number
           room_code: string
+          settings?: Json
           status?: Database["public"]["Enums"]["room_status"]
         }
         Update: {
@@ -385,6 +387,7 @@ export type Database = {
           id?: never
           player_count?: number
           room_code?: string
+          settings?: Json
           status?: Database["public"]["Enums"]["room_status"]
         }
         Relationships: [
