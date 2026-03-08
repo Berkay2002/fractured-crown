@@ -105,9 +105,9 @@ const LegislativeOverlay = ({
   const waitingForCards = (isHerald && !resolvedHeraldHand) || (isLC && !resolvedChancellorHand);
 
   const instruction = isHerald
-    ? heraldHand ? 'Choose one edict to discard' : 'Waiting for cards...'
+    ? resolvedHeraldHand ? 'Choose one edict to discard' : 'Waiting for cards...'
     : isLC
-    ? chancellorHand ? 'Choose one edict to enact' : 'Waiting for the Herald...'
+    ? resolvedChancellorHand ? 'Choose one edict to enact' : 'Waiting for the Herald...'
     : 'The legislative session is in progress...';
 
   if (!isHerald && !isLC) {
