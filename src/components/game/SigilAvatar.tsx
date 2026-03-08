@@ -1,6 +1,5 @@
 import { useState } from 'react';
-
-const SIGIL_BASE = 'https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/public/sigils';
+import { sigilUrl } from '@/lib/storageUrl';
 
 /** All available sigils — the canonical list used everywhere */
 export const SIGILS = ['crown', 'sword', 'shield', 'wolf', 'raven', 'rose', 'flame', 'anchor', 'dragon', 'skull'] as const;
