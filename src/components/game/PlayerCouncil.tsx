@@ -85,7 +85,7 @@ const PlayerCouncil = ({
                 {isLC && <Sword className="absolute -top-1.5 lg:-top-2 left-1/2 h-3 w-3 lg:h-4 lg:w-4 -translate-x-1/2 text-accent-foreground" />}
 
                 {/* Avatar — responsive sizes */}
-                <div className={`relative flex h-10 w-10 md:h-12 md:w-12 lg:h-11 lg:w-11 items-center justify-center rounded-full border-2 overflow-hidden ${
+                <div className={`relative flex h-10 w-10 md:h-12 md:w-12 lg:h-16 lg:w-16 items-center justify-center rounded-full border-2 overflow-hidden ${
                   !player.is_alive
                     ? 'border-accent/40 bg-muted'
                     : isHerald
