@@ -65,6 +65,7 @@ const GameBoard = ({
   sendReaction,
   roomSettings,
   decayStageOverride,
+  demoMode,
 }: GameBoardProps) => {
   const [showRoleReveal, setShowRoleReveal] = useState(true);
   const [nominatingLC, setNominatingLC] = useState(false);
