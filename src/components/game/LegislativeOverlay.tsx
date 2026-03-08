@@ -226,8 +226,12 @@ const LegislativeOverlay = ({
       });
       setActing(false);
       if (error || data?.error) {
-        toast({ title: 'Error', description: data?.error || error?.message, variant: 'destructive' });
-        setSelectedCard(null);
+        toast({
+          title: 'Error',
+          description: data?.error || error?.message,
+          variant: 'destructive',
+          action: <ToastAction altText="Try again" onClick={() => handleCardAction(index)}>Try Again</ToastAction>,
+        });
         return;
       }
       // The chancellor_hand will come via Realtime round update for LC
