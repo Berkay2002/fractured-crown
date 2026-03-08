@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Crown, Copy, Link, Users, Wifi, WifiOff } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,8 +33,11 @@ interface RoomLobbyProps {
 const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyProps) => {
   const navigate = useNavigate();
   const [starting, setStarting] = useState(false);
+  const [transferringTo, setTransferringTo] = useState<number | null>(null);
+  const [confirmingTransfer, setConfirmingTransfer] = useState<number | null>(null);
   const isHost = currentPlayerId && room.host_player_id === currentPlayerId;
   const canStart = isHost && players.length >= 5 && players.length <= 10;
+  const showTransferUI = isHost && players.length > 1;
 
   const copyCode = () => {
     navigator.clipboard.writeText(room.room_code);
@@ -56,7 +59,20 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
     if (error || data?.error) {
       toast({ title: 'Error', description: data?.error || error?.message || 'Failed to start game', variant: 'destructive' });
     }
-    // Room status change via Realtime will auto-transition UI
+  };
+
+  const handleTransferHost = async (targetPlayerId: number) => {
+    setTransferringTo(targetPlayerId);
+    const { data, error } = await supabase.functions.invoke('transfer-host', {
+      body: { room_id: room.id, new_host_player_id: targetPlayerId },
+    });
+    setTransferringTo(null);
+    setConfirmingTransfer(null);
+    if (error || data?.error) {
+      toast({ title: 'Transfer Failed', description: data?.error || error?.message || 'Could not transfer the crown', variant: 'destructive' });
+    } else {
+      toast({ title: 'Crown Transferred', description: 'The host role has been passed on.' });
+    }
   };
 
   return (
@@ -126,6 +142,9 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
         {players.map((player, idx) => {
           const isPlayerHost = room.host_player_id === player.id;
           const isOnline = onlinePlayers.has(player.id);
+          const isConfirming = confirmingTransfer === player.id;
+          const isTransferring = transferringTo === player.id;
+          const canTransferTo = showTransferUI && !isPlayerHost && !transferringTo;
           const initials = player.display_name
             .split(' ')
             .map(w => w[0])
@@ -139,7 +158,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * idx }}
-              className="relative flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-4"
+              className="group relative flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-4"
             >
               <div className="absolute right-2 top-2">
                 {isOnline ? (
@@ -159,13 +178,80 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
                 </span>
               </div>
 
-              {isPlayerHost && (
-                <Crown className="absolute -top-1 left-1/2 h-4 w-4 -translate-x-1/2 text-primary" />
-              )}
+              {/* Host crown badge with glow + animate on change */}
+              <AnimatePresence mode="wait">
+                {isPlayerHost && (
+                  <motion.div
+                    key={`crown-${player.id}`}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    transition={{ duration: 0.4 }}
+                    className="absolute -top-2 left-1/2 -translate-x-1/2"
+                  >
+                    <motion.div
+                      animate={{ boxShadow: ['0 0 6px hsl(var(--primary) / 0.4)', '0 0 14px hsl(var(--primary) / 0.7)', '0 0 6px hsl(var(--primary) / 0.4)'] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      className="flex h-5 w-5 items-center justify-center rounded-full"
+                    >
+                      <Crown className="h-4 w-4 text-primary drop-shadow-[0_0_4px_hsl(var(--primary)/0.6)]" />
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <span className="text-center font-body text-sm text-foreground">
                 {player.display_name}
               </span>
+
+              {/* Transfer crown button — host-only, hover-revealed */}
+              {canTransferTo && !isConfirming && (
+                <button
+                  onClick={() => setConfirmingTransfer(player.id)}
+                  className="absolute left-2 top-2 rounded p-1 text-primary/0 transition-all duration-200 hover:bg-primary/10 group-hover:text-primary/70 hover:!text-primary"
+                  title={`Transfer host to ${player.display_name}`}
+                >
+                  <Crown className="h-3.5 w-3.5" />
+                </button>
+              )}
+
+              {/* Inline transfer confirmation */}
+              <AnimatePresence>
+                {isConfirming && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="w-full overflow-hidden"
+                  >
+                    <div className="mt-1 rounded border-t-2 border-t-primary bg-muted/60 px-2 py-2 text-center">
+                      <p className="mb-2 font-display text-[10px] uppercase tracking-widest text-primary">
+                        Transfer Crown?
+                      </p>
+                      <div className="flex justify-center gap-2">
+                        <Button
+                          size="sm"
+                          disabled={isTransferring}
+                          onClick={() => handleTransferHost(player.id)}
+                          className="h-6 px-2 font-display text-[10px] tracking-wider text-primary-foreground"
+                        >
+                          {isTransferring ? '...' : 'Transfer'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={isTransferring}
+                          onClick={() => setConfirmingTransfer(null)}
+                          className="h-6 px-2 font-display text-[10px] tracking-wider text-muted-foreground"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           );
         })}
