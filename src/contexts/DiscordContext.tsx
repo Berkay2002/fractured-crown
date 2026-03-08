@@ -13,6 +13,7 @@ const DiscordContext = createContext<DiscordContextValue>({
   setActivity: async () => {},
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useDiscordContext = () => useContext(DiscordContext);
 
 export function DiscordProvider({ children }: { children: ReactNode }) {

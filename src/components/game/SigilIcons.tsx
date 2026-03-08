@@ -7,6 +7,7 @@ interface SigilProps {
 }
 
 // Re-export canonical list from SigilAvatar for backward compat
+// eslint-disable-next-line react-refresh/only-export-components
 export { SIGILS as sigils } from './SigilAvatar';
 export type { SigilName as SigilType } from './SigilAvatar';
 

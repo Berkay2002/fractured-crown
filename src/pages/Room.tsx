@@ -222,6 +222,7 @@ const Room = () => {
     return () => {
       supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room?.id, currentPlayerId, navigate]);
 
   // Presence tracking
@@ -234,8 +235,8 @@ const Room = () => {
       .on('presence', { event: 'sync' }, () => {
         const state = presenceChannel.presenceState();
         const online = new Set<number>();
-        Object.values(state).forEach((presences: any) => {
-          presences.forEach((p: any) => {
+        Object.values(state).forEach((presences) => {
+          (presences as Array<{ player_id?: number }>).forEach((p) => {
             if (p.player_id) online.add(p.player_id);
           });
         });
@@ -253,6 +254,7 @@ const Room = () => {
     return () => {
       supabase.removeChannel(presenceChannel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room?.id, currentPlayerId]);
 
   const handleSendLobbyMessage = useCallback(async (content: string) => {
@@ -291,6 +293,7 @@ const Room = () => {
       const round = gameRoom.currentRound?.round_number ?? 1;
       setActivity(buildGameActivity({ round, phase: gameRoom.gameState.current_phase }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDiscord, room?.status, room?.room_code, lobbyPlayers.length, gameRoom.gameState?.current_phase, gameRoom.currentRound?.round_number]);
 
   if (loading || authLoading) {
@@ -341,7 +344,7 @@ const Room = () => {
     return (
       <GameOverScreen
         gameState={gameRoom.gameState}
-        players={gameRoom.players.length > 0 ? gameRoom.players : lobbyPlayers as any}
+        players={gameRoom.players.length > 0 ? gameRoom.players : lobbyPlayers as unknown as typeof gameRoom.players}
         events={gameRoom.events}
         allRoles={gameRoom.allRoles}
         isHost={hostIsMe}
