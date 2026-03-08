@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Crown, Users } from 'lucide-react';
+import { Crown, Users, BookOpen } from 'lucide-react';
+import HowToPlayModal from '@/components/game/HowToPlayModal';
 import { Link } from 'react-router-dom';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { sigilUrl } from '@/lib/storageUrl';
@@ -147,6 +148,20 @@ const Index = () => {
           background: 'radial-gradient(ellipse at center, transparent 30%, rgba(15,13,11,0.6) 100%)',
         }}
       />
+
+      {/* How to Play — top-right corner */}
+      <div className="absolute right-4 top-4 z-20 sm:right-6 sm:top-6">
+        <HowToPlayModal
+          trigger={
+            <button
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#c9a84c]/30 bg-[#0f0d0b]/60 text-[#c9a84c]/70 backdrop-blur-sm transition-all duration-300 hover:border-[#c9a84c]/60 hover:text-[#c9a84c] hover:shadow-[0_0_12px_rgba(201,168,76,0.15)]"
+              aria-label="How to Play"
+            >
+              <BookOpen className="h-4 w-4" />
+            </button>
+          }
+        />
+      </div>
 
       {/* Center content */}
       <div className="absolute inset-0 z-10 flex items-center justify-center">
