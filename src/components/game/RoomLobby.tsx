@@ -26,6 +26,7 @@ interface Room {
   host_player_id: number | null;
   status: string;
   player_count: number;
+  settings?: unknown;
 }
 
 interface RoomLobbyProps {
