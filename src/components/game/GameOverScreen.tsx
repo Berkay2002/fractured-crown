@@ -10,6 +10,7 @@ import { useSoundContext } from '@/contexts/SoundContext';
 import { useState } from 'react';
 import type { Tables } from '@/integrations/supabase/types';
 import GameReplay from './GameReplay';
+import SigilAvatar from './SigilAvatar';
 
 type GameState = Tables<'game_state'>;
 type Player = Tables<'players'>;
