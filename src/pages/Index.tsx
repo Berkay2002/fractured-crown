@@ -1,7 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,8 +9,6 @@ import { toast } from '@/hooks/use-toast';
 import { Crown, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { usePageTitle } from '@/hooks/usePageTitle';
-
-const HCAPTCHA_SITE_KEY = 'b2ea555e-c512-4ce2-9710-5b5abb96da08';
 
 type Mode = 'landing' | 'create' | 'join';
 
@@ -24,15 +21,13 @@ const Index = () => {
   const [roomCode, setRoomCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
-  const captchaRef = useRef<HCaptcha>(null);
 
-  const handleCaptchaVerify = async (token: string) => {
+  const handleSignIn = async () => {
     setAuthenticating(true);
     try {
-      await signInAnonymous(token);
+      await signInAnonymous();
     } catch {
-      toast({ title: 'Error', description: 'Failed to verify. Please try again.', variant: 'destructive' });
-      captchaRef.current?.resetCaptcha();
+      toast({ title: 'Error', description: 'Failed to enter. Please try again.', variant: 'destructive' });
     } finally {
       setAuthenticating(false);
     }
@@ -86,7 +81,7 @@ const Index = () => {
     );
   }
 
-  const needsCaptcha = !user;
+  const needsAuth = !user;
 
   return (
     <div className="noise-overlay relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background">
@@ -126,17 +121,17 @@ const Index = () => {
           transition={{ delay: 0.8, duration: 0.6 }}
           className="w-full max-w-sm"
         >
-          {needsCaptcha ? (
+          {needsAuth ? (
             <div className="flex flex-col items-center gap-4">
-              <p className="font-body text-sm text-muted-foreground">
-                {authenticating ? 'Verifying...' : 'Prove you are worthy to enter'}
-              </p>
-              <HCaptcha
-                ref={captchaRef}
-                sitekey={HCAPTCHA_SITE_KEY}
-                theme="dark"
-                onVerify={handleCaptchaVerify}
-              />
+              <Button
+                onClick={handleSignIn}
+                disabled={authenticating}
+                className="gold-shimmer h-14 font-display text-lg tracking-wider text-primary-foreground"
+                size="lg"
+              >
+                <Crown className="mr-2 h-5 w-5" />
+                {authenticating ? 'Entering...' : 'Enter the Kingdom'}
+              </Button>
             </div>
           ) : (
             <>
