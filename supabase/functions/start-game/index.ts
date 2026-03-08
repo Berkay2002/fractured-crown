@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
-    // Validate room + host
+    // Validate room + host (settings come along for free via select *)
     const { data: room } = await supabase.from('rooms').select('*').eq('id', room_id).single()
     if (!room) return new Response(JSON.stringify({ error: 'Room not found' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     if (room.status !== 'lobby') return new Response(JSON.stringify({ error: 'Game already started' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
