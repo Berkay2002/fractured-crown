@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Stamp, Lock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
@@ -105,6 +106,9 @@ const VotingPanel = ({
   const shownCastCount = allRevealed ? roundVotes.length : castCount;
   const shownAliveCount = allRevealed ? alivePlayers.length : aliveCount || alivePlayers.length;
 
+  // Build per-player seal state
+  const votedPlayerIds = new Set(roundVotes.map(v => v.player_id));
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -121,9 +125,9 @@ const VotingPanel = ({
         </p>
       )}
 
-      {/* Vote buttons */}
+      {/* Vote buttons — hidden on mobile when using bottom bar */}
       {!hasSubmittedVote && !allRevealed && (
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-4 max-md:hidden">
           <Button
             onClick={() => handleVote('ja')}
             disabled={voting}
@@ -146,6 +150,43 @@ const VotingPanel = ({
         <p className="text-center text-sm italic text-muted-foreground">
           Your vote has been cast. Waiting for others...
         </p>
+      )}
+
+      {/* Per-player seal indicators */}
+      {!allRevealed && (
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          {alivePlayers.map((player) => {
+            const hasSealed = votedPlayerIds.has(player.id) || (shownCastCount > 0 && castCount >= alivePlayers.indexOf(player) + 1);
+            // We know castCount but not who specifically — show sealed for count
+            return (
+              <motion.div
+                key={player.id}
+                className="flex flex-col items-center gap-1"
+              >
+                <div className={`flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-300 ${
+                  hasSealed
+                    ? 'border-primary/50 bg-primary/10'
+                    : 'border-border bg-card'
+                }`}>
+                  {hasSealed ? (
+                    <motion.div
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                    >
+                      <Stamp className="h-4 w-4 text-primary" />
+                    </motion.div>
+                  ) : (
+                    <Lock className="h-3 w-3 text-muted-foreground/40" />
+                  )}
+                </div>
+                <span className="max-w-[50px] truncate text-center font-body text-[9px] text-muted-foreground">
+                  {player.display_name.split(' ')[0]}
+                </span>
+              </motion.div>
+            );
+          })}
+        </div>
       )}
 
       {/* Vote progress */}

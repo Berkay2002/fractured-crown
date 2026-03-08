@@ -34,16 +34,16 @@ const PolicyCardUI = ({
   disabled?: boolean;
 }) => (
   <motion.button
-    whileHover={!disabled ? { scale: 1.05 } : undefined}
+    whileHover={!disabled ? { scale: 1.08, y: -4 } : undefined}
     whileTap={!disabled ? { scale: 0.95 } : undefined}
     onClick={onClick}
     disabled={disabled}
-    className={`card-flip relative flex h-40 w-28 flex-col items-center justify-center rounded-lg border-2 transition-all ${
+    className={`card-flip relative flex h-40 w-28 flex-col items-center justify-center rounded-lg border-2 transition-all duration-200 ${
       !faceUp
-        ? 'border-border bg-card cursor-pointer hover:border-muted-foreground'
+        ? 'border-border bg-card cursor-pointer hover:border-primary/50 hover:shadow-[0_0_20px_hsl(var(--primary)/0.25)]'
         : type === 'loyalist'
-        ? 'border-primary bg-primary/10 shadow-[0_0_16px_hsl(var(--primary)/0.3)]'
-        : 'border-accent bg-accent/10 shadow-[0_0_16px_hsl(var(--accent)/0.3)]'
+        ? 'border-primary bg-primary/10 shadow-[0_0_16px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.5)]'
+        : 'border-accent bg-accent/10 shadow-[0_0_16px_hsl(var(--accent)/0.3)] hover:shadow-[0_0_24px_hsl(var(--accent)/0.5)]'
     }`}
   >
     {faceUp ? (

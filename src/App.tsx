@@ -15,6 +15,13 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
+        {/* Candlelight flicker — subtle ambient warmth */}
+        <div
+          className="candlelight-flicker pointer-events-none fixed inset-0"
+          style={{
+            background: 'radial-gradient(ellipse at 50% 50%, hsl(35 60% 50% / 0.12) 0%, transparent 60%)',
+          }}
+        />
         {/* Vignette overlay — candlelight edge darkening */}
         <div
           className="pointer-events-none fixed inset-0 z-[1]"

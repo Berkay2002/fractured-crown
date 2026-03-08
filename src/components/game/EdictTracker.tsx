@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import { Eye, Search, Vote, Skull } from 'lucide-react';
 
 interface EdictTrackerProps {
@@ -7,13 +8,10 @@ interface EdictTrackerProps {
 }
 
 const SHADOW_POWERS: Record<number, Record<number, string>> = {
-  // 5-6 players
   5: { 3: 'peek', 4: 'execution', 5: 'execution' },
   6: { 3: 'peek', 4: 'execution', 5: 'execution' },
-  // 7-8 players
   7: { 2: 'investigate', 3: 'election', 4: 'execution', 5: 'execution' },
   8: { 2: 'investigate', 3: 'election', 4: 'execution', 5: 'execution' },
-  // 9-10 players
   9: { 1: 'investigate', 2: 'investigate', 3: 'election', 4: 'execution', 5: 'execution' },
   10: { 1: 'investigate', 2: 'investigate', 3: 'election', 4: 'execution', 5: 'execution' },
 };
@@ -31,11 +29,23 @@ const powerIcon = (power: string) => {
 const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
   const total = type === 'loyalist' ? 5 : type === 'shadow' ? 6 : 3;
   const label = type === 'loyalist' ? 'Loyalist Edicts' : type === 'shadow' ? 'Shadow Edicts' : 'Election Tracker';
+  const prevCountRef = useRef(count);
+  const [shaking, setShaking] = useState(false);
 
   const powers = type === 'shadow' ? (SHADOW_POWERS[playerCount] || SHADOW_POWERS[5]) : {};
 
+  // Detect chaos: election tracker hits 3
+  useEffect(() => {
+    if (type === 'election' && count === 3 && prevCountRef.current < 3) {
+      setShaking(true);
+      const timer = setTimeout(() => setShaking(false), 650);
+      return () => clearTimeout(timer);
+    }
+    prevCountRef.current = count;
+  }, [count, type]);
+
   return (
-    <div className="flex flex-col gap-2">
+    <div className={`flex flex-col gap-2 ${shaking ? 'chaos-shake' : ''}`}>
       <span className="font-display text-xs uppercase tracking-widest text-muted-foreground">
         {label}
       </span>

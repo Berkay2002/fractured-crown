@@ -241,8 +241,61 @@
   animation: herald-glow 2s ease-in-out infinite;
 }
 
+/* Lord Commander crimson glow pulse */
+@keyframes lc-glow {
+  0%, 100% { box-shadow: 0 0 8px hsl(var(--accent) / 0.2); }
+  50% { box-shadow: 0 0 20px hsl(var(--accent) / 0.4); }
+}
+
+.lc-glow {
+  animation: lc-glow 2s ease-in-out infinite;
+}
+
+/* Candlelight flicker */
+@keyframes candlelight-flicker {
+  0%, 100% { opacity: 0.04; }
+  20% { opacity: 0.06; }
+  40% { opacity: 0.04; }
+  55% { opacity: 0.07; }
+  70% { opacity: 0.05; }
+  85% { opacity: 0.06; }
+}
+
+.candlelight-flicker {
+  animation: candlelight-flicker 10s ease-in-out infinite;
+}
+
+/* Election tracker chaos shake */
+@keyframes chaos-shake {
+  0%, 100% { transform: translateX(0); }
+  10% { transform: translateX(-4px) rotate(-1deg); }
+  20% { transform: translateX(4px) rotate(1deg); }
+  30% { transform: translateX(-3px) rotate(-0.5deg); }
+  40% { transform: translateX(3px) rotate(0.5deg); }
+  50% { transform: translateX(-2px); }
+  60% { transform: translateX(2px); }
+  70% { transform: translateX(-1px); }
+  80% { transform: translateX(1px); }
+}
+
+.chaos-shake {
+  animation: chaos-shake 0.6s ease-out;
+}
+
+/* Hide scrollbar but keep functional */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .herald-glow {
+  .herald-glow,
+  .lc-glow,
+  .candlelight-flicker,
+  .chaos-shake {
     animation: none;
   }
 }
