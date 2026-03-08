@@ -470,7 +470,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       </div>
 
       {/* ── Desktop layout (lg+) ── */}
-      <div className="hidden lg:flex lg:flex-col mx-auto max-w-5xl min-h-screen px-4 py-10">
+      <div className="hidden lg:flex lg:flex-col relative z-10 mx-auto max-w-5xl min-h-screen px-4 py-10">
         {/* Full-width centered header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
