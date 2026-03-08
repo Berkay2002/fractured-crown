@@ -413,7 +413,7 @@ const useSteps = (): TutorialStep[] => {
           </div>
            <div className="grid grid-cols-2 gap-3">
             <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 p-3">
-              <img src={roleUsurperImg} alt="Usurper Executed" className="h-8 w-8 flex-shrink-0 object-contain" />
+              <img src={powerExecution} alt="Usurper Executed" className="h-8 w-8 flex-shrink-0 object-contain" />
               <div>
                 <p className="font-display text-[10px] uppercase tracking-widest text-primary">Usurper Executed</p>
                 <p className="font-body text-[11px] text-muted-foreground">Loyalists win instantly</p>
