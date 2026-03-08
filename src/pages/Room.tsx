@@ -4,9 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useGameRoom } from '@/hooks/useGameRoom';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import GameBoard from '@/components/game/GameBoard';
 import GameOverScreen from '@/components/game/GameOverScreen';
 import RoomLobby from '@/components/game/RoomLobby';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface RoomData {
   id: number;
@@ -24,6 +27,13 @@ interface PlayerData {
   joined_at: string;
 }
 
+const phaseLabels: Record<string, string> = {
+  election: 'Election',
+  legislative: 'Legislative',
+  executive_action: 'Executive Power',
+  game_over: 'Game Over',
+};
+
 const Room = () => {
   const { roomCode } = useParams<{ roomCode: string }>();
   const { user, loading: authLoading } = useAuth();
@@ -32,44 +42,66 @@ const Room = () => {
   const [lobbyPlayers, setLobbyPlayers] = useState<PlayerData[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [onlinePlayers, setOnlinePlayers] = useState<Set<number>>(new Set());
 
-  // Game room hook — only active when in_progress or finished
   const gameRoom = useGameRoom(
     room?.status === 'in_progress' || room?.status === 'finished' ? room.id : null,
     currentPlayerId
   );
 
-  // Fetch room and players
+  // Dynamic page title
+  const pageTitle = (() => {
+    if (!room) return `Fractured Crown — Room ${roomCode?.toUpperCase() ?? ''}`;
+    if (room.status === 'finished') return 'Fractured Crown — The Kingdom Has Fallen';
+    if (room.status === 'in_progress' && gameRoom.gameState) {
+      const phase = phaseLabels[gameRoom.gameState.current_phase] ?? gameRoom.gameState.current_phase;
+      return `Fractured Crown — ${phase} | Room ${room.room_code}`;
+    }
+    return `Fractured Crown — Room ${room.room_code}`;
+  })();
+  usePageTitle(pageTitle);
+
   const fetchRoomData = useCallback(async () => {
     if (!roomCode) return;
+    setFetchError(false);
 
-    const { data: roomData } = await supabase
-      .from('rooms')
-      .select('*')
-      .eq('room_code', roomCode.toUpperCase())
-      .maybeSingle();
+    try {
+      const { data: roomData, error: roomError } = await supabase
+        .from('rooms')
+        .select('*')
+        .eq('room_code', roomCode.toUpperCase())
+        .maybeSingle();
 
-    if (!roomData) {
-      toast({ title: 'Room not found', variant: 'destructive' });
-      navigate('/');
-      return;
-    }
-
-    setRoom(roomData as unknown as RoomData);
-
-    const { data: playersData } = await supabase
-      .from('players')
-      .select('*')
-      .eq('room_id', roomData.id)
-      .order('joined_at', { ascending: true });
-
-    if (playersData) {
-      setLobbyPlayers(playersData as unknown as PlayerData[]);
-      if (user) {
-        const me = (playersData as unknown as PlayerData[]).find(p => p.user_id === user.id);
-        if (me) setCurrentPlayerId(me.id);
+      if (roomError) {
+        setFetchError(true);
+        setLoading(false);
+        return;
       }
+
+      if (!roomData) {
+        toast({ title: 'Room not found', variant: 'destructive' });
+        navigate('/');
+        return;
+      }
+
+      setRoom(roomData as unknown as RoomData);
+
+      const { data: playersData } = await supabase
+        .from('players')
+        .select('*')
+        .eq('room_id', roomData.id)
+        .order('joined_at', { ascending: true });
+
+      if (playersData) {
+        setLobbyPlayers(playersData as unknown as PlayerData[]);
+        if (user) {
+          const me = (playersData as unknown as PlayerData[]).find(p => p.user_id === user.id);
+          if (me) setCurrentPlayerId(me.id);
+        }
+      }
+    } catch {
+      setFetchError(true);
     }
 
     setLoading(false);
@@ -151,6 +183,37 @@ const Room = () => {
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-muted-foreground font-display text-lg tracking-widest animate-pulse">
           Entering the council chamber...
+        </div>
+      </div>
+    );
+  }
+
+  // Full-page error state
+  if (fetchError) {
+    return (
+      <div className="noise-overlay flex min-h-screen flex-col items-center justify-center gap-6 bg-background px-4">
+        <AlertTriangle className="h-12 w-12 text-accent-foreground" />
+        <h1 className="font-display text-2xl font-bold tracking-wider text-foreground">
+          Failed to Load Room
+        </h1>
+        <p className="max-w-sm text-center font-body text-muted-foreground">
+          Could not connect to the council chamber. The realm may be experiencing turbulence.
+        </p>
+        <div className="flex gap-4">
+          <Button
+            onClick={fetchRoomData}
+            className="gold-shimmer font-display tracking-wider text-primary-foreground"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Try Again
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/')}
+            className="border-border font-display tracking-wider text-muted-foreground hover:text-foreground"
+          >
+            Return Home
+          </Button>
         </div>
       </div>
     );

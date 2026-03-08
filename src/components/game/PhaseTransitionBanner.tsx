@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSoundContext } from '@/contexts/SoundContext';
 
 const phaseMessages: Record<string, string> = {
   election: 'The Council Convenes — Nominations are open',
@@ -14,15 +15,17 @@ interface PhaseTransitionBannerProps {
 const PhaseTransitionBanner = ({ phase }: PhaseTransitionBannerProps) => {
   const [displayedPhase, setDisplayedPhase] = useState<string | null>(null);
   const [visible, setVisible] = useState(false);
+  const sound = useSoundContext();
 
   useEffect(() => {
     if (phase && phase !== displayedPhase) {
       setDisplayedPhase(phase);
       setVisible(true);
+      sound.playPhaseTransition();
       const timer = setTimeout(() => setVisible(false), 2600);
       return () => clearTimeout(timer);
     }
-  }, [phase]);
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!visible || !displayedPhase) return null;
 

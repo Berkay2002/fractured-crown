@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Crown, Swords, Skull, Shield, Scroll as ScrollIcon, Vote, Eye, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useSoundContext } from '@/contexts/SoundContext';
 import { useState } from 'react';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -25,26 +27,30 @@ interface GameOverScreenProps {
   allRoles: PlayerRole[];
 }
 
-const winMessages: Record<string, { title: string; subtitle: string; color: string }> = {
+const winMessages: Record<string, { title: string; subtitle: string; color: string; isWin: boolean }> = {
   loyalists_edicts: {
     title: 'The Crown Endures',
     subtitle: 'Five loyalist edicts have been enacted. Order is restored.',
     color: 'text-primary',
+    isWin: true,
   },
   usurper_executed: {
     title: 'The Usurper Falls',
     subtitle: 'The traitors\' leader has been executed. The crown is safe.',
     color: 'text-primary',
+    isWin: true,
   },
   traitors_edicts: {
     title: 'Shadows Consume the Realm',
     subtitle: 'Six shadow edicts have been enacted. Darkness reigns.',
     color: 'text-accent-foreground',
+    isWin: false,
   },
   usurper_crowned: {
     title: 'The Usurper Seizes the Throne',
     subtitle: 'The usurper was elected Lord Commander. The crown has fallen.',
     color: 'text-purple-400',
+    isWin: false,
   },
 };
 
@@ -60,7 +66,6 @@ const roleColors = {
   usurper: 'border-purple-600 text-purple-400',
 };
 
-// Key event types to show in the chronicle
 const CHRONICLE_EVENT_TYPES = new Set([
   'vote_passed',
   'vote_failed',
@@ -89,10 +94,19 @@ const eventIcon = (eventType: string) => {
 const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreenProps) => {
   const navigate = useNavigate();
   const [resetting, setResetting] = useState(false);
+  const sound = useSoundContext();
   const winCondition = gameState.winner ?? 'loyalists_edicts';
   const msg = winMessages[winCondition] || winMessages.loyalists_edicts;
 
-  // Build reveals from allRoles
+  // Play game over sound once
+  useEffect(() => {
+    if (msg.isWin) {
+      sound.playGameOverWin();
+    } else {
+      sound.playGameOverLoss();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const reveals: PlayerRoleReveal[] = allRoles.length > 0
     ? allRoles.map(r => ({
         player: players.find(p => p.id === r.player_id)!,
@@ -103,10 +117,6 @@ const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreen
         role: (i === 0 ? 'usurper' : i < 3 ? 'traitor' : 'loyalist') as 'loyalist' | 'traitor' | 'usurper',
       }));
 
-  // Find the Usurper for highlighting
-  const usurperReveal = reveals.find(r => r.role === 'usurper');
-
-  // Filter key events for chronicle
   const chronicleEvents = events.filter(e =>
     CHRONICLE_EVENT_TYPES.has(e.event_type) ||
     e.description.toLowerCase().includes('edict') ||

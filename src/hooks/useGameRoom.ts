@@ -26,6 +26,7 @@ export interface GameRoomState {
   chancellorHand: string[] | null;
   setChancellorHand: (hand: string[] | null) => void;
   allRoles: PlayerRole[];
+  disconnected: boolean;
 }
 
 export function useGameRoom(roomId: number | null, currentPlayerId: number | null): GameRoomState {
@@ -40,6 +41,7 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
   const [heraldHand, setHeraldHand] = useState<string[] | null>(null);
   const [chancellorHand, setChancellorHand] = useState<string[] | null>(null);
   const [allRoles, setAllRoles] = useState<PlayerRole[]>([]);
+  const [disconnected, setDisconnected] = useState(false);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const fetchGameState = useCallback(async () => {
@@ -51,7 +53,6 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
       .maybeSingle();
     if (data) {
       setGameState(data);
-      // If game over, fetch all roles
       if (data.current_phase === 'game_over') {
         const { data: roles } = await supabase
           .from('player_roles')
@@ -162,7 +163,10 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
       .on('postgres_changes', { event: '*', schema: 'public', table: 'event_log', filter: `room_id=eq.${roomId}` }, () => fetchEvents())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages', filter: `room_id=eq.${roomId}` }, () => fetchChat())
       .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        if (status === 'SUBSCRIBED') {
+          setDisconnected(false);
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          setDisconnected(true);
           refreshAll();
         }
       });
@@ -198,9 +202,8 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
 
   const sendChat = useCallback(async (content: string) => {
     if (!roomId || !currentPlayerId) return;
-    // Optimistic update — show the message immediately
     const optimistic: ChatMessage = {
-      id: -Date.now(), // temporary negative id
+      id: -Date.now(),
       room_id: roomId,
       player_id: currentPlayerId,
       content,
@@ -217,6 +220,6 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
   return {
     gameState, currentRound, players, myRole, votes, events, chatMessages,
     loading, sendChat, heraldHand, setHeraldHand, chancellorHand, setChancellorHand,
-    allRoles,
+    allRoles, disconnected,
   };
 }

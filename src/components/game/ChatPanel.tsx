@@ -3,6 +3,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
+import { useSoundContext } from '@/contexts/SoundContext';
 import type { Tables } from '@/integrations/supabase/types';
 
 type ChatMessage = Tables<'chat_messages'>;
@@ -18,10 +19,17 @@ const ChatPanel = ({ messages, players, sendChat }: ChatPanelProps) => {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const prevCountRef = useRef(messages.length);
+  const sound = useSoundContext();
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages.length]);
+    // Play sound for new messages (not on initial load)
+    if (messages.length > prevCountRef.current && prevCountRef.current > 0) {
+      sound.playChatReceived();
+    }
+    prevCountRef.current = messages.length;
+  }, [messages.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSend = async () => {
     const trimmed = input.trim();

@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Crown, Scroll, User, Shield, Skull, Eye, BookOpen } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Crown, Scroll, User, Shield, Skull, Eye, BookOpen, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EdictTracker from './EdictTracker';
 import PlayerCouncil from './PlayerCouncil';
@@ -13,6 +13,8 @@ import PhaseTransitionBanner from './PhaseTransitionBanner';
 import MobileActionBar from './MobileActionBar';
 import HowToPlayModal from './HowToPlayModal';
 import GameBoardSkeleton from './GameBoardSkeleton';
+import ConnectionBanner from './ConnectionBanner';
+import { useSoundContext } from '@/contexts/SoundContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { GameRoomState } from '@/hooks/useGameRoom';
@@ -47,11 +49,13 @@ const GameBoard = ({
   setHeraldHand,
   chancellorHand,
   setChancellorHand,
+  disconnected,
 }: GameBoardProps) => {
   const [showRoleReveal, setShowRoleReveal] = useState(true);
   const [nominatingLC, setNominatingLC] = useState(false);
   const [nominating, setNominating] = useState(false);
   const [mobileVoting, setMobileVoting] = useState(false);
+  const sound = useSoundContext();
 
   const isHerald = gameState?.current_herald_id === currentPlayerId;
   const phase = gameState?.current_phase ?? 'election';
@@ -75,6 +79,7 @@ const GameBoard = ({
   const handleMobileVote = useCallback(async (choice: 'ja' | 'nein') => {
     if (!gameState) return;
     setMobileVoting(true);
+    sound.playVoteCast();
     const { data, error } = await supabase.functions.invoke('submit-vote', {
       body: { room_id: gameState.room_id, vote: choice },
     });
@@ -86,7 +91,7 @@ const GameBoard = ({
     if (data?.herald_hand && isHerald) {
       setHeraldHand(data.herald_hand);
     }
-  }, [gameState?.room_id, isHerald, setHeraldHand]);
+  }, [gameState?.room_id, isHerald, setHeraldHand, sound]);
 
   if (!gameState || loading) return <GameBoardSkeleton />;
 
@@ -128,6 +133,7 @@ const GameBoard = ({
 
   return (
     <div className="noise-overlay flex min-h-screen flex-col bg-background">
+      <ConnectionBanner disconnected={disconnected} />
       <PhaseTransitionBanner phase={phase} />
       {/* Top Bar */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -141,6 +147,13 @@ const GameBoard = ({
               </button>
             }
           />
+          <button
+            onClick={sound.toggle}
+            className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            title={sound.enabled ? 'Mute sounds' : 'Enable sounds'}
+          >
+            {sound.enabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </button>
         </div>
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           {currentRound && (
