@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Scroll, Shield, Skull } from 'lucide-react';
@@ -15,6 +15,7 @@ interface LegislativeOverlayProps {
   currentPlayerId: number | null;
   onClose: () => void;
   heraldHand: string[] | null;
+  setHeraldHand: (hand: string[] | null) => void;
   chancellorHand: string[] | null;
   setChancellorHand: (hand: string[] | null) => void;
 }
@@ -80,6 +81,7 @@ const LegislativeOverlay = ({
   currentPlayerId,
   onClose,
   heraldHand,
+  setHeraldHand,
   chancellorHand,
   setChancellorHand,
 }: LegislativeOverlayProps) => {
@@ -87,6 +89,40 @@ const LegislativeOverlay = ({
   const [acting, setActing] = useState(false);
   const isHerald = gameState.current_herald_id === currentPlayerId;
   const isLC = gameState.current_lord_commander_id === currentPlayerId;
+
+  // Auto-fetch hand from edge function when waiting for cards
+  const fetchingRef = useRef(false);
+  const fetchHand = useCallback(async () => {
+    if (!isHerald && !isLC) return;
+    if (fetchingRef.current) return;
+    fetchingRef.current = true;
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-hand', {
+        body: { room_id: gameState.room_id },
+      });
+      if (!error && data?.hand) {
+        if (data.role === 'herald') {
+          setHeraldHand(data.hand);
+        } else if (data.role === 'lord_commander') {
+          setChancellorHand(data.hand);
+        }
+      }
+    } catch {
+      // silent retry
+    } finally {
+      fetchingRef.current = false;
+    }
+  }, [gameState.room_id, isHerald, isLC, setHeraldHand, setChancellorHand]);
+
+  useEffect(() => {
+    const needsHeraldHand = isHerald && !heraldHand && !(currentRound?.herald_hand);
+    const needsLCHand = isLC && !chancellorHand && !(currentRound?.chancellor_hand);
+    if (!needsHeraldHand && !needsLCHand) return;
+
+    fetchHand();
+    const intervalId = window.setInterval(fetchHand, 1500);
+    return () => window.clearInterval(intervalId);
+  }, [fetchHand, isHerald, isLC, heraldHand, chancellorHand, currentRound?.herald_hand, currentRound?.chancellor_hand]);
 
   const vetoRequested = currentRound?.veto_requested === true;
   const vetoResolved = currentRound?.veto_approved !== null;
