@@ -465,7 +465,7 @@ const HowToPlayTutorial = ({ mode = 'page', onClose }: HowToPlayTutorialProps) =
 
   const handleBack = () => {
     if (onClose) onClose();
-    else navigate?.(-1);
+    else navigate(-1);
   };
 
   const stepIndicator = (
