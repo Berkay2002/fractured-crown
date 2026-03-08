@@ -418,9 +418,11 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       </footer>
 
       {/* Live cursor presence overlays */}
-      {Object.values(cursors).map((cursor) => (
-        <LobbyPresenceCursor key={cursor.playerId} cursor={cursor} />
-      ))}
+      {!window.matchMedia('(hover: none)').matches &&
+        Object.values(cursors).map((cursor) => (
+          <LobbyPresenceCursor key={cursor.playerId} cursor={cursor} />
+        ))
+      }
     </div>
   );
 };

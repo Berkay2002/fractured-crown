@@ -80,6 +80,7 @@ export function useLobbyPresence(
     const now = Date.now();
     const p = myPlayerRef.current;
     if (!channelRef.current || !p || now - lastTrackTime.current < 50) return;
+    console.log('[Presence] updateCursor called', x.toFixed(1), y.toFixed(1));
     lastTrackTime.current = now;
     await channelRef.current.track({
       playerId: String(p.id),
