@@ -420,7 +420,7 @@ const useSteps = (): TutorialStep[] => {
               </div>
             </div>
             <div className="flex items-center gap-3 rounded-lg border border-accent/20 bg-accent/5 p-3">
-              <img src={powerElection} alt="Usurper Crowned" className="h-8 w-8 flex-shrink-0 object-contain" />
+              <img src={roleUsurperImg} alt="Usurper Crowned" className="h-8 w-8 flex-shrink-0 object-contain" />
               <div>
                 <p className="font-display text-[10px] uppercase tracking-widest text-accent-foreground">Usurper Crowned</p>
                 <p className="font-body text-[11px] text-muted-foreground">After 3+ Shadow Edicts</p>
