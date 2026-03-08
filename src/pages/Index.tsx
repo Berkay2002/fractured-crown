@@ -88,7 +88,19 @@ const Index = () => {
     );
   }
 
+  const isDiscordActivity =
+    typeof window !== 'undefined' &&
+    (window.location.hostname.includes('discordsays.com') ||
+      window.location.hostname.includes('discord.com') ||
+      !!window.location.pathname.match(/^\/channels/) ||
+      new URLSearchParams(window.location.search).has('frame_id'));
+
+  const discordAltVideoSrc = isDiscordActivity
+    ? '/.proxy/storage/storage/v1/object/public/sigils/landing-page-video-desktop.mp4'
+    : null;
+
   const needsAuth = !user;
+
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -106,6 +118,7 @@ const Index = () => {
             src={sigilUrl('landing-page-video-desktop.mp4')}
             type="video/mp4"
           />
+          {discordAltVideoSrc && <source src={discordAltVideoSrc} type="video/mp4" />}
         </video>
         <div className="absolute inset-0 bg-[#0f0d0b]/70" />
       </div>
