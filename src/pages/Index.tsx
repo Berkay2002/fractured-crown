@@ -149,6 +149,20 @@ const Index = () => {
         }}
       />
 
+      {/* How to Play — top-right corner */}
+      <div className="absolute right-4 top-4 z-20 sm:right-6 sm:top-6">
+        <HowToPlayModal
+          trigger={
+            <button
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#c9a84c]/30 bg-[#0f0d0b]/60 text-[#c9a84c]/70 backdrop-blur-sm transition-all duration-300 hover:border-[#c9a84c]/60 hover:text-[#c9a84c] hover:shadow-[0_0_12px_rgba(201,168,76,0.15)]"
+              aria-label="How to Play"
+            >
+              <BookOpen className="h-4 w-4" />
+            </button>
+          }
+        />
+      </div>
+
       {/* Center content */}
       <div className="absolute inset-0 z-10 flex items-center justify-center">
         <div className="flex flex-col items-center gap-6 px-4 max-w-xs w-full">
