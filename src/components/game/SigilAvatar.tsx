@@ -7,7 +7,7 @@ export type SigilName = (typeof SIGILS)[number];
 
 /** Resolves sigil name → storage URL */
 export const sigilImageUrl = (sigil: string): string =>
-  `${SIGIL_BASE}/${sigil}.webp`;
+  sigilUrl(`${sigil}.webp`);
 
 interface SigilAvatarProps {
   sigil: string;

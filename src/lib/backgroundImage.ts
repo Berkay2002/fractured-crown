@@ -1,7 +1,7 @@
-const SUPABASE_STORAGE = 'https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/public/sigils';
+import { sigilUrl } from '@/lib/storageUrl';
 
 export const bgUrl = (filename: string): string => {
-  return `${SUPABASE_STORAGE}/${filename}`;
+  return sigilUrl(filename);
 };
 
 export const BACKGROUNDS = {
