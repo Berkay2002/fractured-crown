@@ -415,6 +415,11 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
         <span>·</span>
         <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
       </footer>
+
+      {/* Live cursor presence overlays */}
+      {Object.values(cursors).map((cursor) => (
+        <LobbyPresenceCursor key={cursor.playerId} cursor={cursor} />
+      ))}
     </div>
   );
 };
