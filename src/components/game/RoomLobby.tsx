@@ -240,7 +240,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
   ) : null;
 
   const playerGrid = (
-    <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3">
+    <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3">
       {players.map((player, idx) => {
         const isPlayerHost = room.host_player_id === player.id;
         const isOnline = onlinePlayers.has(player.id);

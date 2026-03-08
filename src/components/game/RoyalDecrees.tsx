@@ -202,7 +202,7 @@ export default function RoyalDecrees({ roomId, settings, isHost }: RoyalDecreesP
           {SETTING_ROWS.map((row) => {
             const checked = !!settings[row.key];
             return (
-              <div key={row.key} className="px-4 py-3 lg:py-4">
+              <div key={row.key} className="px-4 py-3 md:py-4 lg:py-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-display text-sm tracking-wide text-foreground">
