@@ -190,9 +190,29 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       )}
 
       {!isHost && currentPlayerId && (
-        <p className="italic text-muted-foreground font-body">
-          Waiting for the host to begin...
-        </p>
+        <div className="flex flex-col items-center gap-3">
+          <p className="italic text-muted-foreground font-body">
+            Waiting for the host to begin...
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                await supabase
+                  .from('players')
+                  .delete()
+                  .eq('room_id', room.id)
+                  .eq('user_id', user.id);
+              }
+              navigate('/');
+            }}
+            className="border-border font-display text-xs tracking-wider text-muted-foreground hover:text-foreground"
+          >
+            Leave Room
+          </Button>
+        </div>
       )}
 
       {!currentPlayerId && (
