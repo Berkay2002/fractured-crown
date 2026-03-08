@@ -6,8 +6,9 @@ interface SigilProps {
   size?: number;
 }
 
-export const sigils = ['crown', 'sword', 'shield', 'wolf', 'raven', 'rose', 'flame', 'anchor'] as const;
-export type SigilType = (typeof sigils)[number];
+// Re-export canonical list from SigilAvatar for backward compat
+export { SIGILS as sigils } from './SigilAvatar';
+export type { SigilName as SigilType } from './SigilAvatar';
 
 const CrownSigil = ({ className, size = 24 }: SigilProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -76,7 +77,23 @@ const AnchorSigil = ({ className, size = 24 }: SigilProps) => (
   </svg>
 );
 
-const sigilComponents: Record<SigilType, React.FC<SigilProps>> = {
+const DragonSigil = ({ className, size = 24 }: SigilProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M6 18c0-3 2-5 4-6-1-2-1-5 1-7 1 2 3 3 5 3 1-2 3-3 5-3-1 3-1 5 0 7l-3 3c-1 1-3 2-5 3-3-1-5-2-7 0z" />
+    <circle cx="14" cy="10" r="1" fill="currentColor" />
+  </svg>
+);
+
+const SkullSigil = ({ className, size = 24 }: SigilProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M12 2C8 2 5 5 5 9c0 2.5 1 4.5 3 6v3h8v-3c2-1.5 3-3.5 3-6 0-4-3-7-7-7z" />
+    <circle cx="9.5" cy="9" r="1.5" />
+    <circle cx="14.5" cy="9" r="1.5" />
+    <path d="M10 18v2M14 18v2" />
+  </svg>
+);
+
+const sigilComponents: Record<string, React.FC<SigilProps>> = {
   crown: CrownSigil,
   sword: SwordSigil,
   shield: ShieldSigil,
@@ -85,10 +102,12 @@ const sigilComponents: Record<SigilType, React.FC<SigilProps>> = {
   rose: RoseSigil,
   flame: FlameSigil,
   anchor: AnchorSigil,
+  dragon: DragonSigil,
+  skull: SkullSigil,
 };
 
 export const SigilIcon = ({ sigil, className, size }: { sigil: string } & SigilProps) => {
-  const Component = sigilComponents[sigil as SigilType] || CrownSigil;
+  const Component = sigilComponents[sigil] || CrownSigil;
   return <Component className={className} size={size} />;
 };
 

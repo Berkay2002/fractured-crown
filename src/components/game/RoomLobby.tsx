@@ -1,13 +1,12 @@
 import { Button } from '@/components/ui/button';
-import { Crown, Copy, Link as LinkIcon, Users, Wifi, WifiOff } from 'lucide-react';
+import { Crown, Copy, Link as LinkIcon, Users, Wifi, WifiOff, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import HowToPlayModal from './HowToPlayModal';
-import { SigilIcon, sigils } from './SigilIcons';
-import SigilAvatar, { sigilImageUrl } from './SigilAvatar';
+import SigilAvatar, { SIGILS, sigilImageUrl } from './SigilAvatar';
 
 interface Player {
   id: number;
@@ -45,6 +44,13 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
 
   const myPlayer = players.find(p => p.id === currentPlayerId);
   const mySigil = selectedSigil || myPlayer?.sigil || 'crown';
+
+  // Build set of sigils taken by OTHER players in this room
+  const takenSigils = new Set(
+    players
+      .filter(p => p.id !== currentPlayerId)
+      .map(p => p.sigil || 'crown')
+  );
 
   const copyCode = () => {
     navigator.clipboard.writeText(room.room_code);
@@ -84,6 +90,8 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
 
   const handleSelectSigil = async (sigil: string) => {
     if (!currentPlayerId) return;
+    if (takenSigils.has(sigil)) return; // already taken
+    const previousSigil = selectedSigil;
     setSelectedSigil(sigil);
     const { error } = await supabase
       .from('players')
@@ -91,8 +99,10 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       .eq('id', currentPlayerId);
     if (error) {
       console.error('Failed to update sigil:', error);
-      setSelectedSigil(null);
-      toast({ title: 'Error', description: 'Failed to update sigil', variant: 'destructive' });
+      setSelectedSigil(previousSigil);
+      toast({ title: 'Error', description: error.message.includes('unique_sigil_per_room')
+        ? 'That sigil was just claimed by another player!'
+        : 'Failed to update sigil', variant: 'destructive' });
     }
   };
 
@@ -156,26 +166,35 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
             Choose Your Sigil
           </p>
           <div className="flex justify-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            {sigils.map(sigil => {
+            {SIGILS.map(sigil => {
               const isSelected = mySigil === sigil;
+              const isTaken = takenSigils.has(sigil);
               return (
                 <button
                   key={sigil}
                   onClick={() => handleSelectSigil(sigil)}
-                  className={`flex flex-col items-center gap-1 rounded-lg border-2 p-2 transition-all flex-shrink-0 ${
+                  disabled={isTaken}
+                  className={`relative flex flex-col items-center gap-1 rounded-lg border-2 p-2 transition-all flex-shrink-0 ${
                     isSelected
                       ? 'border-primary bg-primary/10 shadow-[0_0_10px_hsl(var(--primary)/0.3)]'
+                      : isTaken
+                      ? 'border-border bg-card opacity-30 cursor-not-allowed'
                       : 'border-border bg-card hover:border-muted-foreground/40'
                   }`}
-                  title={sigil}
+                  title={isTaken ? `${sigil} — taken` : sigil}
                 >
-                  <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full">
+                  <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full">
                     <img
                       src={sigilImageUrl(sigil)}
                       alt={sigil}
                       className="h-10 w-10 rounded-full object-cover"
                       onError={(e) => { e.currentTarget.style.display = 'none'; }}
                     />
+                    {isTaken && (
+                      <div className="absolute inset-0 flex items-center justify-center rounded-full bg-background/60">
+                        <Lock className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
                   </div>
                   <span className={`font-display text-[9px] uppercase tracking-wider ${
                     isSelected ? 'text-primary' : 'text-muted-foreground/60'
@@ -213,12 +232,6 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           const canTransferTo = showTransferUI && !isPlayerHost && !transferringTo;
           const isMe = player.id === currentPlayerId;
           const playerSigil = isMe && selectedSigil ? selectedSigil : (player.sigil || 'crown');
-          const initials = player.display_name
-            .split(' ')
-            .map(w => w[0])
-            .join('')
-            .toUpperCase()
-            .slice(0, 2);
 
           return (
             <motion.div
@@ -264,9 +277,8 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
                 <SigilAvatar sigil={playerSigil} displayName={player.display_name} size="h-12 w-12" />
               </div>
 
-              {/* Name + sigil */}
+              {/* Name */}
               <div className="mt-1 flex items-center gap-1">
-                <SigilIcon sigil={playerSigil} size={14} className="text-muted-foreground/60 flex-shrink-0" />
                 <span className="text-center font-body text-sm text-foreground truncate max-w-[80px]">
                   {player.display_name}
                 </span>

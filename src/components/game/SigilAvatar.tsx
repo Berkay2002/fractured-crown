@@ -2,8 +2,15 @@ import { useState } from 'react';
 
 const SIGIL_BASE = 'https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/public/sigils';
 
-export const sigilImageUrl = (sigil: string) =>
-  `${SIGIL_BASE}/${sigil}.webp`;
+/** All available sigils — the canonical list used everywhere */
+export const SIGILS = ['crown', 'sword', 'shield', 'wolf', 'raven', 'rose', 'flame', 'anchor', 'dragon', 'skull'] as const;
+export type SigilName = (typeof SIGILS)[number];
+
+/** Resolves sigil name → storage URL (handles flame→fire mapping) */
+export const sigilImageUrl = (sigil: string): string => {
+  const filename = sigil === 'flame' ? 'fire' : sigil;
+  return `${SIGIL_BASE}/${filename}.webp`;
+};
 
 interface SigilAvatarProps {
   sigil: string;
@@ -34,7 +41,7 @@ const SigilAvatar = ({ sigil, displayName, size = 'h-11 w-11', className = '' }:
     <img
       src={sigilImageUrl(sigil ?? 'crown')}
       alt={sigil ?? 'crown'}
-      className={`${size} rounded-full object-cover ring-1 ring-[hsl(45,50%,54%)]/40 ${className}`}
+      className={`${size} rounded-full object-cover ring-1 ring-primary/40 ${className}`}
       onError={() => setFailed(true)}
     />
   );
