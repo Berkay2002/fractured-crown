@@ -440,7 +440,7 @@ const GameBoard = ({
           </div>
 
           {/* ── CENTER STAGE: Council + Action Panel ── */}
-          <div className="flex-1 flex flex-col items-center justify-start gap-6 p-6 overflow-y-auto">
+          <div className="flex-1 flex flex-col items-center justify-center gap-6 p-6 overflow-y-auto">
             <div className="w-full max-w-2xl">
               <h2 className="mb-4 text-center font-display text-xs uppercase tracking-widest text-muted-foreground">
                 The Council
