@@ -169,11 +169,12 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
                   }`}
                   title={sigil}
                 >
-                  <div className="flex h-10 w-10 items-center justify-center">
-                    <SigilIcon
-                      sigil={sigil}
-                      size={28}
-                      className={isSelected ? 'text-primary' : 'text-muted-foreground'}
+                  <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full">
+                    <img
+                      src={sigilImageUrl(sigil)}
+                      alt={sigil}
+                      className="h-10 w-10 rounded-full object-cover"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
                     />
                   </div>
                   <span className={`font-display text-[9px] uppercase tracking-wider ${
