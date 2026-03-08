@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,15 +9,31 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Crown, Users } from 'lucide-react';
 
+const HCAPTCHA_SITE_KEY = 'b2ea555e-c512-4ce2-9710-5b5abb96da08';
+
 type Mode = 'landing' | 'create' | 'join';
 
 const Index = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, signInAnonymous } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>('landing');
   const [displayName, setDisplayName] = useState('');
   const [roomCode, setRoomCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [authenticating, setAuthenticating] = useState(false);
+  const captchaRef = useRef<HCaptcha>(null);
+
+  const handleCaptchaVerify = async (token: string) => {
+    setAuthenticating(true);
+    try {
+      await signInAnonymous(token);
+    } catch {
+      toast({ title: 'Error', description: 'Failed to verify. Please try again.', variant: 'destructive' });
+      captchaRef.current?.resetCaptcha();
+    } finally {
+      setAuthenticating(false);
+    }
+  };
 
   const handleCreate = async () => {
     if (!displayName.trim() || !user) return;
@@ -30,7 +47,7 @@ const Index = () => {
         return;
       }
       navigate(`/room/${data.room_code}`);
-    } catch (e) {
+    } catch {
       toast({ title: 'Error', description: 'Something went wrong', variant: 'destructive' });
     } finally {
       setSubmitting(false);
@@ -49,7 +66,7 @@ const Index = () => {
         return;
       }
       navigate(`/room/${roomCode.trim().toUpperCase()}`);
-    } catch (e) {
+    } catch {
       toast({ title: 'Error', description: 'Something went wrong', variant: 'destructive' });
     } finally {
       setSubmitting(false);
@@ -65,6 +82,9 @@ const Index = () => {
       </div>
     );
   }
+
+  // Show captcha gate if user is not yet authenticated
+  const needsCaptcha = !user;
 
   return (
     <div className="noise-overlay relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background">
@@ -107,87 +127,103 @@ const Index = () => {
           transition={{ delay: 0.8, duration: 0.6 }}
           className="w-full max-w-sm"
         >
-          {mode === 'landing' && (
-            <div className="flex flex-col gap-4">
-              <Button
-                onClick={() => setMode('create')}
-                className="gold-shimmer h-14 font-display text-lg tracking-wider text-primary-foreground"
-                size="lg"
-              >
-                <Crown className="mr-2 h-5 w-5" />
-                Create Game
-              </Button>
-              <Button
-                onClick={() => setMode('join')}
-                variant="outline"
-                className="h-14 border-primary/30 font-display text-lg tracking-wider text-primary hover:bg-primary/10"
-                size="lg"
-              >
-                <Users className="mr-2 h-5 w-5" />
-                Join Game
-              </Button>
+          {needsCaptcha ? (
+            <div className="flex flex-col items-center gap-4">
+              <p className="font-body text-sm text-muted-foreground">
+                {authenticating ? 'Verifying...' : 'Prove you are worthy to enter'}
+              </p>
+              <HCaptcha
+                ref={captchaRef}
+                sitekey={HCAPTCHA_SITE_KEY}
+                theme="dark"
+                onVerify={handleCaptchaVerify}
+              />
             </div>
-          )}
+          ) : (
+            <>
+              {mode === 'landing' && (
+                <div className="flex flex-col gap-4">
+                  <Button
+                    onClick={() => setMode('create')}
+                    className="gold-shimmer h-14 font-display text-lg tracking-wider text-primary-foreground"
+                    size="lg"
+                  >
+                    <Crown className="mr-2 h-5 w-5" />
+                    Create Game
+                  </Button>
+                  <Button
+                    onClick={() => setMode('join')}
+                    variant="outline"
+                    className="h-14 border-primary/30 font-display text-lg tracking-wider text-primary hover:bg-primary/10"
+                    size="lg"
+                  >
+                    <Users className="mr-2 h-5 w-5" />
+                    Join Game
+                  </Button>
+                </div>
+              )}
 
-          {mode === 'create' && (
-            <div className="flex flex-col gap-4">
-              <Input
-                placeholder="Your name, herald..."
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                maxLength={30}
-                className="h-12 border-border bg-card font-body text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
-                autoFocus
-              />
-              <Button
-                onClick={handleCreate}
-                disabled={!displayName.trim() || submitting}
-                className="gold-shimmer h-12 font-display tracking-wider text-primary-foreground"
-              >
-                {submitting ? 'Forging...' : 'Forge the Council'}
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => setMode('landing')}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                ← Back
-              </Button>
-            </div>
-          )}
+              {mode === 'create' && (
+                <div className="flex flex-col gap-4">
+                  <Input
+                    placeholder="Your name, herald..."
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    maxLength={30}
+                    className="h-12 border-border bg-card font-body text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
+                    autoFocus
+                  />
+                  <Button
+                    onClick={handleCreate}
+                    disabled={!displayName.trim() || submitting}
+                    className="gold-shimmer h-12 font-display tracking-wider text-primary-foreground"
+                  >
+                    {submitting ? 'Forging...' : 'Forge the Council'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setMode('landing')}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    ← Back
+                  </Button>
+                </div>
+              )}
 
-          {mode === 'join' && (
-            <div className="flex flex-col gap-4">
-              <Input
-                placeholder="Your name, herald..."
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                maxLength={30}
-                className="h-12 border-border bg-card font-body text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
-                autoFocus
-              />
-              <Input
-                placeholder="Room code (e.g. KNGHTX)"
-                value={roomCode}
-                onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-                maxLength={6}
-                className="h-12 border-border bg-card font-mono text-center text-xl tracking-[0.3em] text-primary placeholder:text-muted-foreground placeholder:tracking-normal placeholder:text-sm focus-visible:ring-primary"
-              />
-              <Button
-                onClick={handleJoin}
-                disabled={!displayName.trim() || roomCode.trim().length !== 6 || submitting}
-                className="gold-shimmer h-12 font-display tracking-wider text-primary-foreground"
-              >
-                {submitting ? 'Entering...' : 'Enter the Council'}
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => setMode('landing')}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                ← Back
-              </Button>
-            </div>
+              {mode === 'join' && (
+                <div className="flex flex-col gap-4">
+                  <Input
+                    placeholder="Your name, herald..."
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    maxLength={30}
+                    className="h-12 border-border bg-card font-body text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
+                    autoFocus
+                  />
+                  <Input
+                    placeholder="Room code (e.g. KNGHTX)"
+                    value={roomCode}
+                    onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                    maxLength={6}
+                    className="h-12 border-border bg-card font-mono text-center text-xl tracking-[0.3em] text-primary placeholder:text-muted-foreground placeholder:tracking-normal placeholder:text-sm focus-visible:ring-primary"
+                  />
+                  <Button
+                    onClick={handleJoin}
+                    disabled={!displayName.trim() || roomCode.trim().length !== 6 || submitting}
+                    className="gold-shimmer h-12 font-display tracking-wider text-primary-foreground"
+                  >
+                    {submitting ? 'Entering...' : 'Enter the Council'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setMode('landing')}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    ← Back
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </motion.div>
       </motion.div>
