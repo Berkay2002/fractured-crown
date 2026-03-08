@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send } from 'lucide-react';
-import SigilAvatar, { sigilImageUrl } from './SigilAvatar';
+import { sigilImageUrl } from './SigilAvatar';
 
 interface Player {
   id: number;
@@ -12,25 +10,24 @@ interface Player {
   sigil?: string;
 }
 
-interface LobbyMessage {
+export interface LobbyMessage {
   id: number;
   room_id: number;
   player_id: number;
   content: string;
   created_at: string;
   phase: string;
-  players?: { display_name: string; sigil: string } | null;
 }
 
 interface LobbyChatProps {
-  roomId: number;
+  messages: LobbyMessage[];
   currentPlayerId: number | null;
   players: Player[];
+  onSendMessage: (content: string) => Promise<void>;
   className?: string;
 }
 
-const LobbyChat = ({ roomId, currentPlayerId, players, className }: LobbyChatProps) => {
-  const [messages, setMessages] = useState<LobbyMessage[]>([]);
+const LobbyChat = ({ messages, currentPlayerId, players, onSendMessage, className }: LobbyChatProps) => {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -38,53 +35,6 @@ const LobbyChat = ({ roomId, currentPlayerId, players, className }: LobbyChatPro
   const scrollToBottom = useCallback(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
-
-  // Fetch existing lobby messages
-  useEffect(() => {
-    const fetch = async () => {
-      const { data } = await supabase
-        .from('chat_messages')
-        .select('*, players(display_name, sigil)')
-        .eq('room_id', roomId)
-        .eq('phase', 'lobby')
-        .order('created_at', { ascending: true });
-      if (data) setMessages(data as unknown as LobbyMessage[]);
-    };
-    fetch();
-  }, [roomId]);
-
-  // Subscribe to new lobby messages — refetch to get joined player data
-  useEffect(() => {
-    const channel = supabase
-      .channel(`lobby-chat:${roomId}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `room_id=eq.${roomId}` },
-        async (payload) => {
-          const msg = payload.new as LobbyMessage;
-          if (msg.phase !== 'lobby') return;
-
-          // Refetch the inserted message with player join to get display_name/sigil
-          const { data } = await supabase
-            .from('chat_messages')
-            .select('*, players(display_name, sigil)')
-            .eq('id', msg.id)
-            .single();
-
-          if (data) {
-            setMessages(prev => {
-              // Remove optimistic duplicate
-              const filtered = prev.filter(m => !(m.id < 0 && m.player_id === (data as any).player_id && m.content === (data as any).content));
-              if (filtered.some(m => m.id === (data as any).id)) return filtered;
-              return [...filtered, data as unknown as LobbyMessage];
-            });
-          }
-        }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [roomId]);
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -97,23 +47,7 @@ const LobbyChat = ({ roomId, currentPlayerId, players, className }: LobbyChatPro
     setInput('');
     setSending(true);
 
-    // Optimistic
-    const optimistic: LobbyMessage = {
-      id: -Date.now(),
-      room_id: roomId,
-      player_id: currentPlayerId,
-      content,
-      created_at: new Date().toISOString(),
-      phase: 'lobby',
-    };
-    setMessages(prev => [...prev, optimistic]);
-
-    await supabase.from('chat_messages').insert({
-      room_id: roomId,
-      player_id: currentPlayerId,
-      content,
-      phase: 'lobby',
-    });
+    await onSendMessage(content);
     setSending(false);
   };
 
@@ -136,14 +70,14 @@ const LobbyChat = ({ roomId, currentPlayerId, players, className }: LobbyChatPro
             </p>
           )}
           {messages.map((msg) => {
-            const player = msg.players || getPlayerInfo(msg.player_id);
-            const displayName = player ? ('display_name' in player ? player.display_name : '') : 'Unknown';
-            const sigil = player ? ('sigil' in player ? player.sigil : 'crown') : 'crown';
+            const player = getPlayerInfo(msg.player_id);
+            const displayName = player?.display_name || 'Unknown';
+            const sigil = player?.sigil || 'crown';
             const isOwn = msg.player_id === currentPlayerId;
             return (
               <div key={msg.id} className="flex items-start gap-2.5">
                 <img
-                  src={sigilImageUrl(sigil || 'crown')}
+                  src={sigilImageUrl(sigil)}
                   alt=""
                   className="mt-0.5 h-7 w-7 rounded-full object-cover flex-shrink-0 border border-border"
                 />

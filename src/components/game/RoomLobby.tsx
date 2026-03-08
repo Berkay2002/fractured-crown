@@ -558,9 +558,10 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessage
 
   const lobbyChat = (
     <LobbyChat
-      roomId={room.id}
       currentPlayerId={currentPlayerId}
       players={players}
+      messages={lobbyMessages}
+      onSendMessage={onSendLobbyMessage}
     />
   );
 
