@@ -83,10 +83,16 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
 
   const handleSelectSigil = async (sigil: string) => {
     if (!currentPlayerId) return;
-    await supabase
+    setSelectedSigil(sigil);
+    const { error } = await supabase
       .from('players')
-      .update({ sigil } as any)
+      .update({ sigil })
       .eq('id', currentPlayerId);
+    if (error) {
+      console.error('Failed to update sigil:', error);
+      setSelectedSigil(null);
+      toast({ title: 'Error', description: 'Failed to update sigil', variant: 'destructive' });
+    }
   };
 
   return (
