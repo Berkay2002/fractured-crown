@@ -2,7 +2,10 @@ import { bgUrl, BACKGROUNDS } from '@/lib/backgroundImage';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Crown, Swords, Skull, Shield, Scroll as ScrollIcon, Vote, Eye, Zap, BookOpen } from 'lucide-react';
+import { Crown, Swords, Scroll as ScrollIcon, Vote, Eye, Zap, BookOpen } from 'lucide-react';
+import roleLoyalistImg from '@/assets/role-loyalist.png';
+import roleTraitorImg from '@/assets/role-traitor.png';
+import roleUsurperImg from '@/assets/role-usurper.png';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
@@ -58,10 +61,10 @@ const winMessages: Record<string, { title: string; subtitle: string; color: stri
   },
 };
 
-const roleIcons = {
-  loyalist: Crown,
-  traitor: Swords,
-  usurper: Skull,
+const roleImages = {
+  loyalist: roleLoyalistImg,
+  traitor: roleTraitorImg,
+  usurper: roleUsurperImg,
 };
 
 const roleColors = {
@@ -88,10 +91,10 @@ const CHRONICLE_EVENT_TYPES = new Set([
 const eventIcon = (eventType: string) => {
   if (eventType.includes('vote')) return Vote;
   if (eventType.includes('policy') || eventType.includes('edict') || eventType.includes('chaos')) return ScrollIcon;
-  if (eventType.includes('execution')) return Skull;
+  if (eventType.includes('execution')) return Swords;
   if (eventType.includes('investigation') || eventType.includes('peek')) return Eye;
   if (eventType.includes('election')) return Zap;
-  if (eventType.includes('game_over')) return Shield;
+  if (eventType.includes('game_over')) return Crown;
   return ScrollIcon;
 };
 
@@ -223,7 +226,12 @@ const GameOverScreen = ({ gameState, players, events, allRoles, isHost, room }: 
           transition={{ duration: 0.8, ease: 'easeOut' }}
           className="text-center"
         >
-          <Shield className={`mx-auto mb-4 h-16 w-16 ${msg.color}`} />
+          {isLoyalistWin
+            ? <img src={roleLoyalistImg} alt="Victory" className="mx-auto mb-4 h-20 w-20 object-contain" />
+            : winCondition === 'usurper_crowned'
+            ? <img src={roleUsurperImg} alt="Defeat" className="mx-auto mb-4 h-20 w-20 object-contain" />
+            : <img src={roleTraitorImg} alt="Defeat" className="mx-auto mb-4 h-20 w-20 object-contain" />
+          }
           <h1 className={`font-display text-3xl font-bold tracking-wider ${msg.color} sm:text-4xl`}>
             {msg.title}
           </h1>
@@ -261,21 +269,21 @@ const GameOverScreen = ({ gameState, players, events, allRoles, isHost, room }: 
           </h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {reveals.map(({ player, role }, idx) => {
-              const Icon = roleIcons[role];
-              const isUsurper = role === 'usurper';
-              return (
-                <motion.div
-                  key={player.id}
-                  initial={{ rotateY: 180, opacity: 0 }}
-                  animate={{ rotateY: 0, opacity: 1 }}
-                  transition={{ delay: idx * 0.3, duration: 0.6 }}
-                  className={`card-flip flex flex-col items-center gap-2 rounded-lg border-2 bg-card p-4 ${roleColors[role]} ${
-                    isUsurper ? 'shadow-[0_0_16px_rgba(147,51,234,0.3)]' : ''
-                  }`}
-                >
-                  <div className="relative flex h-12 w-12 items-center justify-center rounded-full border-2 border-current overflow-hidden">
-                    <SigilAvatar sigil={player.sigil ?? 'crown'} displayName={player.display_name} size="h-12 w-12" />
-                    <Icon className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-card p-0.5" />
+               const roleImg = roleImages[role];
+                const isUsurper = role === 'usurper';
+                return (
+                  <motion.div
+                    key={player.id}
+                    initial={{ rotateY: 180, opacity: 0 }}
+                    animate={{ rotateY: 0, opacity: 1 }}
+                    transition={{ delay: idx * 0.3, duration: 0.6 }}
+                    className={`card-flip flex flex-col items-center gap-2 rounded-lg border-2 bg-card p-4 ${roleColors[role]} ${
+                      isUsurper ? 'shadow-[0_0_16px_rgba(147,51,234,0.3)]' : ''
+                    }`}
+                  >
+                    <div className="relative flex h-12 w-12 items-center justify-center rounded-full border-2 border-current overflow-hidden">
+                      <SigilAvatar sigil={player.sigil ?? 'crown'} displayName={player.display_name} size="h-12 w-12" />
+                      <img src={roleImg} alt={role} className="absolute bottom-0 right-0 h-5 w-5 rounded-full bg-card object-contain" />
                   </div>
                   <span className="font-display text-sm font-semibold">
                     {player.display_name}

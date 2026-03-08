@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Crown, Swords, Skull, Shield, Vote, Scroll, Eye, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Crown, Swords, Vote, Scroll, Eye, Search } from 'lucide-react';
+import roleLoyalistImg from '@/assets/role-loyalist.png';
+import roleTraitorImg from '@/assets/role-traitor.png';
+import roleUsurperImg from '@/assets/role-usurper.png';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import EdictTracker from './EdictTracker';
@@ -50,10 +53,10 @@ const useSteps = (): TutorialStep[] => {
         <div className="flex flex-col items-center gap-6">
           <div className="grid grid-cols-3 gap-3 sm:gap-4">
             {([
-              { icon: Crown, label: 'Loyalist', color: 'text-primary', border: 'border-primary/60', bg: 'bg-primary/5' },
-              { icon: Swords, label: 'Traitor', color: 'text-accent-foreground', border: 'border-accent/60', bg: 'bg-accent/5' },
-              { icon: Skull, label: 'Usurper', color: 'text-purple-400', border: 'border-purple-600/60', bg: 'bg-purple-900/10' },
-            ] as const).map(({ icon: Icon, label, color, border, bg }, idx) => (
+              { img: roleLoyalistImg, label: 'Loyalist', color: 'text-primary', border: 'border-primary/60', bg: 'bg-primary/5' },
+              { img: roleTraitorImg, label: 'Traitor', color: 'text-accent-foreground', border: 'border-accent/60', bg: 'bg-accent/5' },
+              { img: roleUsurperImg, label: 'Usurper', color: 'text-purple-400', border: 'border-purple-600/60', bg: 'bg-purple-900/10' },
+            ] as const).map(({ img, label, color, border, bg }, idx) => (
               <motion.div
                 key={label}
                 initial={{ opacity: 0, y: 16 }}
@@ -61,7 +64,7 @@ const useSteps = (): TutorialStep[] => {
                 transition={{ delay: 0.15 * idx, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 className={`flex flex-col items-center gap-2.5 rounded-lg border ${border} ${bg} p-4 sm:p-5`}
               >
-                <Icon className={`h-8 w-8 sm:h-10 sm:w-10 ${color}`} />
+                <img src={img} alt={label} className="h-16 w-16 sm:h-20 sm:w-20 object-contain" />
                 <span className={`font-display text-[10px] sm:text-xs uppercase tracking-widest ${color}`}>{label}</span>
               </motion.div>
             ))}
@@ -332,7 +335,7 @@ const useSteps = (): TutorialStep[] => {
     /* 10 — Investigate & Execute */
     {
       title: 'Investigate & Execute',
-      icon: Skull,
+      icon: Search,
       description: 'Other executive powers let the Herald investigate loyalty or execute a player.',
       render: () => (
         <div className="flex flex-col gap-5">
@@ -345,7 +348,7 @@ const useSteps = (): TutorialStep[] => {
               </p>
             </div>
             <div className="flex flex-col items-center gap-2 rounded-lg border border-accent/20 bg-accent/5 p-3 sm:p-4">
-              <Skull className="h-6 w-6 text-accent-foreground" />
+              <img src={roleUsurperImg} alt="Execute" className="h-10 w-10 object-contain" />
               <span className="font-display text-[10px] uppercase tracking-widest text-accent-foreground">Execute</span>
               <p className="text-center font-body text-[11px] text-muted-foreground leading-snug">
                 Eliminate a player permanently. Execute the Usurper = instant Loyalist win.
@@ -393,7 +396,7 @@ const useSteps = (): TutorialStep[] => {
     /* 12 — Victory & Defeat */
     {
       title: 'Victory & Defeat',
-      icon: Shield,
+      icon: Crown,
       description: 'Four paths to ending the game. Know them — your strategy depends on it.',
       render: () => (
         <div className="flex flex-col gap-5">
@@ -407,16 +410,16 @@ const useSteps = (): TutorialStep[] => {
               <p className="mt-2 font-display text-[10px] uppercase tracking-widest text-accent-foreground">6 Shadow Edicts</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+           <div className="grid grid-cols-2 gap-3">
             <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 p-3">
-              <Skull className="h-5 w-5 flex-shrink-0 text-primary" />
+              <img src={roleUsurperImg} alt="Usurper Executed" className="h-8 w-8 flex-shrink-0 object-contain" />
               <div>
                 <p className="font-display text-[10px] uppercase tracking-widest text-primary">Usurper Executed</p>
                 <p className="font-body text-[11px] text-muted-foreground">Loyalists win instantly</p>
               </div>
             </div>
             <div className="flex items-center gap-3 rounded-lg border border-accent/20 bg-accent/5 p-3">
-              <Crown className="h-5 w-5 flex-shrink-0 text-accent-foreground" />
+              <img src={roleUsurperImg} alt="Usurper Crowned" className="h-8 w-8 flex-shrink-0 object-contain" />
               <div>
                 <p className="font-display text-[10px] uppercase tracking-widest text-accent-foreground">Usurper Crowned</p>
                 <p className="font-body text-[11px] text-muted-foreground">After 3+ Shadow Edicts</p>
