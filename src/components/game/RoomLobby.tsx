@@ -12,7 +12,7 @@ import SigilAvatar, { SIGILS, sigilImageUrl } from './SigilAvatar';
 import { useLobbyPresence } from '@/hooks/useLobbyPresence';
 import { LobbyPresenceCursor } from '@/components/lobby/LobbyPresenceCursor';
 import RoyalDecrees, { type GameSettings, parseSettings } from './RoyalDecrees';
-import LobbyChat from './LobbyChat';
+import LobbyChat, { type LobbyMessage } from './LobbyChat';
 
 interface Player {
   id: number;
@@ -39,11 +39,13 @@ interface RoomLobbyProps {
   players: Player[];
   currentPlayerId: number | null;
   onlinePlayers: Set<number>;
+  lobbyMessages: LobbyMessage[];
+  onSendLobbyMessage: (content: string) => Promise<void>;
 }
 
 const MAX_SLOTS = 10;
 
-const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyProps) => {
+const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers, lobbyMessages, onSendLobbyMessage }: RoomLobbyProps) => {
   const navigate = useNavigate();
   const [starting, setStarting] = useState(false);
   const [selectedSigil, setSelectedSigil] = useState<string | null>(null);
