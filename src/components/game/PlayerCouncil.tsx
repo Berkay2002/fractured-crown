@@ -59,11 +59,11 @@ const PlayerCouncil = ({
                 transition={{ delay: idx * 0.05 }}
                 disabled={!isSelectable && !onPlayerClick}
                 onClick={() => onPlayerClick?.(player.id)}
-                className={`relative flex w-full flex-col items-center gap-0.5 md:gap-1 lg:gap-1.5 rounded-lg border p-1.5 md:p-2 lg:p-3 transition-all ${
+                className={`relative flex w-full flex-col items-center gap-0.5 md:gap-1 lg:gap-2 rounded-lg border p-1.5 md:p-2 lg:p-3 transition-all lg:w-28 ${
                   !player.is_alive
                     ? 'border-accent/20 bg-card/40'
                     : isHerald
-                    ? 'border-primary bg-primary/5 shadow-[0_0_12px_hsl(var(--primary)/0.2)] herald-glow'
+                    ? 'border-primary bg-primary/5 shadow-[0_0_12px_hsl(var(--primary)/0.2)] herald-glow lg:ring-2 lg:ring-primary lg:ring-offset-1 lg:ring-offset-background'
                     : isLC
                     ? 'border-accent/60 bg-accent/5 shadow-[0_0_12px_hsl(var(--accent)/0.2)] lc-glow'
                     : isSelectable
