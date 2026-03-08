@@ -44,6 +44,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
   const [confirmingTransfer, setConfirmingTransfer] = useState<number | null>(null);
   const isHost = currentPlayerId && room.host_player_id === currentPlayerId;
   const canStart = isHost && players.length >= 5 && players.length <= 10;
+  const gameSettings = parseSettings(room.settings);
   const showTransferUI = isHost && players.length > 1;
 
   const myPlayer = players.find(p => p.id === currentPlayerId);
