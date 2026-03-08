@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
 import { useSoundContext } from '@/contexts/SoundContext';
 import type { Tables } from '@/integrations/supabase/types';
+import SigilAvatar from './SigilAvatar';
 
 type ChatMessage = Tables<'chat_messages'>;
 type Player = Tables<'players'>;
@@ -43,8 +44,8 @@ const ChatPanel = ({ messages, players, sendChat }: ChatPanelProps) => {
     }
   };
 
-  const playerName = (playerId: number) =>
-    players.find(p => p.id === playerId)?.display_name ?? 'Unknown';
+  const findPlayer = (playerId: number) => players.find(p => p.id === playerId);
+  const playerName = (playerId: number) => findPlayer(playerId)?.display_name ?? 'Unknown';
 
   return (
     <div className="flex flex-col rounded-lg border border-border bg-card">
@@ -58,14 +59,22 @@ const ChatPanel = ({ messages, players, sendChat }: ChatPanelProps) => {
               Silence fills the chamber...
             </p>
           )}
-          {messages.map((msg) => (
-            <div key={msg.id} className="px-1 py-0.5">
-              <span className="font-display text-xs font-semibold text-primary">
-                {playerName(msg.player_id)}:
-              </span>{' '}
-              <span className="font-body text-xs text-foreground/80">{msg.content}</span>
-            </div>
-          ))}
+          {messages.map((msg) => {
+            const sender = findPlayer(msg.player_id);
+            return (
+              <div key={msg.id} className="flex items-start gap-1.5 px-1 py-0.5">
+                <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full overflow-hidden bg-muted">
+                  <SigilAvatar sigil={sender?.sigil ?? 'crown'} displayName={sender?.display_name ?? '?'} size="h-5 w-5" />
+                </div>
+                <div>
+                  <span className="font-display text-xs font-semibold text-primary">
+                    {playerName(msg.player_id)}:
+                  </span>{' '}
+                  <span className="font-body text-xs text-foreground/80">{msg.content}</span>
+                </div>
+              </div>
+            );
+          })}
           <div ref={bottomRef} />
         </div>
       </ScrollArea>

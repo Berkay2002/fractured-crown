@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import HowToPlayModal from './HowToPlayModal';
 import { SigilIcon, sigils } from './SigilIcons';
+import SigilAvatar, { sigilImageUrl } from './SigilAvatar';
 
 interface Player {
   id: number;
@@ -168,11 +169,12 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
                   }`}
                   title={sigil}
                 >
-                  <div className="flex h-10 w-10 items-center justify-center">
-                    <SigilIcon
-                      sigil={sigil}
-                      size={28}
-                      className={isSelected ? 'text-primary' : 'text-muted-foreground'}
+                  <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full">
+                    <img
+                      src={sigilImageUrl(sigil)}
+                      alt={sigil}
+                      className="h-10 w-10 rounded-full object-cover"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
                     />
                   </div>
                   <span className={`font-display text-[9px] uppercase tracking-wider ${
@@ -255,14 +257,10 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
                 </AnimatePresence>
               </div>
 
-              <div className={`flex h-12 w-12 items-center justify-center rounded-full border-2 ${
+              <div className={`flex h-12 w-12 items-center justify-center rounded-full border-2 overflow-hidden ${
                 isPlayerHost ? 'border-primary bg-primary/10' : 'border-border bg-muted'
               }`}>
-                <span className={`font-display text-sm font-bold ${
-                  isPlayerHost ? 'text-primary' : 'text-foreground'
-                }`}>
-                  {initials}
-                </span>
+                <SigilAvatar sigil={playerSigil} displayName={player.display_name} size="h-12 w-12" />
               </div>
 
               {/* Name + sigil */}

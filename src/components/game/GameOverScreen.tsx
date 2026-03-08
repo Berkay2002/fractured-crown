@@ -10,6 +10,7 @@ import { useSoundContext } from '@/contexts/SoundContext';
 import { useState } from 'react';
 import type { Tables } from '@/integrations/supabase/types';
 import GameReplay from './GameReplay';
+import SigilAvatar from './SigilAvatar';
 
 type GameState = Tables<'game_state'>;
 type Player = Tables<'players'>;
@@ -182,7 +183,10 @@ const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreen
                     isUsurper ? 'shadow-[0_0_16px_rgba(147,51,234,0.3)]' : ''
                   }`}
                 >
-                  <Icon className="h-6 w-6" />
+                  <div className="relative flex h-12 w-12 items-center justify-center rounded-full border-2 border-current overflow-hidden">
+                    <SigilAvatar sigil={player.sigil ?? 'crown'} displayName={player.display_name} size="h-12 w-12" />
+                    <Icon className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-card p-0.5" />
+                  </div>
                   <span className="font-display text-sm font-semibold">
                     {player.display_name}
                   </span>

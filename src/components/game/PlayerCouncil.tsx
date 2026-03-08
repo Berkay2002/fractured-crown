@@ -2,6 +2,7 @@ import { Crown, Sword, Wifi, WifiOff, Skull, Swords } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Tables } from '@/integrations/supabase/types';
 import { SigilIcon } from './SigilIcons';
+import SigilAvatar from './SigilAvatar';
 import type { ActiveReaction } from '@/hooks/useGameRoom';
 
 type Player = Tables<'players'>;
@@ -90,7 +91,7 @@ const PlayerCouncil = ({
               {isLC && <Sword className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 text-accent-foreground" />}
 
               {/* Avatar */}
-              <div className={`relative flex h-11 w-11 items-center justify-center rounded-full border-2 ${
+              <div className={`relative flex h-11 w-11 items-center justify-center rounded-full border-2 overflow-hidden ${
                 !player.is_alive
                   ? 'border-accent/40 bg-muted'
                   : isHerald
@@ -99,9 +100,7 @@ const PlayerCouncil = ({
                   ? 'border-accent/50 bg-accent/10'
                   : 'border-border bg-muted'
               }`}>
-                <span className={`font-display text-xs font-bold ${
-                  !player.is_alive ? 'text-muted-foreground/40' : isHerald ? 'text-primary' : isLC ? 'text-accent-foreground' : 'text-foreground'
-                }`}>{initials}</span>
+                <SigilAvatar sigil={playerSigil} displayName={player.display_name} size="h-11 w-11" />
                 {!player.is_alive && (
                   <>
                     <div className="execution-overlay absolute inset-0 rounded-full bg-accent/20" />
