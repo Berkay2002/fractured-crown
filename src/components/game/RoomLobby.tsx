@@ -605,18 +605,20 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
 
         {/* Player count + grid in surface card on md */}
         <div className="mb-6 w-full max-w-lg md:max-w-none md:rounded-lg md:border md:border-primary/20 md:bg-card md:p-6">
-          <div className="mb-4 flex items-center justify-center gap-2 text-muted-foreground md:justify-start">
-            <Users className="h-5 w-5" />
-            <span className="font-body text-lg">
-              {players.length} / 10 players
-            </span>
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Users className="h-5 w-5" />
+              <span className="font-body text-lg">
+                {players.length} / 10 players
+              </span>
+            </div>
+            {readyButton}
           </div>
           {waitingMessage && <div className="mb-4">{waitingMessage}</div>}
           {playerGrid}
         </div>
 
         {sigilPicker && <div className="mb-6 w-full max-w-2xl">{sigilPicker}</div>}
-        {readyButton && <div className="mb-6">{readyButton}</div>}
         <div className="mb-6 w-full max-w-lg md:max-w-none">{lobbyChat}</div>
         <div className="flex flex-col items-center md:w-full md:mt-6">{actionButtons}</div>
         <div className="mt-8 flex justify-center">{footerLinks}</div>
