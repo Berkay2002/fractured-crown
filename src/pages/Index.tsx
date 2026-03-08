@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Crown, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
 const HCAPTCHA_SITE_KEY = 'b2ea555e-c512-4ce2-9710-5b5abb96da08';
