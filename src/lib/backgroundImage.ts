@@ -1,13 +1,7 @@
-const SUPABASE_RENDER = 'https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/render/image/public/sigils';
-
-const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
-const isTablet = () => typeof window !== 'undefined' && window.innerWidth >= 768 && window.innerWidth < 1024;
+const SUPABASE_STORAGE = 'https://jbsivexwgtjkcyifgmow.supabase.co/storage/v1/object/public/sigils';
 
 export const bgUrl = (filename: string): string => {
-  const base = `${SUPABASE_RENDER}/${filename}`;
-  if (isMobile()) return `${base}?format=webp&quality=80&width=828`;
-  if (isTablet()) return `${base}?format=webp&quality=82&width=1200`;
-  return `${base}?format=webp&quality=85&width=1920`;
+  return `${SUPABASE_STORAGE}/${filename}`;
 };
 
 export const BACKGROUNDS = {
