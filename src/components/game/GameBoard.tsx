@@ -1,6 +1,9 @@
 import { bgUrl, BACKGROUNDS } from '@/lib/backgroundImage';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Crown, Scroll, User, Shield, Skull, Eye, BookOpen, Volume2, VolumeX } from 'lucide-react';
+import { Crown, Scroll, User, Eye, BookOpen, Volume2, VolumeX } from 'lucide-react';
+import roleLoyalistImg from '@/assets/role-loyalist.png';
+import roleTraitorImg from '@/assets/role-traitor.png';
+import roleUsurperImg from '@/assets/role-usurper.png';
 import { Button } from '@/components/ui/button';
 import EdictTracker from './EdictTracker';
 import PlayerCouncil from './PlayerCouncil';
