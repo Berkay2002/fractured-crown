@@ -2,6 +2,7 @@ import { Crown, Sword, Wifi, WifiOff, Skull, Swords } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Tables } from '@/integrations/supabase/types';
 import { SigilIcon } from './SigilIcons';
+import SigilAvatar from './SigilAvatar';
 import type { ActiveReaction } from '@/hooks/useGameRoom';
 
 type Player = Tables<'players'>;
