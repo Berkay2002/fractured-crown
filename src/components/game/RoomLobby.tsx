@@ -118,7 +118,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * idx }}
-              className="relative flex flex-col items-center gap-2 rounded-lg border border-border bg-card px-4 pb-4 pt-6"
+              className="relative flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-4"
             >
               <div className="absolute right-2 top-2">
                 {isOnline ? (
