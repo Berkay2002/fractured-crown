@@ -20,7 +20,7 @@ const EMBERS = Array.from({ length: 10 }, (_, i) => ({
 }));
 
 const Index = () => {
-  usePageTitle('Fractured Crown');
+  usePageTitle('Fractured Crown — Free Online Social Deduction Game');
   const { user, loading, signInAnonymous } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>('landing');

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
 const TermsOfService = () => {
-  usePageTitle('Terms of Service — Fractured Crown');
+  usePageTitle('Terms of Service — Fractured Crown', 'Terms of Service for Fractured Crown, a free browser-based social deduction game. No account required.');
 
   return (
     <div className="min-h-screen bg-background">
