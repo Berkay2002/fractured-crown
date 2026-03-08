@@ -102,6 +102,11 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
         </button>
       </motion.div>
 
+      {/* How to Play */}
+      <div className="mb-6">
+        <HowToPlayModal />
+      </div>
+
       {/* Player Count */}
       <div className="mb-6 flex items-center gap-2 text-muted-foreground">
         <Users className="h-5 w-5" />
