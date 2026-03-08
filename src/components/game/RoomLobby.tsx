@@ -442,10 +442,10 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           <h1 className="font-display text-2xl font-bold tracking-wider text-primary">
             The Council Gathers
           </h1>
+          <div className="mt-3">{howToPlay}</div>
         </motion.div>
 
         <div className="mb-8 w-full max-w-md md:max-w-none">{roomCodeCard}</div>
-        <div className="mb-6 md:w-full">{howToPlay}</div>
         {royalDecrees}
 
         {/* Player count + grid in surface card on md */}
