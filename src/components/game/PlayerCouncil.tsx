@@ -39,7 +39,7 @@ const PlayerCouncil = ({
         const isSelectable = selectablePlayerIds?.includes(player.id);
         const isMe = currentPlayerId === player.id;
         const reaction = activeReactions?.get(player.id);
-        const playerSigil = (player as any).sigil || 'crown';
+        const playerSigil = player.sigil || 'crown';
         const initials = player.display_name
           .split(' ')
           .map(w => w[0])

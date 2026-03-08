@@ -35,6 +35,7 @@ interface RoomLobbyProps {
 const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyProps) => {
   const navigate = useNavigate();
   const [starting, setStarting] = useState(false);
+  const [selectedSigil, setSelectedSigil] = useState<string | null>(null);
   const [transferringTo, setTransferringTo] = useState<number | null>(null);
   const [confirmingTransfer, setConfirmingTransfer] = useState<number | null>(null);
   const isHost = currentPlayerId && room.host_player_id === currentPlayerId;
@@ -42,7 +43,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
   const showTransferUI = isHost && players.length > 1;
 
   const myPlayer = players.find(p => p.id === currentPlayerId);
-  const mySigil = (myPlayer as any)?.sigil || 'crown';
+  const mySigil = selectedSigil || myPlayer?.sigil || 'crown';
 
   const copyCode = () => {
     navigator.clipboard.writeText(room.room_code);
@@ -82,10 +83,16 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
 
   const handleSelectSigil = async (sigil: string) => {
     if (!currentPlayerId) return;
-    await supabase
+    setSelectedSigil(sigil);
+    const { error } = await supabase
       .from('players')
-      .update({ sigil } as any)
+      .update({ sigil })
       .eq('id', currentPlayerId);
+    if (error) {
+      console.error('Failed to update sigil:', error);
+      setSelectedSigil(null);
+      toast({ title: 'Error', description: 'Failed to update sigil', variant: 'destructive' });
+    }
   };
 
   return (
