@@ -5,6 +5,7 @@ import { Stamp, Lock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
+import { useSoundContext } from '@/contexts/SoundContext';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Player = Tables<'players'>;
@@ -36,11 +37,21 @@ const VotingPanel = ({
   const [castCount, setCastCount] = useState(0);
   const [aliveCount, setAliveCount] = useState(0);
   const [voting, setVoting] = useState(false);
+  const sound = useSoundContext();
 
   const roundVotes = votes.filter(v => v.round_id === currentRoundId);
   const alivePlayers = players.filter(p => p.is_alive);
   const allRevealed = roundVotes.length > 0 && roundVotes.every(v => v.revealed);
   const hasSubmittedVote = hasVoted || serverHasVoted;
+
+  // Play vote reveal sounds when votes become revealed
+  useEffect(() => {
+    if (allRevealed && roundVotes.length > 0) {
+      roundVotes.forEach((_, idx) => {
+        sound.playVoteReveal(idx);
+      });
+    }
+  }, [allRevealed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchVoteStatus = useCallback(async () => {
     if (!currentRoundId || !currentPlayerId) return;
@@ -79,6 +90,7 @@ const VotingPanel = ({
 
   const handleVote = async (choice: 'ja' | 'nein') => {
     setVoting(true);
+    sound.playVoteCast();
     const { data, error } = await supabase.functions.invoke('submit-vote', {
       body: { room_id: roomId, vote: choice },
     });
@@ -101,7 +113,6 @@ const VotingPanel = ({
     setHasVoted(true);
     setCastCount(prev => Math.max(prev, 1));
 
-    // If herald and response contains hand, pass it up
     if (data?.herald_hand && isHerald) {
       onHeraldHand(data.herald_hand);
     }
@@ -109,10 +120,21 @@ const VotingPanel = ({
     fetchVoteStatus();
   };
 
+  // Keyboard shortcuts: J for Ja, N for Nein
+  useEffect(() => {
+    if (hasSubmittedVote || allRevealed || voting) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'j' || e.key === 'J') handleVote('ja');
+      if (e.key === 'n' || e.key === 'N') handleVote('nein');
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [hasSubmittedVote, allRevealed, voting]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const shownCastCount = allRevealed ? roundVotes.length : castCount;
   const shownAliveCount = allRevealed ? alivePlayers.length : aliveCount || alivePlayers.length;
 
-  // Build per-player seal state
   const votedPlayerIds = new Set(roundVotes.map(v => v.player_id));
 
   return (
@@ -134,21 +156,27 @@ const VotingPanel = ({
       {/* Vote buttons — hidden on mobile when using bottom bar */}
       {!hasSubmittedVote && !allRevealed && (
         <div className="flex justify-center gap-4 max-md:hidden">
-          <Button
-            onClick={() => handleVote('ja')}
-            disabled={voting}
-            className="gold-shimmer h-12 w-24 font-display text-lg tracking-wider text-primary-foreground"
-          >
-            Ja
-          </Button>
-          <Button
-            onClick={() => handleVote('nein')}
-            disabled={voting}
-            variant="destructive"
-            className="h-12 w-24 font-display text-lg tracking-wider"
-          >
-            Nein
-          </Button>
+          <div className="flex flex-col items-center gap-1">
+            <Button
+              onClick={() => handleVote('ja')}
+              disabled={voting}
+              className="gold-shimmer h-12 w-24 font-display text-lg tracking-wider text-primary-foreground"
+            >
+              Ja
+            </Button>
+            <span className="font-mono text-[10px] text-muted-foreground/50">(J)</span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <Button
+              onClick={() => handleVote('nein')}
+              disabled={voting}
+              variant="destructive"
+              className="h-12 w-24 font-display text-lg tracking-wider"
+            >
+              Nein
+            </Button>
+            <span className="font-mono text-[10px] text-muted-foreground/50">(N)</span>
+          </div>
         </div>
       )}
 
@@ -163,7 +191,6 @@ const VotingPanel = ({
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           {alivePlayers.map((player) => {
             const hasSealed = votedPlayerIds.has(player.id) || (shownCastCount > 0 && castCount >= alivePlayers.indexOf(player) + 1);
-            // We know castCount but not who specifically — show sealed for count
             return (
               <motion.div
                 key={player.id}

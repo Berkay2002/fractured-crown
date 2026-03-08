@@ -5,6 +5,7 @@ import { Scroll, Shield, Skull } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
+import { useSoundContext } from '@/contexts/SoundContext';
 import type { Tables } from '@/integrations/supabase/types';
 
 type GameState = Tables<'game_state'>;
@@ -28,52 +29,59 @@ const PolicyCardUI = ({
   faceUp,
   onClick,
   disabled,
+  keyHint,
 }: {
   type: PolicyCard;
   faceUp: boolean;
   onClick?: () => void;
   disabled?: boolean;
+  keyHint?: string;
 }) => (
-  <motion.button
-    whileHover={!disabled ? { scale: 1.08, y: -4 } : undefined}
-    whileTap={!disabled ? { scale: 0.95 } : undefined}
-    onClick={onClick}
-    disabled={disabled}
-    className={`card-flip relative flex h-40 w-28 flex-col items-center justify-center rounded-lg border-2 transition-all duration-200 ${
-      !faceUp
-        ? 'border-border bg-card cursor-pointer hover:border-primary/50 hover:shadow-[0_0_20px_hsl(var(--primary)/0.25)]'
-        : type === 'loyalist'
-        ? 'border-primary bg-primary/10 shadow-[0_0_16px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.5)]'
-        : 'border-accent bg-accent/10 shadow-[0_0_16px_hsl(var(--accent)/0.3)] hover:shadow-[0_0_24px_hsl(var(--accent)/0.5)]'
-    }`}
-  >
-    {faceUp ? (
-      <motion.div
-        initial={{ rotateY: 90 }}
-        animate={{ rotateY: 0 }}
-        transition={{ duration: 0.4 }}
-        className="flex flex-col items-center gap-2"
-      >
-        {type === 'loyalist' ? (
-          <Shield className="h-10 w-10 text-primary" />
-        ) : (
-          <Skull className="h-10 w-10 text-accent-foreground" />
-        )}
-        <span className={`font-display text-xs uppercase tracking-wider ${
-          type === 'loyalist' ? 'text-primary' : 'text-accent-foreground'
-        }`}>
-          {type === 'loyalist' ? 'Loyalist' : 'Shadow'}
-        </span>
-      </motion.div>
-    ) : (
-      <div className="flex flex-col items-center gap-2">
-        <Scroll className="h-10 w-10 text-muted-foreground/40" />
-        <span className="font-display text-[10px] uppercase tracking-wider text-muted-foreground/40">
-          Edict
-        </span>
-      </div>
+  <div className="flex flex-col items-center gap-1">
+    <motion.button
+      whileHover={!disabled ? { scale: 1.08, y: -4 } : undefined}
+      whileTap={!disabled ? { scale: 0.95 } : undefined}
+      onClick={onClick}
+      disabled={disabled}
+      className={`card-flip relative flex h-40 w-28 flex-col items-center justify-center rounded-lg border-2 transition-all duration-200 ${
+        !faceUp
+          ? 'border-border bg-card cursor-pointer hover:border-primary/50 hover:shadow-[0_0_20px_hsl(var(--primary)/0.25)]'
+          : type === 'loyalist'
+          ? 'border-primary bg-primary/10 shadow-[0_0_16px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.5)]'
+          : 'border-accent bg-accent/10 shadow-[0_0_16px_hsl(var(--accent)/0.3)] hover:shadow-[0_0_24px_hsl(var(--accent)/0.5)]'
+      }`}
+    >
+      {faceUp ? (
+        <motion.div
+          initial={{ rotateY: 90 }}
+          animate={{ rotateY: 0 }}
+          transition={{ duration: 0.4 }}
+          className="flex flex-col items-center gap-2"
+        >
+          {type === 'loyalist' ? (
+            <Shield className="h-10 w-10 text-primary" />
+          ) : (
+            <Skull className="h-10 w-10 text-accent-foreground" />
+          )}
+          <span className={`font-display text-xs uppercase tracking-wider ${
+            type === 'loyalist' ? 'text-primary' : 'text-accent-foreground'
+          }`}>
+            {type === 'loyalist' ? 'Loyalist' : 'Shadow'}
+          </span>
+        </motion.div>
+      ) : (
+        <div className="flex flex-col items-center gap-2">
+          <Scroll className="h-10 w-10 text-muted-foreground/40" />
+          <span className="font-display text-[10px] uppercase tracking-wider text-muted-foreground/40">
+            Edict
+          </span>
+        </div>
+      )}
+    </motion.button>
+    {keyHint && !disabled && (
+      <span className="font-mono text-[10px] text-muted-foreground/50">({keyHint})</span>
     )}
-  </motion.button>
+  </div>
 );
 
 const LegislativeOverlay = ({
@@ -90,8 +98,8 @@ const LegislativeOverlay = ({
   const [acting, setActing] = useState(false);
   const isHerald = gameState.current_herald_id === currentPlayerId;
   const isLC = gameState.current_lord_commander_id === currentPlayerId;
+  const sound = useSoundContext();
 
-  // Auto-fetch hand from edge function when waiting for cards
   const fetchingRef = useRef(false);
   const fetchHand = useCallback(async () => {
     if (!isHerald && !isLC) return;
@@ -129,13 +137,11 @@ const LegislativeOverlay = ({
   const vetoRequested = currentRound?.veto_requested === true;
   const vetoResolved = currentRound?.veto_approved !== null;
 
-  // Resolve hands: prefer local state, fall back to round data from DB
   const resolvedHeraldHand = (heraldHand ?? (currentRound?.herald_hand as string[] | null)) as PolicyCard[] | null;
   const resolvedChancellorHand = (chancellorHand ?? (currentRound?.chancellor_hand as string[] | null)) as PolicyCard[] | null;
 
   const heraldAlreadyPassed = isHerald && !resolvedHeraldHand && !!resolvedChancellorHand;
 
-  // Determine which cards to show
   const cards: PolicyCard[] = isHerald
     ? resolvedHeraldHand || []
     : isLC
@@ -232,14 +238,14 @@ const LegislativeOverlay = ({
           variant: 'destructive',
           action: <ToastAction altText="Try again" onClick={() => handleCardAction(index)}>Try Again</ToastAction>,
         });
+        setSelectedCard(null);
         return;
       }
-      // The chancellor_hand will come via Realtime round update for LC
-      // But also set it locally if we got it in response (for LC's client when they fetch)
       if (data?.chancellor_hand) {
         setChancellorHand(data.chancellor_hand);
       }
     } else if (isLC) {
+      const enacted = cards[index];
       const { data, error } = await supabase.functions.invoke('enact-policy', {
         body: { room_id: gameState.room_id, card_index: index },
       });
@@ -251,10 +257,27 @@ const LegislativeOverlay = ({
           variant: 'destructive',
           action: <ToastAction altText="Try again" onClick={() => handleCardAction(index)}>Try Again</ToastAction>,
         });
+        setSelectedCard(null);
         return;
       }
+      // Play edict enacted sound
+      sound.playEdictEnacted(enacted);
     }
   };
+
+  // Keyboard shortcuts: 1, 2, 3 for card selection
+  useEffect(() => {
+    if (selectedCard !== null || acting || waitingForCards || cards.length === 0) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      const num = parseInt(e.key);
+      if (num >= 1 && num <= cards.length) {
+        handleCardAction(num - 1);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedCard, acting, waitingForCards, cards.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <motion.div
@@ -295,6 +318,7 @@ const LegislativeOverlay = ({
               faceUp={true}
               onClick={() => handleCardAction(i)}
               disabled={selectedCard !== null || acting}
+              keyHint={selectedCard === null && !acting ? `${i + 1}` : undefined}
             />
           ))}
         </div>
