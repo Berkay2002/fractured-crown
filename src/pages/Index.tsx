@@ -7,6 +7,7 @@ import { toast } from '@/hooks/use-toast';
 import { Crown, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { sigilUrl } from '@/lib/storageUrl';
 
 type Mode = 'landing' | 'create' | 'join';
 
