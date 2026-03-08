@@ -4,7 +4,7 @@ import { Crown, Copy, Link as LinkIcon, Users, Wifi, WifiOff, Lock, Check, Share
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import LegalModal from './LegalModal';
+import LegalModal from '@/components/game/LegalModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
