@@ -15,6 +15,7 @@ import MobileActionBar from './MobileActionBar';
 import HowToPlayModal from './HowToPlayModal';
 import GameBoardSkeleton from './GameBoardSkeleton';
 import ConnectionBanner from './ConnectionBanner';
+import TurnTimer from './TurnTimer';
 import { useSoundContext } from '@/contexts/SoundContext';
 import { useDiscordContext } from '@/contexts/DiscordContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,6 +55,7 @@ const GameBoard = ({
   disconnected,
   activeReactions,
   sendReaction,
+  roomSettings,
 }: GameBoardProps) => {
   const [showRoleReveal, setShowRoleReveal] = useState(true);
   const [nominatingLC, setNominatingLC] = useState(false);
@@ -66,13 +68,21 @@ const GameBoard = ({
   const phase = gameState?.current_phase ?? 'election';
   const nominatedLC = players.find(p => p.id === gameState?.current_lord_commander_id);
 
-  // Only show role reveal once
+  // Spectator check
+  const myPlayer = players.find(p => p.id === currentPlayerId);
+  const isSpectator = myPlayer?.is_spectator === true;
+
+  // Turn timer settings
+  const timerEnabled = roomSettings?.turn_timer_enabled === true;
+  const timerSeconds = typeof roomSettings?.turn_timer_seconds === 'number' ? roomSettings.turn_timer_seconds : 120;
+
+  // Only show role reveal once (and not for spectators)
   useEffect(() => {
     const key = `role-seen-${gameState?.room_id}`;
-    if (sessionStorage.getItem(key)) {
+    if (sessionStorage.getItem(key) || isSpectator) {
       setShowRoleReveal(false);
     }
-  }, [gameState?.room_id]);
+  }, [gameState?.room_id, isSpectator]);
 
   const dismissRoleReveal = () => {
     setShowRoleReveal(false);
@@ -100,8 +110,8 @@ const GameBoard = ({
 
   if (!gameState || loading) return <GameBoardSkeleton />;
 
-  // Role reveal overlay
-  if (showRoleReveal && myRole) {
+  // Role reveal overlay (not for spectators)
+  if (showRoleReveal && myRole && !isSpectator) {
     return (
       <RoleReveal
         myRole={myRole}
@@ -146,6 +156,17 @@ const GameBoard = ({
       <div className="relative z-10 flex flex-1 flex-col">
       <ConnectionBanner disconnected={disconnected} />
       <PhaseTransitionBanner phase={phase} />
+
+      {/* Spectator banner */}
+      {isSpectator && (
+        <div className="flex items-center justify-center gap-2 border-b border-border bg-muted/30 px-4 py-1.5">
+          <Eye className="h-4 w-4 text-muted-foreground" />
+          <span className="font-display text-xs uppercase tracking-widest text-muted-foreground">
+            You are spectating
+          </span>
+        </div>
+      )}
+
       {/* Top Bar */}
       <div className="flex items-center justify-between border-b border-border px-2 py-2 md:px-4 md:py-3 gap-2">
         <div className="flex items-center gap-1.5 md:gap-3 shrink-0">
@@ -173,6 +194,14 @@ const GameBoard = ({
           )}
         </div>
         <div className="flex items-center gap-1.5 md:gap-3 text-sm text-muted-foreground overflow-hidden">
+          {/* Turn Timer */}
+          {timerEnabled && phase !== 'game_over' && (
+            <TurnTimer
+              timerSeconds={timerSeconds}
+              phase={phase}
+              roundId={currentRound?.id ?? null}
+            />
+          )}
           {currentRound && (
             <span className="font-display text-[10px] md:text-xs uppercase tracking-wider hidden sm:inline">
               Round {currentRound.round_number}
@@ -233,73 +262,75 @@ const GameBoard = ({
               gameState={gameState}
               onlinePlayers={onlinePlayers}
               currentPlayerId={currentPlayerId}
-              selectablePlayerIds={nominatingLC ? selectablePlayers : undefined}
-              onPlayerClick={nominatingLC ? handleNominate : undefined}
+              selectablePlayerIds={!isSpectator && nominatingLC ? selectablePlayers : undefined}
+              onPlayerClick={!isSpectator && nominatingLC ? handleNominate : undefined}
               activeReactions={activeReactions}
-              onSendReaction={sendReaction}
+              onSendReaction={isSpectator ? undefined : sendReaction}
             />
           </div>
 
-          {/* Active Phase Panel */}
-          <div className="mt-2">
-            {phase === 'election' && (
-              <div className="space-y-4">
-                {isHerald && !gameState.current_lord_commander_id && (
-                  <div className="text-center">
-                    {!nominatingLC ? (
-                      <Button
-                        onClick={() => setNominatingLC(true)}
-                        disabled={nominating}
-                        className="gold-shimmer font-display tracking-wider text-primary-foreground"
-                      >
-                        <Scroll className="mr-2 h-4 w-4" />
-                        Nominate Lord Commander
-                      </Button>
-                    ) : (
-                      <p className="font-body text-sm italic text-primary">
-                        Select a player above to nominate...
-                      </p>
-                    )}
-                  </div>
-                )}
+          {/* Active Phase Panel — hidden for spectators */}
+          {!isSpectator && (
+            <div className="mt-2">
+              {phase === 'election' && (
+                <div className="space-y-4">
+                  {isHerald && !gameState.current_lord_commander_id && (
+                    <div className="text-center">
+                      {!nominatingLC ? (
+                        <Button
+                          onClick={() => setNominatingLC(true)}
+                          disabled={nominating}
+                          className="gold-shimmer font-display tracking-wider text-primary-foreground"
+                        >
+                          <Scroll className="mr-2 h-4 w-4" />
+                          Nominate Lord Commander
+                        </Button>
+                      ) : (
+                        <p className="font-body text-sm italic text-primary">
+                          Select a player above to nominate...
+                        </p>
+                      )}
+                    </div>
+                  )}
 
-                {gameState.current_lord_commander_id && (
-                  <VotingPanel
-                    players={players}
-                    votes={votes}
-                    currentRoundId={currentRound?.id ?? null}
-                    currentPlayerId={currentPlayerId}
-                    nominatedPlayerName={nominatedLC?.display_name}
-                    roomId={gameState.room_id}
-                    isHerald={isHerald}
-                    onHeraldHand={(hand) => setHeraldHand(hand)}
-                  />
-                )}
-              </div>
-            )}
+                  {gameState.current_lord_commander_id && (
+                    <VotingPanel
+                      players={players}
+                      votes={votes}
+                      currentRoundId={currentRound?.id ?? null}
+                      currentPlayerId={currentPlayerId}
+                      nominatedPlayerName={nominatedLC?.display_name}
+                      roomId={gameState.room_id}
+                      isHerald={isHerald}
+                      onHeraldHand={(hand) => setHeraldHand(hand)}
+                    />
+                  )}
+                </div>
+              )}
 
-            {phase === 'legislative' && (
-              <LegislativeOverlay
-                gameState={gameState}
-                currentRound={currentRound}
-                currentPlayerId={currentPlayerId}
-                onClose={() => {}}
-                heraldHand={heraldHand}
-                setHeraldHand={setHeraldHand}
-                chancellorHand={chancellorHand}
-                setChancellorHand={setChancellorHand}
-              />
-            )}
+              {phase === 'legislative' && (
+                <LegislativeOverlay
+                  gameState={gameState}
+                  currentRound={currentRound}
+                  currentPlayerId={currentPlayerId}
+                  onClose={() => {}}
+                  heraldHand={heraldHand}
+                  setHeraldHand={setHeraldHand}
+                  chancellorHand={chancellorHand}
+                  setChancellorHand={setChancellorHand}
+                />
+              )}
 
-            {phase === 'executive_action' && (
-              <ExecutivePowerOverlay
-                gameState={gameState}
-                players={players}
-                currentPlayerId={currentPlayerId}
-                onlinePlayers={onlinePlayers}
-              />
-            )}
-          </div>
+              {phase === 'executive_action' && (
+                <ExecutivePowerOverlay
+                  gameState={gameState}
+                  players={players}
+                  currentPlayerId={currentPlayerId}
+                  onlinePlayers={onlinePlayers}
+                />
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right Sidebar */}
@@ -313,23 +344,25 @@ const GameBoard = ({
         </div>
       </div>
 
-      {/* Mobile bottom action bar */}
-      <MobileActionBar
-        gameState={gameState}
-        currentPlayerId={currentPlayerId}
-        phase={phase}
-        hasVoted={hasVotedAlready}
-        allVotesRevealed={allVotesRevealed}
-        hasNominatedLC={!!gameState.current_lord_commander_id}
-        nominatingLC={nominatingLC}
-        onVote={handleMobileVote}
-        onStartNominate={() => setNominatingLC(true)}
-        voting={mobileVoting}
-        nominating={nominating}
-      />
+      {/* Mobile bottom action bar — hidden for spectators */}
+      {!isSpectator && (
+        <MobileActionBar
+          gameState={gameState}
+          currentPlayerId={currentPlayerId}
+          phase={phase}
+          hasVoted={hasVotedAlready}
+          allVotesRevealed={allVotesRevealed}
+          hasNominatedLC={!!gameState.current_lord_commander_id}
+          nominatingLC={nominatingLC}
+          onVote={handleMobileVote}
+          onStartNominate={() => setNominatingLC(true)}
+          voting={mobileVoting}
+          nominating={nominating}
+        />
+      )}
 
       {/* Bottom padding for mobile action bar */}
-      <div className="h-16 md:hidden" />
+      {!isSpectator && <div className="h-16 md:hidden" />}
       </div>
     </div>
   );
