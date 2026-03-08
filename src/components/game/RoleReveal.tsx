@@ -143,7 +143,4 @@ const RoleReveal = ({ myRole, players, onDismiss }: RoleRevealProps) => {
   );
 };
 
-// Used in the sealed envelope
-import { Scroll } from 'lucide-react';
-
 export default RoleReveal;
