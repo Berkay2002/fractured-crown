@@ -3,6 +3,8 @@ import { Crown, Copy, Link, Users, Wifi, WifiOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 
 interface Player {
   id: number;
@@ -29,6 +31,7 @@ interface RoomLobbyProps {
 
 const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyProps) => {
   const navigate = useNavigate();
+  const [starting, setStarting] = useState(false);
   const isHost = currentPlayerId && room.host_player_id === currentPlayerId;
   const canStart = isHost && players.length >= 5 && players.length <= 10;
 
@@ -41,6 +44,18 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
     const url = `${window.location.origin}/join/${room.room_code}`;
     navigator.clipboard.writeText(url);
     toast({ title: 'Copied!', description: 'Invite link copied to clipboard' });
+  };
+
+  const handleStartGame = async () => {
+    setStarting(true);
+    const { data, error } = await supabase.functions.invoke('start-game', {
+      body: { room_id: room.id },
+    });
+    setStarting(false);
+    if (error || data?.error) {
+      toast({ title: 'Error', description: data?.error || error?.message || 'Failed to start game', variant: 'destructive' });
+    }
+    // Room status change via Realtime will auto-transition UI
   };
 
   return (
@@ -158,15 +173,12 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           transition={{ delay: 0.5 }}
         >
           <Button
-            disabled={!canStart}
+            disabled={!canStart || starting}
             className="gold-shimmer h-14 px-8 font-display text-lg tracking-wider text-primary-foreground disabled:opacity-40"
             size="lg"
-            onClick={() => {
-              console.log('TODO: Phase 3 — start-game Edge Function');
-              toast({ title: 'Coming soon', description: 'Game start will be implemented in Phase 3' });
-            }}
+            onClick={handleStartGame}
           >
-            Begin the Council
+            {starting ? 'Starting...' : 'Begin the Council'}
           </Button>
         </motion.div>
       )}

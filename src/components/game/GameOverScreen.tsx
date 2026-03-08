@@ -3,11 +3,15 @@ import { motion } from 'framer-motion';
 import { Crown, Swords, Skull, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+import { useState } from 'react';
 import type { Tables } from '@/integrations/supabase/types';
 
 type GameState = Tables<'game_state'>;
 type Player = Tables<'players'>;
 type EventLog = Tables<'event_log'>;
+type PlayerRole = Tables<'player_roles'>;
 
 interface PlayerRoleReveal {
   player: Player;
@@ -18,7 +22,7 @@ interface GameOverScreenProps {
   gameState: GameState;
   players: Player[];
   events: EventLog[];
-  roleReveals?: PlayerRoleReveal[];
+  allRoles: PlayerRole[];
 }
 
 const winMessages: Record<string, { title: string; subtitle: string; color: string }> = {
@@ -56,16 +60,34 @@ const roleColors = {
   usurper: 'border-purple-600 text-purple-400',
 };
 
-const GameOverScreen = ({ gameState, players, events, roleReveals }: GameOverScreenProps) => {
+const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreenProps) => {
   const navigate = useNavigate();
+  const [resetting, setResetting] = useState(false);
   const winCondition = gameState.winner ?? 'loyalists_edicts';
   const msg = winMessages[winCondition] || winMessages.loyalists_edicts;
 
-  // Demo role reveals if not provided
-  const reveals: PlayerRoleReveal[] = roleReveals ?? players.map((p, i) => ({
-    player: p,
-    role: i === 0 ? 'usurper' : i < 3 ? 'traitor' : 'loyalist',
-  }));
+  // Build reveals from allRoles
+  const reveals: PlayerRoleReveal[] = allRoles.length > 0
+    ? allRoles.map(r => ({
+        player: players.find(p => p.id === r.player_id)!,
+        role: r.role as 'loyalist' | 'traitor' | 'usurper',
+      })).filter(r => r.player)
+    : players.map((p, i) => ({
+        player: p,
+        role: (i === 0 ? 'usurper' : i < 3 ? 'traitor' : 'loyalist') as 'loyalist' | 'traitor' | 'usurper',
+      }));
+
+  const handlePlayAgain = async () => {
+    setResetting(true);
+    const { data, error } = await supabase.functions.invoke('reset-room', {
+      body: { room_id: gameState.room_id },
+    });
+    setResetting(false);
+    if (error || data?.error) {
+      toast({ title: 'Error', description: data?.error || error?.message, variant: 'destructive' });
+    }
+    // Room status change via Realtime will transition UI back to lobby
+  };
 
   return (
     <motion.div
@@ -143,10 +165,11 @@ const GameOverScreen = ({ gameState, players, events, roleReveals }: GameOverScr
         {/* Actions */}
         <div className="flex gap-4">
           <Button
-            onClick={() => navigate('/')}
+            onClick={handlePlayAgain}
+            disabled={resetting}
             className="gold-shimmer font-display tracking-wider text-primary-foreground"
           >
-            Play Again
+            {resetting ? 'Resetting...' : 'Play Again'}
           </Button>
           <Button
             variant="outline"

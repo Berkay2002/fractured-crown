@@ -9,6 +9,8 @@ import ExecutivePowerOverlay from './ExecutivePowerOverlay';
 import EventLogFeed from './EventLogFeed';
 import ChatPanel from './ChatPanel';
 import RoleReveal from './RoleReveal';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import type { GameRoomState } from '@/hooks/useGameRoom';
 
 interface GameBoardProps extends GameRoomState {
@@ -36,9 +38,14 @@ const GameBoard = ({
   roomCode,
   currentPlayerId,
   onlinePlayers,
+  heraldHand,
+  setHeraldHand,
+  chancellorHand,
+  setChancellorHand,
 }: GameBoardProps) => {
   const [showRoleReveal, setShowRoleReveal] = useState(true);
   const [nominatingLC, setNominatingLC] = useState(false);
+  const [nominating, setNominating] = useState(false);
 
   const isHerald = gameState?.current_herald_id === currentPlayerId;
   const phase = gameState?.current_phase ?? 'election';
@@ -77,9 +84,21 @@ const GameBoard = ({
       p.is_alive &&
       p.id !== currentPlayerId &&
       p.id !== gameState.last_elected_lord_commander_id &&
-      p.id !== gameState.last_elected_herald_id
+      (players.filter(pl => pl.is_alive).length <= 5 || p.id !== gameState.last_elected_herald_id)
     )
     .map(p => p.id);
+
+  const handleNominate = async (nomineeId: number) => {
+    setNominatingLC(false);
+    setNominating(true);
+    const { data, error } = await supabase.functions.invoke('nominate-chancellor', {
+      body: { room_id: gameState.room_id, nominee_id: nomineeId },
+    });
+    setNominating(false);
+    if (error || data?.error) {
+      toast({ title: 'Nomination failed', description: data?.error || error?.message, variant: 'destructive' });
+    }
+  };
 
   return (
     <div className="noise-overlay flex min-h-screen flex-col bg-background">
@@ -133,13 +152,7 @@ const GameBoard = ({
               onlinePlayers={onlinePlayers}
               currentPlayerId={currentPlayerId}
               selectablePlayerIds={nominatingLC ? selectablePlayers : undefined}
-              onPlayerClick={nominatingLC ? (id) => {
-                setNominatingLC(false);
-                console.log('TODO: Phase 3 edge function — nominate_lc', {
-                  herald_id: currentPlayerId,
-                  nominee_id: id,
-                });
-              } : undefined}
+              onPlayerClick={nominatingLC ? handleNominate : undefined}
             />
           </div>
 
@@ -152,6 +165,7 @@ const GameBoard = ({
                     {!nominatingLC ? (
                       <Button
                         onClick={() => setNominatingLC(true)}
+                        disabled={nominating}
                         className="gold-shimmer font-display tracking-wider text-primary-foreground"
                       >
                         <Scroll className="mr-2 h-4 w-4" />
@@ -172,6 +186,9 @@ const GameBoard = ({
                     currentRoundId={currentRound?.id ?? null}
                     currentPlayerId={currentPlayerId}
                     nominatedPlayerName={nominatedLC?.display_name}
+                    roomId={gameState.room_id}
+                    isHerald={isHerald}
+                    onHeraldHand={(hand) => setHeraldHand(hand)}
                   />
                 )}
               </div>
@@ -183,6 +200,9 @@ const GameBoard = ({
                 currentRound={currentRound}
                 currentPlayerId={currentPlayerId}
                 onClose={() => {}}
+                heraldHand={heraldHand}
+                chancellorHand={chancellorHand}
+                setChancellorHand={setChancellorHand}
               />
             )}
 

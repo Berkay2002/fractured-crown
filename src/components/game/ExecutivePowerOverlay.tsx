@@ -11,6 +11,8 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import PlayerCouncil from './PlayerCouncil';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
 
 type GameState = Tables<'game_state'>;
@@ -34,7 +36,9 @@ const ExecutivePowerOverlay = ({
   const [selectedTarget, setSelectedTarget] = useState<number | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [peeked, setPeeked] = useState(false);
-  const [investigated, setInvestigated] = useState<'loyalist' | 'traitor' | null>(null);
+  const [peekedCards, setPeekedCards] = useState<PolicyCard[]>([]);
+  const [investigated, setInvestigated] = useState<'loyalist' | 'shadow_court' | null>(null);
+  const [acting, setActing] = useState(false);
 
   const isHerald = gameState.current_herald_id === currentPlayerId;
   const power = gameState.active_power;
@@ -59,9 +63,21 @@ const ExecutivePowerOverlay = ({
     );
   }
 
-  // Policy Peek (Raven's Eye)
+  const invokeResolve = async (actionType: string, targetPlayerId?: number) => {
+    setActing(true);
+    const { data, error } = await supabase.functions.invoke('resolve-power', {
+      body: { room_id: gameState.room_id, action_type: actionType, target_player_id: targetPlayerId },
+    });
+    setActing(false);
+    if (error || data?.error) {
+      toast({ title: 'Error', description: data?.error || error?.message, variant: 'destructive' });
+      return null;
+    }
+    return data;
+  };
+
+  // Policy Peek
   if (power === 'policy_peek') {
-    const demoCards: PolicyCard[] = ['shadow', 'loyalist', 'shadow'];
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -76,21 +92,21 @@ const ExecutivePowerOverlay = ({
           The top three edicts from the decree pile:
         </p>
         <div className="flex justify-center gap-3">
-          {demoCards.map((card, i) => (
+          {(peeked ? peekedCards : [null, null, null]).map((card, i) => (
             <motion.div
               key={i}
-              initial={peeked ? {} : { rotateY: 180 }}
+              initial={peeked ? { rotateY: 180 } : {}}
               animate={peeked ? { rotateY: 0 } : {}}
               transition={{ delay: i * 0.2, duration: 0.5 }}
               className={`card-flip flex h-32 w-20 items-center justify-center rounded-lg border-2 ${
-                peeked
+                peeked && card
                   ? card === 'loyalist'
                     ? 'border-primary bg-primary/10'
                     : 'border-accent bg-accent/10'
                   : 'border-border bg-muted'
               }`}
             >
-              {peeked ? (
+              {peeked && card ? (
                 card === 'loyalist' ? (
                   <Shield className="h-8 w-8 text-primary" />
                 ) : (
@@ -104,21 +120,22 @@ const ExecutivePowerOverlay = ({
         </div>
         {!peeked ? (
           <Button
-            onClick={() => setPeeked(true)}
+            onClick={async () => {
+              const data = await invokeResolve('policy_peek');
+              if (data?.peeked_cards) {
+                setPeekedCards(data.peeked_cards);
+                setPeeked(true);
+              }
+            }}
+            disabled={acting}
             className="gold-shimmer mt-6 font-display tracking-wider text-primary-foreground"
           >
             Reveal the Edicts
           </Button>
         ) : (
-          <Button
-            onClick={() => {
-              console.log('TODO: Phase 3 edge function — acknowledge_peek');
-            }}
-            variant="outline"
-            className="mt-6 border-primary/30 font-display tracking-wider text-primary hover:bg-primary/10"
-          >
-            I have seen enough
-          </Button>
+          <p className="mt-6 text-sm italic text-muted-foreground">
+            The next Herald will begin their turn shortly...
+          </p>
         )}
       </motion.div>
     );
@@ -148,12 +165,12 @@ const ExecutivePowerOverlay = ({
               onlinePlayers={onlinePlayers}
               currentPlayerId={currentPlayerId}
               selectablePlayerIds={selectablePlayers}
-              onPlayerClick={(id) => {
+              onPlayerClick={async (id) => {
                 setSelectedTarget(id);
-                // Demo: random allegiance
-                const allegiance = Math.random() > 0.5 ? 'loyalist' : 'traitor';
-                setInvestigated(allegiance as 'loyalist' | 'traitor');
-                console.log('TODO: Phase 3 edge function — investigate', { target_player_id: id });
+                const data = await invokeResolve('investigate_loyalty', id);
+                if (data?.team) {
+                  setInvestigated(data.team);
+                }
               }}
             />
           </>
@@ -170,23 +187,19 @@ const ExecutivePowerOverlay = ({
             <p className="font-display text-lg">
               {targetName} is a{' '}
               <span className={investigated === 'loyalist' ? 'text-primary' : 'text-accent-foreground'}>
-                {investigated === 'loyalist' ? 'Loyalist' : 'Member of the Shadow'}
+                {investigated === 'loyalist' ? 'Loyalist' : 'Member of the Shadow Court'}
               </span>
             </p>
-            <Button
-              onClick={() => console.log('TODO: Phase 3 — acknowledge investigation')}
-              variant="outline"
-              className="mt-4 border-primary/30 font-display text-xs tracking-wider text-primary"
-            >
-              Understood
-            </Button>
+            <p className="mt-4 text-sm italic text-muted-foreground">
+              The next Herald will begin their turn shortly...
+            </p>
           </motion.div>
         )}
       </motion.div>
     );
   }
 
-  // Special Election (Call Conclave)
+  // Special Election
   if (power === 'special_election') {
     return (
       <motion.div
@@ -207,15 +220,15 @@ const ExecutivePowerOverlay = ({
           onlinePlayers={onlinePlayers}
           currentPlayerId={currentPlayerId}
           selectablePlayerIds={selectablePlayers}
-          onPlayerClick={(id) => {
-            console.log('TODO: Phase 3 edge function — special_election', { target_player_id: id });
+          onPlayerClick={async (id) => {
+            await invokeResolve('special_election', id);
           }}
         />
       </motion.div>
     );
   }
 
-  // Execution (Royal Execution)
+  // Execution
   if (power === 'execution') {
     return (
       <>
@@ -261,11 +274,10 @@ const ExecutivePowerOverlay = ({
               </Button>
               <Button
                 variant="destructive"
-                onClick={() => {
+                disabled={acting}
+                onClick={async () => {
                   setConfirmOpen(false);
-                  console.log('TODO: Phase 3 edge function — execution', {
-                    target_player_id: selectedTarget,
-                  });
+                  await invokeResolve('execution', selectedTarget!);
                 }}
               >
                 Execute

@@ -34,7 +34,7 @@ const Room = () => {
   const [loading, setLoading] = useState(true);
   const [onlinePlayers, setOnlinePlayers] = useState<Set<number>>(new Set());
 
-  // Game room hook — only active when in_progress
+  // Game room hook — only active when in_progress or finished
   const gameRoom = useGameRoom(
     room?.status === 'in_progress' || room?.status === 'finished' ? room.id : null,
     currentPlayerId
@@ -165,6 +165,7 @@ const Room = () => {
         gameState={gameRoom.gameState}
         players={gameRoom.players.length > 0 ? gameRoom.players : lobbyPlayers as any}
         events={gameRoom.events}
+        allRoles={gameRoom.allRoles}
       />
     );
   }
