@@ -20,7 +20,7 @@ const roleConfig = {
   loyalist: {
     title: 'Loyalist',
     tagline: 'Serve the Crown',
-    icon: Crown,
+    image: roleLoyalist,
     borderColor: 'border-primary',
     bgColor: 'bg-primary/10',
     textColor: 'text-primary',
@@ -29,7 +29,7 @@ const roleConfig = {
   traitor: {
     title: 'Traitor',
     tagline: 'Serve the Shadow',
-    icon: Swords,
+    image: roleTraitor,
     borderColor: 'border-accent',
     bgColor: 'bg-accent/10',
     textColor: 'text-accent-foreground',
@@ -38,7 +38,7 @@ const roleConfig = {
   usurper: {
     title: 'Usurper',
     tagline: 'Seize the Throne',
-    icon: Skull,
+    image: roleUsurper,
     borderColor: 'border-purple-600',
     bgColor: 'bg-purple-900/20',
     textColor: 'text-purple-400',
