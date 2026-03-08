@@ -53,23 +53,32 @@ const LobbyChat = ({ roomId, currentPlayerId, players, className }: LobbyChatPro
     fetch();
   }, [roomId]);
 
-  // Subscribe to new lobby messages
+  // Subscribe to new lobby messages — refetch to get joined player data
   useEffect(() => {
     const channel = supabase
       .channel(`lobby-chat:${roomId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `room_id=eq.${roomId}` },
-        (payload) => {
+        async (payload) => {
           const msg = payload.new as LobbyMessage;
           if (msg.phase !== 'lobby') return;
-          setMessages(prev => {
-            // Deduplicate optimistic messages
-            if (prev.some(m => m.id === msg.id)) return prev;
-            // Replace optimistic message
-            const filtered = prev.filter(m => !(m.id < 0 && m.player_id === msg.player_id && m.content === msg.content));
-            return [...filtered, msg];
-          });
+
+          // Refetch the inserted message with player join to get display_name/sigil
+          const { data } = await supabase
+            .from('chat_messages')
+            .select('*, players(display_name, sigil)')
+            .eq('id', msg.id)
+            .single();
+
+          if (data) {
+            setMessages(prev => {
+              // Remove optimistic duplicate
+              const filtered = prev.filter(m => !(m.id < 0 && m.player_id === (data as any).player_id && m.content === (data as any).content));
+              if (filtered.some(m => m.id === (data as any).id)) return filtered;
+              return [...filtered, data as unknown as LobbyMessage];
+            });
+          }
         }
       )
       .subscribe();
