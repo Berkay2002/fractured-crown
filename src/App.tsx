@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SoundProvider } from "@/contexts/SoundContext";
+import { DiscordProvider } from "@/contexts/DiscordContext";
 import Index from "./pages/Index";
 import Room from "./pages/Room";
 import JoinRoom from "./pages/JoinRoom";
@@ -15,6 +16,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+      <DiscordProvider>
       <SoundProvider>
         <TooltipProvider>
           {/* Candlelight flicker — subtle ambient warmth */}
@@ -44,6 +46,7 @@ const App = () => (
           </BrowserRouter>
         </TooltipProvider>
       </SoundProvider>
+      </DiscordProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

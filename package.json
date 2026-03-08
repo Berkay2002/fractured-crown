@@ -13,6 +13,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@discord/embedded-app-sdk": "^2.4.0",
     "@hcaptcha/react-hcaptcha": "^2.0.2",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.11",
