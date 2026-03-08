@@ -1,0 +1,6 @@
+# yaml-language-server: $schema=https://openspec.dev/schema/config.yaml
+version: "1.0"
+project: fractured-crown
+profile: core
+tools:
+  - lovable
