@@ -138,13 +138,6 @@ const Index = () => {
       <div className="absolute inset-0 z-10 flex items-center justify-center">
         <div className="flex flex-col items-center gap-6 px-4 max-w-xs w-full">
 
-          {/* Crown icon */}
-          <div className="animate-fadeInUp" style={{ animationDelay: '0ms' }}>
-            <Crown
-              className="crown-breathe h-12 w-12 text-primary mx-auto"
-              strokeWidth={1.5}
-            />
-          </div>
 
           {/* Title */}
           <h1
