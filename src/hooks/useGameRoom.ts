@@ -126,9 +126,8 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
     if (data) setChatMessages(data);
   }, [roomId]);
 
-  const fetchAll = useCallback(async () => {
+  const refreshAll = useCallback(async () => {
     if (!roomId) return;
-    setLoading(true);
     await Promise.all([
       fetchGameState(),
       fetchRounds(),
@@ -138,8 +137,14 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
       fetchEvents(),
       fetchChat(),
     ]);
-    setLoading(false);
   }, [fetchGameState, fetchRounds, fetchPlayers, fetchMyRole, fetchVotes, fetchEvents, fetchChat, roomId]);
+
+  const fetchAll = useCallback(async () => {
+    if (!roomId) return;
+    setLoading(true);
+    await refreshAll();
+    setLoading(false);
+  }, [refreshAll, roomId]);
 
   // Subscribe to realtime changes
   useEffect(() => {
@@ -157,8 +162,8 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
       .on('postgres_changes', { event: '*', schema: 'public', table: 'event_log', filter: `room_id=eq.${roomId}` }, () => fetchEvents())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages', filter: `room_id=eq.${roomId}` }, () => fetchChat())
       .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR' || status === 'CLOSED') {
-          fetchAll();
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          refreshAll();
         }
       });
 
@@ -168,7 +173,20 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
       supabase.removeChannel(channel);
       channelRef.current = null;
     };
-  }, [roomId, fetchAll, fetchGameState, fetchRounds, fetchPlayers, fetchMyRole, fetchVotes, fetchEvents, fetchChat]);
+  }, [roomId, fetchAll, refreshAll, fetchGameState, fetchRounds, fetchPlayers, fetchMyRole, fetchVotes, fetchEvents, fetchChat]);
+
+  // Poll fallback for stale realtime channels
+  useEffect(() => {
+    if (!roomId) return;
+
+    const intervalId = window.setInterval(() => {
+      refreshAll();
+    }, 2000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [roomId, refreshAll]);
 
   // Clear hands on phase change
   useEffect(() => {
