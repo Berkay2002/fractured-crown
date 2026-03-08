@@ -271,7 +271,7 @@ const GameBoard = ({
   ) : null;
 
   return (
-    <div className="noise-overlay relative flex min-h-screen flex-col lg:fixed lg:inset-0">
+    <div className="noise-overlay fixed inset-0 flex flex-col">
       {/* Full-screen background */}
       <div className="fixed inset-0 w-screen h-screen overflow-hidden -z-10 pointer-events-none">
         <img src={bgUrl(BACKGROUNDS.inGame)} alt="" className="w-full h-full object-cover object-center" aria-hidden="true" />
