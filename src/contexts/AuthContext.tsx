@@ -6,8 +6,7 @@ interface AuthContextValue {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  /** Call with a captcha token to sign in anonymously */
-  signInAnonymous: (captchaToken: string) => Promise<void>;
+  signInAnonymous: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -31,7 +30,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // Check for existing session — if none, stop loading (don't auto sign-in)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setSession(session);
@@ -43,17 +41,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signInAnonymous = useCallback(async (captchaToken: string) => {
+  const signInAnonymous = useCallback(async () => {
     setLoading(true);
-    const { error } = await supabase.auth.signInAnonymously({
-      options: { captchaToken },
-    });
+    const { error } = await supabase.auth.signInAnonymously();
     if (error) {
       console.error('Anonymous auth failed:', error);
       setLoading(false);
       throw error;
     }
-    // onAuthStateChange will handle setting user/session/loading
   }, []);
 
   return (
