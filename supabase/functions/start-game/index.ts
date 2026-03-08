@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
-    // Validate room + host
+    // Validate room + host (settings come along for free via select *)
     const { data: room } = await supabase.from('rooms').select('*').eq('id', room_id).single()
     if (!room) return new Response(JSON.stringify({ error: 'Room not found' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     if (room.status !== 'lobby') return new Response(JSON.stringify({ error: 'Game already started' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
@@ -129,7 +129,10 @@ Deno.serve(async (req) => {
     // 4. Pick random first Herald
     const firstHerald = seatedPlayers[Math.floor(Math.random() * seatedPlayers.length)]
 
-    // 5. Create game_state
+    // 5. Create game_state — respect veto_enabled from room settings
+    const roomSettings = (room as any).settings as Record<string, unknown> | null
+    const vetoEnabled = roomSettings?.veto_enabled !== false // default true
+
     const { error: gsError } = await supabase.from('game_state').insert({
       room_id: room_id,
       current_phase: 'election',

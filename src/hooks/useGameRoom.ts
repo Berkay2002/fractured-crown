@@ -34,6 +34,7 @@ export interface GameRoomState {
   disconnected: boolean;
   activeReactions: Map<number, ActiveReaction>;
   sendReaction: (reaction: string) => void;
+  roomSettings: Record<string, unknown> | null;
 }
 
 export function useGameRoom(roomId: number | null, currentPlayerId: number | null): GameRoomState {
@@ -50,8 +51,19 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
   const [allRoles, setAllRoles] = useState<PlayerRole[]>([]);
   const [disconnected, setDisconnected] = useState(false);
   const [activeReactions, setActiveReactions] = useState<Map<number, ActiveReaction>>(new Map());
+  const [roomSettings, setRoomSettings] = useState<Record<string, unknown> | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const lastReactionSentRef = useRef(0);
+
+  const fetchRoomSettings = useCallback(async () => {
+    if (!roomId) return;
+    const { data } = await supabase
+      .from('rooms')
+      .select('settings')
+      .eq('id', roomId)
+      .maybeSingle();
+    if (data?.settings) setRoomSettings(data.settings as Record<string, unknown>);
+  }, [roomId]);
 
   const fetchGameState = useCallback(async () => {
     if (!roomId) return;
@@ -146,8 +158,9 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
       fetchVotes(),
       fetchEvents(),
       fetchChat(),
+      fetchRoomSettings(),
     ]);
-  }, [fetchGameState, fetchRounds, fetchPlayers, fetchMyRole, fetchVotes, fetchEvents, fetchChat, roomId]);
+  }, [fetchGameState, fetchRounds, fetchPlayers, fetchMyRole, fetchVotes, fetchEvents, fetchChat, fetchRoomSettings, roomId]);
 
   const fetchAll = useCallback(async () => {
     if (!roomId) return;
@@ -280,6 +293,6 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
   return {
     gameState, currentRound, players, myRole, votes, events, chatMessages,
     loading, sendChat, heraldHand, setHeraldHand, chancellorHand, setChancellorHand,
-    allRoles, disconnected, activeReactions, sendReaction,
+    allRoles, disconnected, activeReactions, sendReaction, roomSettings,
   };
 }

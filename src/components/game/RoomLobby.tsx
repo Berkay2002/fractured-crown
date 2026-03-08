@@ -9,6 +9,7 @@ import HowToPlayModal from './HowToPlayModal';
 import SigilAvatar, { SIGILS, sigilImageUrl } from './SigilAvatar';
 import { useLobbyPresence } from '@/hooks/useLobbyPresence';
 import { LobbyPresenceCursor } from '@/components/lobby/LobbyPresenceCursor';
+import RoyalDecrees, { type GameSettings, parseSettings } from './RoyalDecrees';
 
 interface Player {
   id: number;
@@ -25,6 +26,7 @@ interface Room {
   host_player_id: number | null;
   status: string;
   player_count: number;
+  settings?: unknown;
 }
 
 interface RoomLobbyProps {
@@ -42,6 +44,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
   const [confirmingTransfer, setConfirmingTransfer] = useState<number | null>(null);
   const isHost = currentPlayerId && room.host_player_id === currentPlayerId;
   const canStart = isHost && players.length >= 5 && players.length <= 10;
+  const gameSettings = parseSettings(room.settings);
   const showTransferUI = isHost && players.length > 1;
 
   const myPlayer = players.find(p => p.id === currentPlayerId);
@@ -171,6 +174,13 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       <div className="mb-6">
         <HowToPlayModal />
       </div>
+
+      {/* Royal Decrees — Game Settings */}
+      <RoyalDecrees
+        roomId={room.id}
+        settings={gameSettings}
+        isHost={!!isHost}
+      />
 
       {/* Sigil Picker — only for current player */}
       {currentPlayerId && (
