@@ -100,6 +100,7 @@ const GameBoard = ({
 
   const handleMobileVote = useCallback(async (choice: 'ja' | 'nein') => {
     if (!gameState) return;
+    if (demoMode) { console.log('[Demo] mobile vote:', choice); return; }
     setMobileVoting(true);
     sound.playVoteCast();
     const { data, error } = await supabase.functions.invoke('submit-vote', {
