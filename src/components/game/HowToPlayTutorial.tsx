@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { powerInvestigate, powerExecution } from '@/lib/powerImages';
 import EdictTracker from './EdictTracker';
+import PlayerCouncil from './PlayerCouncil';
 import PolicyCardUI from './PolicyCardUI';
 import {
   MOCK_PLAYERS,
