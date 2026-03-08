@@ -81,6 +81,7 @@ const LegislativeOverlay = ({
   currentPlayerId,
   onClose,
   heraldHand,
+  setHeraldHand,
   chancellorHand,
   setChancellorHand,
 }: LegislativeOverlayProps) => {
