@@ -4,7 +4,8 @@ const isDiscordActivity =
   typeof window !== 'undefined' &&
   (window.location.hostname.includes('discordsays.com') ||
     window.location.hostname.includes('discord.com') ||
-    !!window.location.pathname.match(/^\/channels/));
+    !!window.location.pathname.match(/^\/channels/) ||
+    new URLSearchParams(window.location.search).has('frame_id'));
 
 /**
  * Returns the correct Supabase storage URL, proxied when inside a Discord Activity.

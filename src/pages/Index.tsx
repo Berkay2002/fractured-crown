@@ -116,6 +116,7 @@ const Index = () => {
             src={sigilUrl('landing-page-video-desktop.mp4')}
             type="video/mp4"
           />
+          {discordAltVideoSrc && <source src={discordAltVideoSrc} type="video/mp4" />}
         </video>
         <div className="absolute inset-0 bg-[#0f0d0b]/70" />
       </div>
