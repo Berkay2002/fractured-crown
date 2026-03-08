@@ -181,7 +181,7 @@ Deno.serve(async (req) => {
 
         await supabase.from('rounds').update({ power_triggered: power }).eq('id', currentRound.id)
 
-        await supabase.from('event_log').insert({ room_id, event_type: 'policy_enacted', description: `A shadow edict has been enacted. Executive power unlocked: ${power}.`, round_id: currentRound.id })
+        await supabase.from('event_log').insert({ room_id, event_type: 'policy_enacted', description: `A Shadow edict has been enacted. The Herald unlocks the power: ${POWER_LABELS[power] || power}.`, round_id: currentRound.id })
 
         return new Response(JSON.stringify({ success: true, enacted: enactedCard, power }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
