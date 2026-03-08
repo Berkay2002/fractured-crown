@@ -19,10 +19,10 @@ const SHADOW_POWERS: Record<number, Record<number, string>> = {
 
 const powerIcon = (power: string) => {
   switch (power) {
-    case 'peek': return <Eye className="h-2.5 w-2.5 md:h-3 md:w-3" />;
-    case 'investigate': return <Search className="h-2.5 w-2.5 md:h-3 md:w-3" />;
-    case 'election': return <Vote className="h-2.5 w-2.5 md:h-3 md:w-3" />;
-    case 'execution': return <Skull className="h-2.5 w-2.5 md:h-3 md:w-3" />;
+    case 'peek': return <Eye className="h-3 w-3" />;
+    case 'investigate': return <Search className="h-3 w-3" />;
+    case 'election': return <Vote className="h-3 w-3" />;
+    case 'execution': return <Skull className="h-3 w-3" />;
     default: return null;
   }
 };
@@ -37,6 +37,7 @@ const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
 
   const powers = type === 'shadow' ? (SHADOW_POWERS[playerCount] || SHADOW_POWERS[5]) : {};
 
+  // Detect new fills
   useEffect(() => {
     const prev = prevCountRef.current;
     if (count > prev) {
@@ -48,6 +49,7 @@ const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
       }
       if (fresh.size > 0) {
         setNewlyFilled(fresh);
+        // Mark as animated after animation completes
         const timer = setTimeout(() => {
           fresh.forEach(i => animatedSlots.current.add(i));
           setNewlyFilled(new Set());
@@ -59,6 +61,7 @@ const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
     prevCountRef.current = count;
   }, [count]);
 
+  // Detect chaos
   useEffect(() => {
     if (type === 'election' && count === 3 && prevCountRef.current <= 3) {
       setShaking(true);
@@ -68,18 +71,18 @@ const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
   }, [count, type]);
 
   return (
-    <div className={`flex flex-col gap-1 md:gap-1.5 lg:gap-2 ${shaking ? 'chaos-shake' : ''}`}>
-      <span className="font-display text-[9px] md:text-[10px] lg:text-xs uppercase tracking-widest text-muted-foreground">
+    <div className={`flex flex-col gap-2 ${shaking ? 'chaos-shake' : ''}`}>
+      <span className="font-display text-xs uppercase tracking-widest text-muted-foreground">
         {label}
       </span>
-      <div className="flex gap-1 md:gap-1 lg:gap-1.5">
+      <div className="flex gap-1.5">
         {Array.from({ length: total }).map((_, i) => {
           const filled = i < count;
           const slotIndex = i + 1;
           const power = powers[slotIndex];
           const isNew = newlyFilled.has(i);
 
-          const baseClasses = `relative flex h-7 w-7 md:h-8 md:w-8 lg:h-10 lg:w-10 items-center justify-center rounded border-2 transition-all`;
+          const baseClasses = `relative flex h-10 w-10 items-center justify-center rounded border-2 transition-all`;
           const colorClasses = type === 'loyalist'
             ? filled
               ? 'border-primary bg-primary/20 shadow-[0_0_8px_hsl(var(--primary)/0.4)]'
@@ -132,7 +135,7 @@ const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
               className={`${baseClasses} ${colorClasses}`}
             >
               {filled && (
-                <div className={`h-3 w-3 md:h-3.5 md:w-3.5 lg:h-4 lg:w-4 rounded-full ${
+                <div className={`h-4 w-4 rounded-full ${
                   type === 'loyalist' ? 'bg-primary edict-fill-loyalist' : type === 'shadow' ? 'bg-accent edict-fill-shadow' : 'bg-muted-foreground'
                 }`} />
               )}

@@ -36,10 +36,12 @@ const MobileActionBar = ({
 }: MobileActionBarProps) => {
   const isHerald = gameState.current_herald_id === currentPlayerId;
 
+  // Election phase: Herald nominates, or everyone votes
   if (phase === 'election') {
+    // Herald needs to nominate
     if (isHerald && !hasNominatedLC && !nominatingLC) {
       return (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-primary/30 bg-card/95 px-4 py-3 backdrop-blur-sm lg:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-primary/30 bg-card/95 px-4 py-3 backdrop-blur-sm md:hidden">
           <Button
             onClick={onStartNominate}
             disabled={nominating}
@@ -52,9 +54,10 @@ const MobileActionBar = ({
       );
     }
 
+    // Voting in progress
     if (hasNominatedLC && !hasVoted && !allVotesRevealed) {
       return (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-primary/30 bg-card/95 px-4 py-3 backdrop-blur-sm lg:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-primary/30 bg-card/95 px-4 py-3 backdrop-blur-sm md:hidden">
           <div className="flex gap-3">
             <Button
               onClick={() => onVote('ja')}

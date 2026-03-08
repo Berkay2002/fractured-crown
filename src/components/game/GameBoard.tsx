@@ -208,9 +208,8 @@ const GameBoard = ({
     </div>
   );
 
-  // Action panel content — rendered once, placed differently per breakpoint
-  const actionPanelContent = !isSpectator ? (
-    <>
+  const actionPanel = !isSpectator ? (
+    <div>
       {phase === 'election' && (
         <div className="space-y-4">
           {isHerald && !gameState.current_lord_commander_id && (
@@ -268,23 +267,23 @@ const GameBoard = ({
           onlinePlayers={onlinePlayers}
         />
       )}
-    </>
+    </div>
   ) : null;
 
   return (
-    <div className="noise-overlay relative fixed inset-0 flex flex-col">
+    <div className="noise-overlay relative flex min-h-screen flex-col lg:fixed lg:inset-0">
       {/* Full-screen background */}
       <div className="fixed inset-0 w-screen h-screen overflow-hidden -z-10 pointer-events-none">
         <img src={bgUrl(BACKGROUNDS.inGame)} alt="" className="w-full h-full object-cover object-center" aria-hidden="true" />
         <div className="absolute inset-0 bg-[#0f0d0b]/75" />
       </div>
-      <div className="relative z-10 flex flex-1 flex-col h-full overflow-hidden">
+      <div className="relative z-10 flex flex-1 flex-col lg:h-screen lg:overflow-hidden">
         <ConnectionBanner disconnected={disconnected} />
         <PhaseTransitionBanner phase={phase} />
 
         {/* Spectator banner */}
         {isSpectator && (
-          <div className="flex-shrink-0 flex items-center justify-center gap-2 border-b border-border bg-muted/30 px-4 py-1.5">
+          <div className="flex items-center justify-center gap-2 border-b border-border bg-muted/30 px-4 py-1.5">
             <Eye className="h-4 w-4 text-muted-foreground" />
             <span className="font-display text-xs uppercase tracking-widest text-muted-foreground">
               You are spectating
@@ -296,76 +295,18 @@ const GameBoard = ({
         {headerBar}
 
         {/* ═══════════════════════════════════════════════ */}
-        {/* MOBILE LAYOUT (< md)                           */}
+        {/* MOBILE / TABLET LAYOUT (< lg) — unchanged     */}
         {/* ═══════════════════════════════════════════════ */}
-        <div className="flex-1 flex flex-col overflow-hidden md:hidden">
-          {/* Scrollable body */}
-          <div className="flex-1 overflow-y-auto pb-20">
-            {/* Compact trackers row */}
-            <div className="flex flex-row gap-4 px-3 py-2 border-b border-primary/10">
+        <div className="flex flex-1 flex-col gap-6 p-4 lg:hidden">
+          <div className="flex flex-1 flex-col gap-6">
+            <div className="flex flex-wrap gap-6">
               <EdictTracker type="loyalist" count={gameState.loyalist_edicts_passed} />
               <EdictTracker type="shadow" count={gameState.shadow_edicts_passed} playerCount={players.length} />
               <EdictTracker type="election" count={gameState.election_tracker} />
             </div>
 
-            {/* Council */}
-            <div className="px-3 py-3">
-              <h2 className="mb-2 font-display text-[9px] uppercase tracking-widest text-muted-foreground">
-                The Council
-              </h2>
-              <PlayerCouncil
-                players={players}
-                gameState={gameState}
-                onlinePlayers={onlinePlayers}
-                currentPlayerId={currentPlayerId}
-                selectablePlayerIds={!isSpectator && nominatingLC ? selectablePlayers : undefined}
-                onPlayerClick={!isSpectator && nominatingLC ? handleNominate : undefined}
-                activeReactions={activeReactions}
-                onSendReaction={isSpectator ? undefined : sendReaction}
-              />
-            </div>
-
-            {/* Chronicle + Chat */}
-            <div className="flex flex-col gap-3 px-3 pb-4">
-              <EventLogFeed events={events} />
-              <ChatPanel messages={chatMessages} players={players} sendChat={sendChat} />
-            </div>
-          </div>
-
-          {/* Mobile pinned action bar */}
-          {!isSpectator && (
-            <MobileActionBar
-              gameState={gameState}
-              currentPlayerId={currentPlayerId}
-              phase={phase}
-              hasVoted={hasVotedAlready}
-              allVotesRevealed={allVotesRevealed}
-              hasNominatedLC={!!gameState.current_lord_commander_id}
-              nominatingLC={nominatingLC}
-              onVote={handleMobileVote}
-              onStartNominate={() => setNominatingLC(true)}
-              voting={mobileVoting}
-              nominating={nominating}
-            />
-          )}
-        </div>
-
-        {/* ═══════════════════════════════════════════════ */}
-        {/* TABLET LAYOUT (md to lg)                       */}
-        {/* ═══════════════════════════════════════════════ */}
-        <div className="hidden md:flex md:flex-1 md:flex-col md:overflow-hidden lg:hidden">
-          {/* Top zone — compact, no scroll */}
-          <div className="flex-shrink-0 flex flex-col gap-3 px-4 py-3">
-            {/* Trackers row */}
-            <div className="flex flex-row gap-6">
-              <EdictTracker type="loyalist" count={gameState.loyalist_edicts_passed} />
-              <EdictTracker type="shadow" count={gameState.shadow_edicts_passed} playerCount={players.length} />
-              <EdictTracker type="election" count={gameState.election_tracker} />
-            </div>
-
-            {/* Council grid */}
             <div>
-              <h2 className="mb-2 font-display text-[10px] uppercase tracking-widest text-muted-foreground">
+              <h2 className="mb-3 font-display text-xs uppercase tracking-widest text-muted-foreground">
                 The Council
               </h2>
               <PlayerCouncil
@@ -380,40 +321,13 @@ const GameBoard = ({
               />
             </div>
 
-            {/* Action panel — prominent, full width */}
-            {actionPanelContent && (
-              <div className="w-full max-w-sm mx-auto">
-                {actionPanelContent}
-              </div>
-            )}
+            {actionPanel && <div className="mt-2">{actionPanel}</div>}
           </div>
 
-          {/* Bottom zone — Chronicle + Chat side by side, fill remaining space */}
-          <div className="flex-1 min-h-0 flex flex-row border-t border-primary/15">
-            <div className="flex-[55] min-h-0 flex flex-col overflow-hidden">
-              <EventLogFeed events={events} />
-            </div>
-            <div className="flex-[45] min-h-0 flex flex-col overflow-hidden border-l border-primary/15">
-              <ChatPanel messages={chatMessages} players={players} sendChat={sendChat} />
-            </div>
+          <div className="flex w-full flex-col gap-4">
+            <EventLogFeed events={events} />
+            <ChatPanel messages={chatMessages} players={players} sendChat={sendChat} />
           </div>
-
-          {/* Tablet pinned action bar (nominate/vote only) */}
-          {!isSpectator && (
-            <MobileActionBar
-              gameState={gameState}
-              currentPlayerId={currentPlayerId}
-              phase={phase}
-              hasVoted={hasVotedAlready}
-              allVotesRevealed={allVotesRevealed}
-              hasNominatedLC={!!gameState.current_lord_commander_id}
-              nominatingLC={nominatingLC}
-              onVote={handleMobileVote}
-              onStartNominate={() => setNominatingLC(true)}
-              voting={mobileVoting}
-              nominating={nominating}
-            />
-          )}
         </div>
 
         {/* ═══════════════════════════════════════════════ */}
@@ -422,16 +336,24 @@ const GameBoard = ({
         <div className="hidden lg:flex flex-1 min-h-0 overflow-hidden">
           {/* ── LEFT PANEL: Trackers + Chronicle ── */}
           <div className="w-80 flex-shrink-0 flex flex-col gap-3 p-4 overflow-y-auto border-r border-primary/15">
+            {/* Loyalist Edicts */}
             <div className="rounded-lg bg-card/80 border border-primary/15 p-3">
               <EdictTracker type="loyalist" count={gameState.loyalist_edicts_passed} />
             </div>
+
+            {/* Shadow Edicts */}
             <div className="rounded-lg bg-card/80 border border-primary/15 p-3">
               <EdictTracker type="shadow" count={gameState.shadow_edicts_passed} playerCount={players.length} />
             </div>
+
+            {/* Election Tracker */}
             <div className="rounded-lg bg-card/80 border border-primary/15 p-3">
               <EdictTracker type="election" count={gameState.election_tracker} />
             </div>
+
+            {/* Chronicle — fills remaining height */}
             <div className="flex-1 min-h-0 flex flex-col rounded-lg bg-card/80 border border-primary/15 overflow-hidden">
+              {/* Fade gradient at top for scroll indication */}
               <div className="relative flex-1 min-h-0">
                 <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-4 bg-gradient-to-b from-card/80 to-transparent" />
                 <EventLogFeed events={events} />
@@ -441,6 +363,7 @@ const GameBoard = ({
 
           {/* ── CENTER STAGE: Council + Action Panel ── */}
           <div className="flex-1 flex flex-col items-center justify-start gap-6 p-6 overflow-y-auto">
+            {/* THE COUNCIL */}
             <div className="w-full max-w-2xl">
               <h2 className="mb-4 text-center font-display text-xs uppercase tracking-widest text-muted-foreground">
                 The Council
@@ -457,9 +380,10 @@ const GameBoard = ({
               />
             </div>
 
-            {actionPanelContent && (
+            {/* ACTION PANEL */}
+            {actionPanel && (
               <div className="w-full max-w-sm rounded-xl border border-primary/40 bg-card/90 p-6">
-                {actionPanelContent}
+                {actionPanel}
               </div>
             )}
           </div>
@@ -469,6 +393,25 @@ const GameBoard = ({
             <ChatPanel messages={chatMessages} players={players} sendChat={sendChat} />
           </div>
         </div>
+
+        {/* Mobile bottom action bar */}
+        {!isSpectator && (
+          <MobileActionBar
+            gameState={gameState}
+            currentPlayerId={currentPlayerId}
+            phase={phase}
+            hasVoted={hasVotedAlready}
+            allVotesRevealed={allVotesRevealed}
+            hasNominatedLC={!!gameState.current_lord_commander_id}
+            nominatingLC={nominatingLC}
+            onVote={handleMobileVote}
+            onStartNominate={() => setNominatingLC(true)}
+            voting={mobileVoting}
+            nominating={nominating}
+          />
+        )}
+
+        {!isSpectator && <div className="h-16 md:hidden" />}
       </div>
     </div>
   );
