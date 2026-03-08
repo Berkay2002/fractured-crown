@@ -160,7 +160,7 @@ export function useGameRoom(roomId: number | null, currentPlayerId: number | nul
       fetchChat(),
       fetchRoomSettings(),
     ]);
-  }, [fetchGameState, fetchRounds, fetchPlayers, fetchMyRole, fetchVotes, fetchEvents, fetchChat, roomId]);
+  }, [fetchGameState, fetchRounds, fetchPlayers, fetchMyRole, fetchVotes, fetchEvents, fetchChat, fetchRoomSettings, roomId]);
 
   const fetchAll = useCallback(async () => {
     if (!roomId) return;
