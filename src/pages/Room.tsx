@@ -30,6 +30,15 @@ interface PlayerData {
   joined_at: string;
 }
 
+interface LobbyMessage {
+  id: number;
+  room_id: number;
+  player_id: number;
+  content: string;
+  created_at: string;
+  phase: string;
+}
+
 const phaseLabels: Record<string, string> = {
   election: 'Election',
   legislative: 'Legislative',
