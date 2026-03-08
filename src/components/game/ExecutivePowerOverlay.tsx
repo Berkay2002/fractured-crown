@@ -123,29 +123,41 @@ const ExecutivePowerOverlay = ({
         <p className="mb-6 font-body text-sm text-muted-foreground">
           The top three edicts from the decree pile:
         </p>
-        <div className="flex justify-center gap-3">
+        <div className="flex justify-center gap-4">
           {(peeked ? peekedCards : [null, null, null]).map((card, i) => (
             <motion.div
               key={i}
-              initial={peeked ? { rotateY: 180 } : {}}
-              animate={peeked ? { rotateY: 0 } : {}}
-              transition={{ delay: i * 0.2, duration: 0.5 }}
-              className={`card-flip flex h-32 w-20 items-center justify-center rounded-lg border-2 ${
+              initial={peeked ? { rotateY: 180, opacity: 0 } : {}}
+              animate={peeked ? { rotateY: 0, opacity: 1 } : {}}
+              transition={{ delay: i * 0.3, duration: 0.6 }}
+              className={`card-flip flex h-36 w-24 flex-col items-center justify-center gap-2 rounded-lg border-2 ${
                 peeked && card
                   ? card === 'loyalist'
-                    ? 'border-primary bg-primary/10'
-                    : 'border-accent bg-accent/10'
+                    ? 'border-primary bg-primary/10 shadow-[0_0_16px_hsl(var(--primary)/0.3)]'
+                    : 'border-accent bg-accent/10 shadow-[0_0_16px_hsl(var(--accent)/0.3)]'
                   : 'border-border bg-muted'
               }`}
             >
               {peeked && card ? (
-                card === 'loyalist' ? (
-                  <Shield className="h-8 w-8 text-primary" />
-                ) : (
-                  <Skull className="h-8 w-8 text-accent-foreground" />
-                )
+                <>
+                  {card === 'loyalist' ? (
+                    <Shield className="h-8 w-8 text-primary" />
+                  ) : (
+                    <Skull className="h-8 w-8 text-accent-foreground" />
+                  )}
+                  <span className={`font-display text-[10px] uppercase tracking-wider ${
+                    card === 'loyalist' ? 'text-primary' : 'text-accent-foreground'
+                  }`}>
+                    {card === 'loyalist' ? 'Loyalist' : 'Shadow'}
+                  </span>
+                </>
               ) : (
-                <Scroll className="h-8 w-8 text-muted-foreground/30" />
+                <>
+                  <Scroll className="h-8 w-8 text-muted-foreground/30" />
+                  <span className="font-display text-[10px] uppercase tracking-wider text-muted-foreground/30">
+                    Edict
+                  </span>
+                </>
               )}
             </motion.div>
           ))}
