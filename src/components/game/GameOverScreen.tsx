@@ -270,7 +270,18 @@ const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreen
           </Button>
           <Button
             variant="outline"
-            onClick={() => navigate('/')}
+            onClick={async () => {
+              // Remove self from players table before leaving
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                await supabase
+                  .from('players')
+                  .delete()
+                  .eq('room_id', gameState.room_id)
+                  .eq('user_id', user.id);
+              }
+              navigate('/');
+            }}
             className="border-border font-display tracking-wider text-muted-foreground hover:text-foreground"
           >
             Leave
