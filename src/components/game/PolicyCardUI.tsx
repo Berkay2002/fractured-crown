@@ -35,11 +35,11 @@ const PolicyCardUI = ({ type, faceUp, onClick, disabled, keyHint }: PolicyCardUI
           transition={{ duration: 0.4 }}
           className="flex flex-col items-center gap-2"
         >
-          {type === 'loyalist' ? (
-            <Shield className="h-10 w-10 text-primary" />
-          ) : (
-            <Skull className="h-10 w-10 text-accent-foreground" />
-          )}
+          <img
+            src={type === 'loyalist' ? edictLoyalist : edictShadow}
+            alt={type === 'loyalist' ? 'Loyalist Edict' : 'Shadow Edict'}
+            className="h-24 w-24 object-contain"
+          />
           <span className={`font-display text-xs uppercase tracking-wider ${
             type === 'loyalist' ? 'text-primary' : 'text-accent-foreground'
           }`}>
