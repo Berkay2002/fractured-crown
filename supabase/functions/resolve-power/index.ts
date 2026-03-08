@@ -18,6 +18,13 @@ async function advanceHerald(supabase: any, roomId: number, gs: any, players: an
   return alive[nextIdx].id
 }
 
+const WINNER_LABELS: Record<string, string> = {
+  'loyalists_edicts': 'The Loyalists have enacted enough edicts to secure the realm!',
+  'usurper_executed': 'The Usurper has been executed! The Loyalists win!',
+  'traitors_edicts': 'The Shadow Court has enacted enough edicts to seize control!',
+  'usurper_crowned': 'The Usurper has been crowned Lord Commander! The Shadow Court wins!',
+}
+
 async function checkWinCondition(supabase: any, roomId: number, gs: any, context?: { executedPlayerId?: number }) {
   let winner: string | null = null
   if (gs.loyalist_edicts_passed >= 5) winner = 'loyalists_edicts'
@@ -29,7 +36,7 @@ async function checkWinCondition(supabase: any, roomId: number, gs: any, context
   if (winner) {
     await supabase.from('game_state').update({ winner, current_phase: 'game_over', updated_at: new Date().toISOString() }).eq('room_id', roomId)
     await supabase.from('rooms').update({ status: 'finished' }).eq('id', roomId)
-    await supabase.from('event_log').insert({ room_id: roomId, event_type: 'game_over', description: `Game over! Winner: ${winner}` })
+    await supabase.from('event_log').insert({ room_id: roomId, event_type: 'game_over', description: WINNER_LABELS[winner] || 'Game over! The realm has been decided.' })
     return winner
   }
   return null

@@ -23,6 +23,20 @@ const POWER_TABLE: Record<string, Record<number, string>> = {
   '10': { 1: 'investigate_loyalty', 2: 'investigate_loyalty', 3: 'special_election', 4: 'execution', 5: 'execution' },
 }
 
+const POWER_LABELS: Record<string, string> = {
+  'policy_peek': 'Raven\'s Eye',
+  'investigate_loyalty': 'Loyalty Investigation',
+  'special_election': 'Call Conclave',
+  'execution': 'Royal Execution',
+}
+
+const WINNER_LABELS: Record<string, string> = {
+  'loyalists_edicts': 'The Loyalists have enacted enough edicts to secure the realm!',
+  'usurper_executed': 'The Usurper has been executed! The Loyalists win!',
+  'traitors_edicts': 'The Shadow Court has enacted enough edicts to seize control!',
+  'usurper_crowned': 'The Usurper has been crowned Lord Commander! The Shadow Court wins!',
+}
+
 async function advanceHerald(supabase: any, roomId: number, gs: any, players: any[]) {
   const alive = players.filter((p: any) => p.is_alive).sort((a: any, b: any) => a.seat_order - b.seat_order)
   if (alive.length === 0) return null
@@ -66,7 +80,7 @@ async function checkWinCondition(supabase: any, roomId: number, gs: any, context
   if (winner) {
     await supabase.from('game_state').update({ winner, current_phase: 'game_over', updated_at: new Date().toISOString() }).eq('room_id', roomId)
     await supabase.from('rooms').update({ status: 'finished' }).eq('id', roomId)
-    await supabase.from('event_log').insert({ room_id: roomId, event_type: 'game_over', description: `Game over! Winner: ${winner}` })
+    await supabase.from('event_log').insert({ room_id: roomId, event_type: 'game_over', description: WINNER_LABELS[winner] || `Game over! The realm has been decided.` })
     return winner
   }
   return null
@@ -146,7 +160,7 @@ Deno.serve(async (req) => {
     const updatedGs = { ...gs, shadow_edicts_passed: newShadow, loyalist_edicts_passed: newLoyalist }
     const winner = await checkWinCondition(supabase, room_id, updatedGs)
     if (winner) {
-      await supabase.from('event_log').insert({ room_id, event_type: 'policy_enacted', description: `A ${enactedCard} edict has been enacted.`, round_id: currentRound.id })
+      await supabase.from('event_log').insert({ room_id, event_type: 'policy_enacted', description: `A ${enactedCard === 'loyalist' ? 'Loyalist' : 'Shadow'} edict has been enacted.`, round_id: currentRound.id })
       return new Response(JSON.stringify({ success: true, enacted: enactedCard, winner }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
@@ -167,7 +181,7 @@ Deno.serve(async (req) => {
 
         await supabase.from('rounds').update({ power_triggered: power }).eq('id', currentRound.id)
 
-        await supabase.from('event_log').insert({ room_id, event_type: 'policy_enacted', description: `A shadow edict has been enacted. Executive power unlocked: ${power}.`, round_id: currentRound.id })
+        await supabase.from('event_log').insert({ room_id, event_type: 'policy_enacted', description: `A Shadow edict has been enacted. The Herald unlocks the power: ${POWER_LABELS[power] || power}.`, round_id: currentRound.id })
 
         return new Response(JSON.stringify({ success: true, enacted: enactedCard, power }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
@@ -189,7 +203,7 @@ Deno.serve(async (req) => {
     const { data: latestRound } = await supabase.from('rounds').select('round_number').eq('room_id', room_id).order('round_number', { ascending: false }).limit(1).single()
     await supabase.from('rounds').insert({ room_id, round_number: (latestRound?.round_number ?? 0) + 1, herald_id: nextHeraldId })
 
-    await supabase.from('event_log').insert({ room_id, event_type: 'policy_enacted', description: `A ${enactedCard} edict has been enacted.`, round_id: currentRound.id })
+    await supabase.from('event_log').insert({ room_id, event_type: 'policy_enacted', description: `A ${enactedCard === 'loyalist' ? 'Loyalist' : 'Shadow'} edict has been enacted.`, round_id: currentRound.id })
 
     return new Response(JSON.stringify({ success: true, enacted: enactedCard }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 

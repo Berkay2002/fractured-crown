@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
         const { data: latestRound } = await supabase.from('rounds').select('round_number').eq('room_id', room_id).order('round_number', { ascending: false }).limit(1).single()
         await supabase.from('rounds').insert({ room_id, round_number: (latestRound?.round_number ?? 0) + 1, herald_id: nextHeraldId })
 
-        await supabase.from('event_log').insert({ room_id, event_type: 'veto_chaos', description: `Veto accepted. Election tracker reached 3! A ${chaosCard.card_type} edict was enacted by chaos.`, round_id: currentRound.id })
+        await supabase.from('event_log').insert({ room_id, event_type: 'veto_chaos', description: `The veto was accepted, but the council has failed three times! A ${chaosCard.card_type === 'loyalist' ? 'Loyalist' : 'Shadow'} edict has been enacted by chaos.`, round_id: currentRound.id })
         return new Response(JSON.stringify({ success: true, veto_accepted: true, chaos: true }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
     }
