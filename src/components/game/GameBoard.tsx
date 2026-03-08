@@ -218,7 +218,7 @@ const GameBoard = ({
                 <Button
                   onClick={() => setNominatingLC(true)}
                   disabled={nominating}
-                  className="gold-shimmer w-full py-4 text-lg font-display tracking-wider text-primary-foreground lg:max-w-sm"
+                  className="gold-shimmer hidden md:inline-flex w-full py-4 text-lg font-display tracking-wider text-primary-foreground lg:max-w-sm"
                 >
                   <Scroll className="mr-2 h-5 w-5" />
                   Nominate Lord Commander
