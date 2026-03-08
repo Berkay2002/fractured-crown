@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
 const PrivacyPolicy = () => {
-  usePageTitle('Privacy Policy — Fractured Crown');
+  usePageTitle('Privacy Policy — Fractured Crown', 'Learn how Fractured Crown handles your data. No emails, passwords, or personal information collected — only anonymous game sessions.');
 
   return (
     <div className="min-h-screen bg-background">

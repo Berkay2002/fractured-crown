@@ -10,7 +10,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const Install = () => {
-  usePageTitle("Install — Fractured Crown");
+  usePageTitle("Install — Fractured Crown", "Install Fractured Crown on your device for a full-screen, app-like experience. Available on iOS, Android, and desktop.");
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [platform, setPlatform] = useState<"ios" | "android" | "desktop">("desktop");
