@@ -396,7 +396,7 @@ const useSteps = (): TutorialStep[] => {
     /* 12 — Victory & Defeat */
     {
       title: 'Victory & Defeat',
-      icon: Shield,
+      icon: Crown,
       description: 'Four paths to ending the game. Know them — your strategy depends on it.',
       render: () => (
         <div className="flex flex-col gap-5">
