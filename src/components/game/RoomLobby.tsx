@@ -646,8 +646,13 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               {royalDecrees}
             </div>
             {/* Chat fills remaining space */}
-            <div className="flex-1 min-h-0 mt-6">
-              {lobbyChat}
+            <div className="flex-1 min-h-0 mt-6 flex flex-col">
+              <LobbyChat
+                roomId={room.id}
+                currentPlayerId={currentPlayerId}
+                players={players}
+                className="flex-1 min-h-0"
+              />
             </div>
           </div>
 
