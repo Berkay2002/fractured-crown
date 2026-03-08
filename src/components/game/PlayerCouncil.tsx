@@ -91,7 +91,7 @@ const PlayerCouncil = ({
               {isLC && <Sword className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 text-accent-foreground" />}
 
               {/* Avatar */}
-              <div className={`relative flex h-11 w-11 items-center justify-center rounded-full border-2 overflow-hidden ${
+              <div className={`relative flex h-10 w-10 md:h-12 md:w-12 lg:h-11 lg:w-11 items-center justify-center rounded-full border-2 overflow-hidden ${
                 !player.is_alive
                   ? 'border-accent/40 bg-muted'
                   : isHerald
@@ -100,7 +100,7 @@ const PlayerCouncil = ({
                   ? 'border-accent/50 bg-accent/10'
                   : 'border-border bg-muted'
               }`}>
-                <SigilAvatar sigil={playerSigil} displayName={player.display_name} size="h-11 w-11" />
+                <SigilAvatar sigil={playerSigil} displayName={player.display_name} size="h-10 w-10 md:h-12 md:w-12 lg:h-11 lg:w-11" />
                 {!player.is_alive && (
                   <>
                     <div className="execution-overlay absolute inset-0 rounded-full bg-accent/20" />
