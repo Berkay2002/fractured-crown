@@ -43,6 +43,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/room/:roomCode" element={<Room />} />
               <Route path="/join/:roomCode" element={<JoinRoom />} />
+              <Route path="/install" element={<Install />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
