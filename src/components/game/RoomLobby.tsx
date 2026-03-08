@@ -47,6 +47,12 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
   const myPlayer = players.find(p => p.id === currentPlayerId);
   const mySigil = selectedSigil || myPlayer?.sigil || 'crown';
 
+  const myPresencePayload = useMemo(
+    () => myPlayer ? { id: myPlayer.id, username: myPlayer.display_name, sigil: mySigil } : null,
+    [myPlayer?.id, myPlayer?.display_name, mySigil]
+  );
+  const { cursors, updateCursor } = useLobbyPresence(room.room_code, myPresencePayload);
+
   // Build set of sigils taken by OTHER players in this room
   const takenSigils = new Set(
     players
