@@ -114,7 +114,8 @@ const GameBoard = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only reinvoke when room_id changes, not other gameState fields
   }, [gameState?.room_id, isHerald, setHeraldHand, sound]);
 
-  const decayStage = useDecayStage(gameState?.shadow_edicts_passed ?? 0);
+  const derivedDecay = useDecayStage(gameState?.shadow_edicts_passed ?? 0);
+  const decayStage = decayStageOverride ?? derivedDecay;
 
   if (!gameState || loading) return <GameBoardSkeleton />;
 
