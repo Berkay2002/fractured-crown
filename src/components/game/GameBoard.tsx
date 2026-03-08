@@ -136,14 +136,14 @@ const GameBoard = ({
       <ConnectionBanner disconnected={disconnected} />
       <PhaseTransitionBanner phase={phase} />
       {/* Top Bar */}
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <div className="flex items-center gap-3">
-          <Crown className="h-5 w-5 text-primary" />
-          <span className="font-mono text-sm tracking-widest text-primary">{roomCode}</span>
+      <div className="flex items-center justify-between border-b border-border px-2 py-2 md:px-4 md:py-3 gap-2">
+        <div className="flex items-center gap-1.5 md:gap-3 shrink-0">
+          <Crown className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+          <span className="font-mono text-xs md:text-sm tracking-widest text-primary">{roomCode}</span>
           <HowToPlayModal
             trigger={
               <button className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" title="How to Play">
-                <BookOpen className="h-4 w-4" />
+                <BookOpen className="h-3.5 w-3.5 md:h-4 md:w-4" />
               </button>
             }
           />
@@ -152,30 +152,32 @@ const GameBoard = ({
             className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             title={sound.enabled ? 'Mute sounds' : 'Enable sounds'}
           >
-            {sound.enabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            {sound.enabled ? <Volume2 className="h-3.5 w-3.5 md:h-4 md:w-4" /> : <VolumeX className="h-3.5 w-3.5 md:h-4 md:w-4" />}
           </button>
         </div>
-        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+        <div className="flex items-center gap-1.5 md:gap-3 text-sm text-muted-foreground overflow-hidden">
           {currentRound && (
-            <span className="font-display text-xs uppercase tracking-wider">
+            <span className="font-display text-[10px] md:text-xs uppercase tracking-wider hidden sm:inline">
               Round {currentRound.round_number}
             </span>
           )}
-          <span className="rounded border border-primary/20 bg-primary/5 px-2 py-0.5 font-display text-xs uppercase tracking-wider text-primary">
+          <span className="rounded border border-primary/20 bg-primary/5 px-1.5 py-0.5 font-display text-[10px] md:text-xs uppercase tracking-wider text-primary shrink-0">
             {phaseLabels[phase] ?? phase}
           </span>
           {myRole && (
-            <span className={`flex items-center gap-1.5 rounded border px-2 py-0.5 font-display text-[10px] uppercase tracking-wider ${
+            <span className={`flex items-center gap-1 shrink-0 rounded border px-1.5 py-0.5 font-display text-[10px] uppercase tracking-wider ${
               myRole.role === 'loyalist'
                 ? 'border-primary/30 bg-primary/10 text-primary'
                 : 'border-accent/30 bg-accent/10 text-accent-foreground'
             }`}>
               {myRole.role === 'loyalist' ? <Shield className="h-3 w-3" /> : myRole.role === 'usurper' ? <Skull className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-              {myRole.role === 'loyalist' ? 'Loyalist' : myRole.role === 'usurper' ? 'Usurper' : 'Traitor'}
+              <span className="hidden sm:inline">
+                {myRole.role === 'loyalist' ? 'Loyalist' : myRole.role === 'usurper' ? 'Usurper' : 'Traitor'}
+              </span>
             </span>
           )}
           {currentPlayerId && players.length > 0 && (
-            <span className="flex items-center gap-1.5 rounded border border-border bg-muted/50 px-2 py-0.5 font-body text-xs text-foreground">
+            <span className="hidden md:flex items-center gap-1.5 rounded border border-border bg-muted/50 px-2 py-0.5 font-body text-xs text-foreground">
               <User className="h-3 w-3 text-muted-foreground" />
               {players.find(p => p.id === currentPlayerId)?.display_name ?? ''}
             </span>
