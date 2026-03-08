@@ -162,7 +162,7 @@ const Index = () => {
           {/* Player count descriptor */}
           <p
             className="animate-fadeInUp text-xs tracking-[0.3em] uppercase text-center"
-            style={{ animationDelay: '450ms', color: '#6b5d47' }}
+            style={{ animationDelay: '450ms', color: '#8a7a5e' }}
           >
             For 5 to 10 players · Social Deduction · Dark Fantasy
           </p>
