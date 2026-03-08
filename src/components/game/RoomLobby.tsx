@@ -435,7 +435,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
       {/* Background overlay */}
       <div className="absolute inset-0 bg-[hsl(24_22%_6%/0.6)] pointer-events-none z-0" />
       {/* ── Mobile + Tablet layout (below lg) ── */}
-      <div className="flex flex-col items-center px-4 py-8 md:max-w-2xl md:mx-auto lg:hidden">
+      <div className="relative z-10 flex flex-col items-center px-4 py-8 md:max-w-2xl md:mx-auto lg:hidden">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}

@@ -138,6 +138,7 @@ const GameBoard = ({
 
   return (
     <div className="noise-overlay relative flex min-h-screen flex-col bg-background" style={bgStyle(bgUrl(BACKGROUNDS.inGame))}>
+      <div className="absolute inset-0 bg-[hsl(24_22%_6%/0.65)] pointer-events-none z-0" />
       <ConnectionBanner disconnected={disconnected} />
       <PhaseTransitionBanner phase={phase} />
       {/* Top Bar */}

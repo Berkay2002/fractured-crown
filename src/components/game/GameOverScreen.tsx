@@ -148,9 +148,13 @@ const GameOverScreen = ({ gameState, players, events, allRoles }: GameOverScreen
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-background/98 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4"
+      style={bgStyle(endBgUrl)}
     >
-      <div className="flex w-full max-w-2xl flex-col items-center gap-8 py-8">
+      <div className={`absolute inset-0 pointer-events-none z-0 ${
+        isLoyalistWin ? 'bg-[hsl(24_22%_6%/0.5)]' : 'bg-[hsl(24_22%_6%/0.7)]'
+      }`} />
+      <div className="relative z-10 flex w-full max-w-2xl flex-col items-center gap-8 py-8">
         {/* Winner Announcement */}
         <motion.div
           initial={{ scale: 0.5, opacity: 0 }}
