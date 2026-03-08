@@ -1,4 +1,4 @@
-import { Crown, Sword, Wifi, WifiOff, Skull } from 'lucide-react';
+import { Crown, Sword, Wifi, WifiOff, Skull, Swords } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Tables } from '@/integrations/supabase/types';
 
