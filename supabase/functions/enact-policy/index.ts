@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
     const updatedGs = { ...gs, shadow_edicts_passed: newShadow, loyalist_edicts_passed: newLoyalist }
     const winner = await checkWinCondition(supabase, room_id, updatedGs)
     if (winner) {
-      await supabase.from('event_log').insert({ room_id, event_type: 'policy_enacted', description: `A ${enactedCard} edict has been enacted.`, round_id: currentRound.id })
+      await supabase.from('event_log').insert({ room_id, event_type: 'policy_enacted', description: `A ${enactedCard === 'loyalist' ? 'Loyalist' : 'Shadow'} edict has been enacted.`, round_id: currentRound.id })
       return new Response(JSON.stringify({ success: true, enacted: enactedCard, winner }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
