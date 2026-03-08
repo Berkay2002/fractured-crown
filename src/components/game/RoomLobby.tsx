@@ -274,31 +274,25 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
   ) : null;
 
   const readyButton = currentPlayerId && !isSpectator ? (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.35 }}
-      className="w-full flex justify-center"
+    <Button
+      onClick={handleToggleReady}
+      size="sm"
+      variant={myPlayer?.is_ready ? 'outline' : 'default'}
+      className={`font-display tracking-wider ${
+        myPlayer?.is_ready
+          ? 'border-primary text-primary hover:bg-primary/10'
+          : 'gold-shimmer text-primary-foreground'
+      }`}
     >
-      <Button
-        onClick={handleToggleReady}
-        variant={myPlayer?.is_ready ? 'outline' : 'default'}
-        className={`font-display tracking-wider ${
-          myPlayer?.is_ready
-            ? 'border-primary text-primary hover:bg-primary/10'
-            : 'gold-shimmer text-primary-foreground'
-        }`}
-      >
-        {myPlayer?.is_ready ? (
-          <>
-            <Check className="mr-2 h-4 w-4" />
-            Ready
-          </>
-        ) : (
-          'Ready Up'
-        )}
-      </Button>
-    </motion.div>
+      {myPlayer?.is_ready ? (
+        <>
+          <Check className="mr-1.5 h-3.5 w-3.5" />
+          Ready
+        </>
+      ) : (
+        'Ready Up'
+      )}
+    </Button>
   ) : null;
 
   const sigilPicker = currentPlayerId && !isSpectator ? (
@@ -605,18 +599,20 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
 
         {/* Player count + grid in surface card on md */}
         <div className="mb-6 w-full max-w-lg md:max-w-none md:rounded-lg md:border md:border-primary/20 md:bg-card md:p-6">
-          <div className="mb-4 flex items-center justify-center gap-2 text-muted-foreground md:justify-start">
-            <Users className="h-5 w-5" />
-            <span className="font-body text-lg">
-              {players.length} / 10 players
-            </span>
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Users className="h-5 w-5" />
+              <span className="font-body text-lg">
+                {players.length} / 10 players
+              </span>
+            </div>
+            {readyButton}
           </div>
           {waitingMessage && <div className="mb-4">{waitingMessage}</div>}
           {playerGrid}
         </div>
 
         {sigilPicker && <div className="mb-6 w-full max-w-2xl">{sigilPicker}</div>}
-        {readyButton && <div className="mb-6">{readyButton}</div>}
         <div className="mb-6 w-full max-w-lg md:max-w-none">{lobbyChat}</div>
         <div className="flex flex-col items-center md:w-full md:mt-6">{actionButtons}</div>
         <div className="mt-8 flex justify-center">{footerLinks}</div>
@@ -665,18 +661,20 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               <div className="flex flex-col gap-6">
                 {/* Player count + grid in a surface card */}
                 <div className="rounded-lg border border-primary/20 bg-card p-5">
-                  <div className="mb-4 flex items-center gap-2 text-muted-foreground">
-                    <Users className="h-5 w-5" />
-                    <span className="font-body text-lg">
-                      {players.length} / 10 players
-                    </span>
+                  <div className="mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Users className="h-5 w-5" />
+                      <span className="font-body text-lg">
+                        {players.length} / 10 players
+                      </span>
+                    </div>
+                    {readyButton}
                   </div>
                   {waitingMessage && <div className="mb-4">{waitingMessage}</div>}
                   {playerGrid}
                 </div>
 
                 {sigilPicker && <div className="w-full">{sigilPicker}</div>}
-                {readyButton}
               </div>
             </div>
 
