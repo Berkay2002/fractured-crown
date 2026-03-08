@@ -477,6 +477,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           <h1 className="font-display text-2xl font-bold tracking-wider text-primary">
             The Council Gathers
           </h1>
+          <div className="mt-3">{howToPlay}</div>
         </motion.div>
 
         {/* Two-column grid with gold divider as middle column */}
@@ -485,7 +486,6 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           <div className="flex flex-col overflow-y-auto px-8">
             <div className="flex flex-col gap-6">
               {roomCodeCard}
-              <div className="w-full">{howToPlay}</div>
               {royalDecrees}
             </div>
           </div>
