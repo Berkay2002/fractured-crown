@@ -7,6 +7,8 @@ import roleUsurperImg from '@/assets/role-usurper.png';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { powerInvestigate, powerExecution, powerElection } from '@/lib/powerImages';
+import victoryUsurperExecuted from '@/assets/victory-usurper-executed.png';
+import victoryUsurperCrowned from '@/assets/victory-usurper-crowned.png';
 import EdictTracker from './EdictTracker';
 import PlayerCouncil from './PlayerCouncil';
 import PolicyCardUI from './PolicyCardUI';
