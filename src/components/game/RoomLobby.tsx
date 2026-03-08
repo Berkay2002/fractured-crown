@@ -9,6 +9,7 @@ import HowToPlayModal from './HowToPlayModal';
 import SigilAvatar, { SIGILS, sigilImageUrl } from './SigilAvatar';
 import { useLobbyPresence } from '@/hooks/useLobbyPresence';
 import { LobbyPresenceCursor } from '@/components/lobby/LobbyPresenceCursor';
+import RoyalDecrees, { type GameSettings, parseSettings } from './RoyalDecrees';
 
 interface Player {
   id: number;
