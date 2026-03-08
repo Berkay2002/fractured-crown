@@ -150,12 +150,12 @@ const Index = () => {
             Fractured Crown
           </h1>
 
-          {/* Tagline + gold rule */}
+          {/* Tagline */}
           <div className="animate-fadeInUp flex flex-col items-center gap-3 w-full" style={{ animationDelay: '300ms' }}>
+            <div className="w-32 border-t border-[#c9a84c]/30" />
             <p className="font-body text-xl md:text-2xl italic tracking-widest text-center" style={{ color: '#b8a47a' }}>
               In the kingdom of lies, loyalty is the rarest currency.
             </p>
-            <div className="w-32 border-t border-[#c9a84c]/30" />
           </div>
 
           {/* Ornament */}
