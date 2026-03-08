@@ -49,7 +49,6 @@ const roleConfig = {
 const RoleReveal = ({ myRole, players, onDismiss }: RoleRevealProps) => {
   const [revealed, setRevealed] = useState(false);
   const config = roleConfig[myRole.role];
-  const Icon = config.icon;
 
   const allies = (myRole.revealed_allies as number[]) || [];
   const allyNames = allies
