@@ -112,10 +112,10 @@ const PlayerCouncil = ({
                 </div>
 
                 {isHerald && (
-                  <span className="text-[8px] md:text-[9px] lg:text-[10px] uppercase tracking-wider text-primary font-display">Herald</span>
+                  <span className="text-[8px] md:text-[9px] lg:text-xs uppercase tracking-wider text-primary font-display">Herald</span>
                 )}
                 {isLC && (
-                  <span className="text-[8px] md:text-[9px] lg:text-[10px] uppercase tracking-wider text-accent-foreground font-display">Commander</span>
+                  <span className="text-[8px] md:text-[9px] lg:text-xs uppercase tracking-wider text-accent-foreground font-display">Commander</span>
                 )}
               </motion.button>
 
