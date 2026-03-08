@@ -201,6 +201,7 @@ const GameBoard = ({
                 currentPlayerId={currentPlayerId}
                 onClose={() => {}}
                 heraldHand={heraldHand}
+                setHeraldHand={setHeraldHand}
                 chancellorHand={chancellorHand}
                 setChancellorHand={setChancellorHand}
               />
