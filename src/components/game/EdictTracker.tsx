@@ -72,7 +72,7 @@ const EdictTracker = ({ type, count, playerCount = 5 }: EdictTrackerProps) => {
 
   return (
     <div className={`flex flex-col gap-2 ${shaking ? 'chaos-shake' : ''}`}>
-      <span className="font-display text-xs uppercase tracking-widest text-muted-foreground">
+      <span className="font-display text-[9px] md:text-[10px] lg:text-xs uppercase tracking-widest text-muted-foreground">
         {label}
       </span>
       <div className="flex gap-1.5">
