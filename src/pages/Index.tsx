@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +9,14 @@ import { Link } from 'react-router-dom';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
 type Mode = 'landing' | 'create' | 'join';
+
+const EMBERS = Array.from({ length: 10 }, (_, i) => ({
+  id: i,
+  left: `${5 + Math.random() * 90}%`,
+  duration: `${6 + Math.random() * 6}s`,
+  delay: `${Math.random() * 8}s`,
+  opacity: 0.3 + Math.random() * 0.3,
+}));
 
 const Index = () => {
   usePageTitle('Fractured Crown');
@@ -84,7 +90,8 @@ const Index = () => {
   const needsAuth = !user;
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Video background — untouched */}
       <div className="fixed inset-0 w-screen h-screen overflow-hidden z-0 pointer-events-none">
         <video
           autoPlay
@@ -102,143 +109,194 @@ const Index = () => {
         <div className="absolute inset-0 bg-[#0f0d0b]/70" />
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: 'easeOut' }}
-        className="relative z-10 flex flex-col items-center gap-8 px-4"
-      >
-        <div className="text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, delay: 0.2 }}
+      {/* Floating embers */}
+      <div className="fixed inset-0 z-[1] pointer-events-none overflow-hidden">
+        {EMBERS.map((e) => (
+          <span
+            key={e.id}
+            className="ember"
+            style={{
+              left: e.left,
+              bottom: '-2%',
+              animationDuration: e.duration,
+              animationDelay: e.delay,
+              opacity: e.opacity,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Radial vignette behind content */}
+      <div
+        className="fixed inset-0 z-[2] pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at center, transparent 30%, rgba(15,13,11,0.6) 100%)',
+        }}
+      />
+
+      {/* Center content */}
+      <div className="absolute inset-0 z-10 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-6 px-4 max-w-xs w-full">
+
+          {/* Crown icon */}
+          <div className="animate-fadeInUp" style={{ animationDelay: '0ms' }}>
+            <Crown
+              className="crown-breathe h-12 w-12 text-primary mx-auto"
+              strokeWidth={1.5}
+            />
+          </div>
+
+          {/* Title */}
+          <h1
+            className="animate-fadeInUp font-display font-bold text-primary text-center text-6xl md:text-8xl tracking-[0.15em]"
+            style={{
+              animationDelay: '150ms',
+              textShadow: '0 0 40px rgba(201,168,76,0.4), 0 0 80px rgba(201,168,76,0.15)',
+            }}
           >
-            <h1 className="font-display text-4xl font-bold tracking-wider text-primary sm:text-5xl md:text-6xl">
-              Fractured Crown
-            </h1>
-          </motion.div>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-            className="mt-4 max-w-md font-body text-lg italic text-muted-foreground text-center"
+            Fractured Crown
+          </h1>
+
+          {/* Gold rule + tagline + gold rule */}
+          <div className="animate-fadeInUp flex flex-col items-center gap-3 w-full" style={{ animationDelay: '300ms' }}>
+            <div className="w-32 border-t border-[#c9a84c]/30" />
+            <p className="font-body text-xl md:text-2xl italic tracking-widest text-center" style={{ color: '#b8a47a' }}>
+              In the kingdom of lies, loyalty is the rarest currency.
+            </p>
+            <div className="w-32 border-t border-[#c9a84c]/30" />
+          </div>
+
+          {/* Ornament */}
+          <div className="animate-fadeInUp text-center" style={{ animationDelay: '400ms', color: 'rgba(201,168,76,0.5)' }}>
+            <span className="font-body text-sm tracking-widest">⸻ ✦ ⸻</span>
+          </div>
+
+          {/* Player count descriptor */}
+          <p
+            className="animate-fadeInUp text-xs tracking-[0.3em] uppercase text-center"
+            style={{ animationDelay: '450ms', color: '#6b5d47' }}
           >
-            In the kingdom of lies, loyalty is the rarest currency.
-          </motion.p>
+            For 5 to 10 players · Social Deduction · Dark Fantasy
+          </p>
+
+          {/* Buttons / Forms */}
+          <div className="animate-fadeInUp w-full max-w-xs" style={{ animationDelay: '600ms' }}>
+            {needsAuth ? (
+              <div className="flex flex-col items-center gap-4">
+                <button
+                  onClick={handleSignIn}
+                  disabled={authenticating}
+                  className="w-full max-w-xs h-14 rounded-none font-display text-sm tracking-widest uppercase bg-[#c9a84c] text-[#0f0d0b] border-2 border-[#c9a84c] shadow-[inset_0_0_20px_rgba(201,168,76,0.1)] transition-all duration-300 hover:bg-transparent hover:text-[#c9a84c] disabled:opacity-50"
+                >
+                  {authenticating ? 'Entering...' : 'Enter the Kingdom'}
+                </button>
+              </div>
+            ) : (
+              <>
+                {mode === 'landing' && (
+                  <div className="flex flex-col gap-4">
+                    <button
+                      onClick={() => setMode('create')}
+                      className="w-full max-w-xs h-14 rounded-none font-display text-sm tracking-widest uppercase bg-[#c9a84c] text-[#0f0d0b] border-2 border-[#c9a84c] shadow-[inset_0_0_20px_rgba(201,168,76,0.1)] transition-all duration-300 hover:bg-transparent hover:text-[#c9a84c] flex items-center justify-center gap-2"
+                    >
+                      <Crown className="h-4 w-4" />
+                      Create Game
+                    </button>
+                    <button
+                      onClick={() => setMode('join')}
+                      className="w-full max-w-xs h-14 rounded-none font-display text-sm tracking-widest uppercase bg-transparent text-[#c9a84c] border-2 border-[#c9a84c]/50 transition-all duration-300 hover:border-[#c9a84c] hover:bg-[#c9a84c]/10 flex items-center justify-center gap-2"
+                    >
+                      <Users className="h-4 w-4" />
+                      Join Game
+                    </button>
+                  </div>
+                )}
+
+                {mode === 'create' && (
+                  <div className="flex flex-col gap-4">
+                    <Input
+                      placeholder="Your name, herald..."
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      maxLength={30}
+                      className="h-12 rounded-none border-[#c9a84c]/30 bg-[#0f0d0b]/60 font-body text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
+                      autoFocus
+                    />
+                    <button
+                      onClick={handleCreate}
+                      disabled={!displayName.trim() || submitting}
+                      className="w-full h-14 rounded-none font-display text-sm tracking-widest uppercase bg-[#c9a84c] text-[#0f0d0b] border-2 border-[#c9a84c] shadow-[inset_0_0_20px_rgba(201,168,76,0.1)] transition-all duration-300 hover:bg-transparent hover:text-[#c9a84c] disabled:opacity-50"
+                    >
+                      {submitting ? 'Forging...' : 'Forge the Council'}
+                    </button>
+                    <button
+                      onClick={() => setMode('landing')}
+                      className="font-body text-xs tracking-widest uppercase transition-colors"
+                      style={{ color: '#6b5d47' }}
+                    >
+                      ← Back
+                    </button>
+                  </div>
+                )}
+
+                {mode === 'join' && (
+                  <div className="flex flex-col gap-4">
+                    <Input
+                      placeholder="Your name, herald..."
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      maxLength={30}
+                      className="h-12 rounded-none border-[#c9a84c]/30 bg-[#0f0d0b]/60 font-body text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
+                      autoFocus
+                    />
+                    <Input
+                      placeholder="Room code (e.g. KNGHTX)"
+                      value={roomCode}
+                      onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                      maxLength={6}
+                      className="h-12 rounded-none border-[#c9a84c]/30 bg-[#0f0d0b]/60 font-mono text-center text-xl tracking-[0.3em] text-primary placeholder:text-muted-foreground placeholder:tracking-normal placeholder:text-sm focus-visible:ring-primary"
+                    />
+                    <button
+                      onClick={handleJoin}
+                      disabled={!displayName.trim() || roomCode.trim().length !== 6 || submitting}
+                      className="w-full h-14 rounded-none font-display text-sm tracking-widest uppercase bg-[#c9a84c] text-[#0f0d0b] border-2 border-[#c9a84c] shadow-[inset_0_0_20px_rgba(201,168,76,0.1)] transition-all duration-300 hover:bg-transparent hover:text-[#c9a84c] disabled:opacity-50"
+                    >
+                      {submitting ? 'Entering...' : 'Enter the Council'}
+                    </button>
+                    <button
+                      onClick={() => setMode('landing')}
+                      className="font-body text-xs tracking-widest uppercase transition-colors"
+                      style={{ color: '#6b5d47' }}
+                    >
+                      ← Back
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
+      </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-          className="w-full max-w-sm"
-        >
-          {needsAuth ? (
-            <div className="flex flex-col items-center gap-4">
-              <Button
-                onClick={handleSignIn}
-                disabled={authenticating}
-                className="gold-shimmer h-14 font-display text-lg tracking-wider text-primary-foreground"
-                size="lg"
-              >
-                <Crown className="mr-2 h-5 w-5" />
-                {authenticating ? 'Entering...' : 'Enter the Kingdom'}
-              </Button>
-            </div>
-          ) : (
-            <>
-              {mode === 'landing' && (
-                <div className="flex flex-col gap-4">
-                  <Button
-                    onClick={() => setMode('create')}
-                    className="gold-shimmer h-14 font-display text-lg tracking-wider text-primary-foreground"
-                    size="lg"
-                  >
-                    <Crown className="mr-2 h-5 w-5" />
-                    Create Game
-                  </Button>
-                  <Button
-                    onClick={() => setMode('join')}
-                    variant="outline"
-                    className="h-14 border-primary/30 font-display text-lg tracking-wider text-primary hover:bg-primary/10"
-                    size="lg"
-                  >
-                    <Users className="mr-2 h-5 w-5" />
-                    Join Game
-                  </Button>
-                </div>
-              )}
-
-              {mode === 'create' && (
-                <div className="flex flex-col gap-4">
-                  <Input
-                    placeholder="Your name, herald..."
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    maxLength={30}
-                    className="h-12 border-border bg-card font-body text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
-                    autoFocus
-                  />
-                  <Button
-                    onClick={handleCreate}
-                    disabled={!displayName.trim() || submitting}
-                    className="gold-shimmer h-12 font-display tracking-wider text-primary-foreground"
-                  >
-                    {submitting ? 'Forging...' : 'Forge the Council'}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => setMode('landing')}
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    ← Back
-                  </Button>
-                </div>
-              )}
-
-              {mode === 'join' && (
-                <div className="flex flex-col gap-4">
-                  <Input
-                    placeholder="Your name, herald..."
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    maxLength={30}
-                    className="h-12 border-border bg-card font-body text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
-                    autoFocus
-                  />
-                  <Input
-                    placeholder="Room code (e.g. KNGHTX)"
-                    value={roomCode}
-                    onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-                    maxLength={6}
-                    className="h-12 border-border bg-card font-mono text-center text-xl tracking-[0.3em] text-primary placeholder:text-muted-foreground placeholder:tracking-normal placeholder:text-sm focus-visible:ring-primary"
-                  />
-                  <Button
-                    onClick={handleJoin}
-                    disabled={!displayName.trim() || roomCode.trim().length !== 6 || submitting}
-                    className="gold-shimmer h-12 font-display tracking-wider text-primary-foreground"
-                  >
-                    {submitting ? 'Entering...' : 'Enter the Council'}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => setMode('landing')}
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    ← Back
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
-        </motion.div>
-      </motion.div>
-
-      <footer className="absolute bottom-4 z-10 flex gap-3 font-body text-xs text-muted-foreground">
-        <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-        <span>·</span>
-        <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+      {/* Footer */}
+      <footer className="absolute bottom-6 left-0 right-0 z-10 text-center">
+        <div className="inline-flex gap-3 text-xs tracking-widest uppercase">
+          <Link
+            to="/privacy"
+            className="transition-colors hover:text-[#c9a84c]/60"
+            style={{ color: '#4a3f2e' }}
+          >
+            Privacy Policy
+          </Link>
+          <span style={{ color: '#4a3f2e' }}>·</span>
+          <Link
+            to="/terms"
+            className="transition-colors hover:text-[#c9a84c]/60"
+            style={{ color: '#4a3f2e' }}
+          >
+            Terms of Service
+          </Link>
+        </div>
       </footer>
     </div>
   );
