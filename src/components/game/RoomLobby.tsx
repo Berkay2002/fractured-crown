@@ -118,7 +118,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * idx }}
-              className="relative flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-4 mt-3"
+              className="relative flex flex-col items-center gap-2 rounded-lg border border-border bg-card px-4 pb-4 pt-6"
             >
               <div className="absolute right-2 top-2">
                 {isOnline ? (
@@ -139,7 +139,7 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
               </div>
 
               {isPlayerHost && (
-                <Crown className="absolute -top-3 left-1/2 h-4 w-4 -translate-x-1/2 text-primary" />
+                <Crown className="absolute -top-1 left-1/2 h-4 w-4 -translate-x-1/2 text-primary" />
               )}
 
               <span className="text-center font-body text-sm text-foreground">
