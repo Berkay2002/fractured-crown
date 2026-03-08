@@ -109,6 +109,8 @@ const GameBoard = ({
   const roundVotes = votes.filter(v => v.round_id === currentRound?.id);
   const allVotesRevealed = roundVotes.length > 0 && roundVotes.every(v => v.revealed);
   const hasVotedAlready = roundVotes.some(v => v.player_id === currentPlayerId);
+
+  const handleNominate = async (nomineeId: number) => {
     setNominatingLC(false);
     setNominating(true);
     const { data, error } = await supabase.functions.invoke('nominate-chancellor', {
