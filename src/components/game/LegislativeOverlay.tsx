@@ -92,8 +92,8 @@ const LegislativeOverlay = ({
   const vetoResolved = currentRound?.veto_approved !== null;
 
   // Resolve hands: prefer local state, fall back to round data from DB
-  const resolvedHeraldHand = heraldHand ?? (currentRound?.herald_hand as PolicyCard[] | null);
-  const resolvedChancellorHand = chancellorHand ?? (currentRound?.chancellor_hand as PolicyCard[] | null);
+  const resolvedHeraldHand = (heraldHand ?? (currentRound?.herald_hand as string[] | null)) as PolicyCard[] | null;
+  const resolvedChancellorHand = (chancellorHand ?? (currentRound?.chancellor_hand as string[] | null)) as PolicyCard[] | null;
 
   // Determine which cards to show
   const cards: PolicyCard[] = isHerald
