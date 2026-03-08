@@ -1,0 +1,23 @@
+const SUPABASE_HOST = 'https://jbsivexwgtjkcyifgmow.supabase.co';
+
+const isDiscordActivity =
+  typeof window !== 'undefined' &&
+  (window.location.hostname.includes('discordsays.com') ||
+    window.location.hostname.includes('discord.com') ||
+    !!window.location.pathname.match(/^\/channels/));
+
+/**
+ * Returns the correct Supabase storage URL, proxied when inside a Discord Activity.
+ */
+export const storageUrl = (path: string): string => {
+  if (isDiscordActivity) {
+    return `/.proxy/supabase${path}`;
+  }
+  return `${SUPABASE_HOST}${path}`;
+};
+
+/**
+ * Shorthand for sigil storage assets.
+ */
+export const sigilUrl = (filename: string): string =>
+  storageUrl(`/storage/v1/object/public/sigils/${filename}`);
