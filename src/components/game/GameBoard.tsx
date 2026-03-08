@@ -48,6 +48,7 @@ const GameBoard = ({
   const [showRoleReveal, setShowRoleReveal] = useState(true);
   const [nominatingLC, setNominatingLC] = useState(false);
   const [nominating, setNominating] = useState(false);
+  const [mobileVoting, setMobileVoting] = useState(false);
 
   const isHerald = gameState?.current_herald_id === currentPlayerId;
   const phase = gameState?.current_phase ?? 'election';
