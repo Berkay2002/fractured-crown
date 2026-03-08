@@ -34,6 +34,7 @@ export interface GameRoomState {
   disconnected: boolean;
   activeReactions: Map<number, ActiveReaction>;
   sendReaction: (reaction: string) => void;
+  roomSettings: Record<string, unknown> | null;
 }
 
 export function useGameRoom(roomId: number | null, currentPlayerId: number | null): GameRoomState {
