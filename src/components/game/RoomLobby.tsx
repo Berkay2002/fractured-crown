@@ -430,8 +430,8 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
         );
       }}
     >
-      {/* ── Mobile layout (below lg) ── */}
-      <div className="flex flex-col items-center px-4 py-8 lg:hidden">
+      {/* ── Mobile + Tablet layout (below lg) ── */}
+      <div className="flex flex-col items-center px-4 py-8 md:max-w-2xl md:mx-auto lg:hidden">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -444,15 +444,25 @@ const RoomLobby = ({ room, players, currentPlayerId, onlinePlayers }: RoomLobbyP
           </h1>
         </motion.div>
 
-        <div className="mb-8 w-full max-w-md">{roomCodeCard}</div>
-        <div className="mb-6">{howToPlay}</div>
+        <div className="mb-8 w-full max-w-md md:max-w-none">{roomCodeCard}</div>
+        <div className="mb-6 md:w-full">{howToPlay}</div>
         {royalDecrees}
+
+        {/* Player count + grid in surface card on md */}
+        <div className="mb-6 w-full max-w-lg md:max-w-none md:rounded-lg md:border md:border-border md:bg-card md:p-6">
+          <div className="mb-4 flex items-center justify-center gap-2 text-muted-foreground md:justify-start">
+            <Users className="h-5 w-5" />
+            <span className="font-body text-lg">
+              {players.length} / 10 players
+            </span>
+          </div>
+          {waitingMessage && <div className="mb-4">{waitingMessage}</div>}
+          {playerGrid}
+        </div>
+
         {sigilPicker && <div className="mb-6 w-full max-w-2xl">{sigilPicker}</div>}
-        <div className="mb-6">{playerCount}</div>
-        {waitingMessage && <div className="mb-6">{waitingMessage}</div>}
-        <div className="mb-8 w-full max-w-lg">{playerGrid}</div>
-        <div className="flex flex-col items-center">{actionButtons}</div>
-        <div className="mt-8">{footerLinks}</div>
+        <div className="flex flex-col items-center md:w-full md:mt-6">{actionButtons}</div>
+        <div className="mt-8 flex justify-center">{footerLinks}</div>
       </div>
 
       {/* ── Desktop layout (lg+) ── */}
