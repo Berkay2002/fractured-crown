@@ -113,6 +113,7 @@ const Demo = () => {
           roomCode="DEMO"
           currentPlayerId={1}
           onlinePlayers={onlinePlayers}
+          demoMode
           decayStageOverride={debug.decayOverride ?? undefined}
         />
       )}

@@ -33,6 +33,7 @@ interface GameBoardProps extends GameRoomState {
   currentPlayerId: number | null;
   onlinePlayers: Set<number>;
   decayStageOverride?: number;
+  demoMode?: boolean;
 }
 
 const phaseLabels: Record<string, string> = {
@@ -64,6 +65,7 @@ const GameBoard = ({
   sendReaction,
   roomSettings,
   decayStageOverride,
+  demoMode,
 }: GameBoardProps) => {
   const [showRoleReveal, setShowRoleReveal] = useState(true);
   const [nominatingLC, setNominatingLC] = useState(false);
@@ -98,6 +100,7 @@ const GameBoard = ({
 
   const handleMobileVote = useCallback(async (choice: 'ja' | 'nein') => {
     if (!gameState) return;
+    if (demoMode) { console.log('[Demo] mobile vote:', choice); return; }
     setMobileVoting(true);
     sound.playVoteCast();
     const { data, error } = await supabase.functions.invoke('submit-vote', {
@@ -143,6 +146,11 @@ const GameBoard = ({
   const hasVotedAlready = roundVotes.some(v => v.player_id === currentPlayerId);
 
   const handleNominate = async (nomineeId: number) => {
+    if (demoMode) {
+      console.log('[Demo] nominate:', nomineeId);
+      setNominatingLC(false);
+      return;
+    }
     setNominatingLC(false);
     setNominating(true);
     const { data, error } = await supabase.functions.invoke('nominate-chancellor', {
