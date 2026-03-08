@@ -88,7 +88,17 @@ const Index = () => {
     );
   }
 
-  const needsAuth = !user;
+  const isDiscordActivity =
+    typeof window !== 'undefined' &&
+    (window.location.hostname.includes('discordsays.com') ||
+      window.location.hostname.includes('discord.com') ||
+      !!window.location.pathname.match(/^\/channels/) ||
+      new URLSearchParams(window.location.search).has('frame_id'));
+
+  const discordAltVideoSrc = isDiscordActivity
+    ? '/.proxy/storage/storage/v1/object/public/sigils/landing-page-video-desktop.mp4'
+    : null;
+
 
   return (
     <div className="relative min-h-screen overflow-hidden">
