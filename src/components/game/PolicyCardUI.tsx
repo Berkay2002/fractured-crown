@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
-import { Scroll, Shield, Skull } from 'lucide-react';
+import { Scroll } from 'lucide-react';
+import edictLoyalist from '@/assets/edict-loyalist.png';
+import edictShadow from '@/assets/edict-shadow.png';
 
 export type PolicyCard = 'loyalist' | 'shadow';
 
