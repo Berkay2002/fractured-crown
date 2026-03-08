@@ -176,7 +176,7 @@ Deno.serve(async (req) => {
           await supabase.from('event_log').insert({
             room_id,
             event_type: 'game_over',
-            description: 'The Usurper has been crowned Lord Commander! The shadow court wins.',
+            description: 'The Usurper has been crowned Lord Commander! The Shadow Court wins!',
             round_id: currentRound.id,
           })
           return new Response(JSON.stringify({ success: true, all_voted: true, passed: true, winner: 'usurper_crowned' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
